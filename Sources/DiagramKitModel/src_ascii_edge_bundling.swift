@@ -88,15 +88,19 @@ public func analyzeEdgeBundles(_ graph: inout AsciiGraph) -> [EdgeBundle] {
     var bundledEdges = Set<Int>()
 
     var edgesByTarget: [String: [Int]] = [:]
+    var targetKeyOrder: [String] = []  // first-appearance order (JS Map semantics)
     for idx in graph.edges.indices {
         let edge = graph.edges[idx]
         if nodeEquals(edge.from, edge.to) {
             continue
         }
-        edgesByTarget[nodeBundleKey(edge.to), default: []].append(idx)
+        let key = nodeBundleKey(edge.to)
+        if edgesByTarget[key] == nil { targetKeyOrder.append(key) }
+        edgesByTarget[key, default: []].append(idx)
     }
 
-    for (_, indices) in edgesByTarget {
+    for key in targetKeyOrder {
+        guard let indices = edgesByTarget[key] else { continue }
         if indices.count < 2 || !canBundle(indices, graph) {
             continue
         }
@@ -126,15 +130,19 @@ public func analyzeEdgeBundles(_ graph: inout AsciiGraph) -> [EdgeBundle] {
     }
 
     var edgesBySource: [String: [Int]] = [:]
+    var sourceKeyOrder: [String] = []  // first-appearance order (JS Map semantics)
     for idx in graph.edges.indices {
         let edge = graph.edges[idx]
         if nodeEquals(edge.from, edge.to) || bundledEdges.contains(idx) {
             continue
         }
-        edgesBySource[nodeBundleKey(edge.from), default: []].append(idx)
+        let key = nodeBundleKey(edge.from)
+        if edgesBySource[key] == nil { sourceKeyOrder.append(key) }
+        edgesBySource[key, default: []].append(idx)
     }
 
-    for (_, indices) in edgesBySource {
+    for key in sourceKeyOrder {
+        guard let indices = edgesBySource[key] else { continue }
         if indices.count < 2 || !canBundle(indices, graph) {
             continue
         }

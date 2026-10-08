@@ -256,8 +256,12 @@ public func renderClassAsciiDiagram(
         classById[cls.id] = cls
     }
 
+    // Children stay in relationship-declaration order: the mermaid-js source
+    // used JS `Set`s, which iterate in insertion order. A Swift `Set` iterates
+    // in a per-process random order, which made cyclic class diagrams (e.g.
+    // MVC) lay out differently from run to run.
     var parents: [String: Set<String>] = [:]
-    var children: [String: Set<String>] = [:]
+    var children: [String: [String]] = [:]
 
     for rel in diagram.relationships {
         let isHierarchical = rel.type == .inheritance || rel.type == .realization
@@ -268,9 +272,9 @@ public func renderClassAsciiDiagram(
         pset.insert(parentId)
         parents[childId] = pset
 
-        var cset = children[parentId] ?? Set<String>()
-        cset.insert(childId)
-        children[parentId] = cset
+        if !(children[parentId] ?? []).contains(childId) {
+            children[parentId, default: []].append(childId)
+        }
     }
 
     var level: [String: Int] = [:]
@@ -285,9 +289,9 @@ public func renderClassAsciiDiagram(
     while qi < queue.count {
         let id = queue[qi]
         qi += 1
-        guard let childSet = children[id] else { continue }
+        guard let childIds = children[id] else { continue }
 
-        for childId in childSet {
+        for childId in childIds {
             let newLevel = (level[id] ?? 0) + 1
             if newLevel > levelCap {
                 continue
