@@ -1,8 +1,9 @@
-// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 import Foundation
 #if canImport(CoreGraphics)
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 #endif
 
 // MARK: - Shape Spec Defaults
@@ -414,4 +415,3 @@ extension ShapeSpecRegistry {
     // in `ShapeSpecRegistry+DefaultsSpecial.swift` to keep both files
     // below the file-size warning threshold (REVIEW.md L1).
 }
-#endif

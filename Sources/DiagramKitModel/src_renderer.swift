@@ -1,5 +1,4 @@
-// Apple-only — depends on EdgePathBuilder/SVGPathSerializer (gated). `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 // Ported from original/src/renderer.ts
 import Foundation
 import DiagramKitCommon
@@ -1141,4 +1140,3 @@ final class original_src_renderer {
         try _renderSvgEntry(graph, colors, font, transparent)
     }
 }
-#endif

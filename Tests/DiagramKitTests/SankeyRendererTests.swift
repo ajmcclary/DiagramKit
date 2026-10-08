@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 import CoreGraphics
 @testable import DiagramKit
@@ -316,3 +319,4 @@ final class SankeyRendererTests: XCTestCase {
         return count
     }
 }
+#endif

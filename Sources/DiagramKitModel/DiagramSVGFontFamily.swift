@@ -12,4 +12,7 @@ public enum DiagramSVGFontFamily {
     /// CoreText layout measurement uses
     /// `RenderTokens.defaultProportionalFontFamily` instead.
     public static let proportional = "Inter"
+
+    /// CSS `font-family` fallback chain for proportional text.
+    public static let proportionalChain = "\(proportional), Verdana, sans-serif"
 }

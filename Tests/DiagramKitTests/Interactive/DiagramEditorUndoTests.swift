@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 9: Interactive Model Tests — Undo/redo and atomicity
 
 import Testing
@@ -276,3 +279,4 @@ struct DiagramEditorUndoTests {
         #expect(!editor.undoManager.canUndo)
     }
 }
+#endif

@@ -41,25 +41,6 @@ struct LinuxPlatformGateTests {
         #expect(result.reason == nil)
     }
 
-    /// Returns true when the SVG contains no NaN/Infinity numeric literals.
-    /// Looks for the patterns Swift's `String(describing: Double.nan)` emits
-    /// when serialized into SVG (`nan`, `-nan`, `inf`, `-inf`) as attribute
-    /// values or inside coordinate / viewBox lists. Word-internal substrings
-    /// like "dominant-baseline" are deliberately ignored.
-    private func _svgHasNoSerializedNaN(_ svg: String) -> Bool {
-        let lower = svg.lowercased()
-        // Attribute values: `="nan"`, `="-nan"`, `="inf"`, `="-inf"`.
-        for needle in ["=\"nan\"", "=\"-nan\"", "=\"inf\"", "=\"-inf\""] {
-            if lower.contains(needle) { return false }
-        }
-        // Inside attribute lists (viewBox, transform, points): bare tokens
-        // separated by space, comma, or paren.
-        for delim in [" nan ", " -nan ", " inf ", " -inf ", ",nan", ",-nan", ",inf", ",-inf", "(nan", "(-nan", "(inf", "(-inf"] {
-            if lower.contains(delim) { return false }
-        }
-        return true
-    }
-
     @Test func parseImportResultDoesNotGateOnLinux() async throws {
         let source = "ishikawa\nProblem\nCause A\nCause B"
         // Parsing succeeds on every platform — only layout/render is gated.
@@ -86,7 +67,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(_svgHasNoSerializedNaN(svg))
+        #expect(svgHasNoSerializedNaN(svg))
     }
 
     @Test func ishikawaRenderASCIISucceedsOnLinux() async throws {
@@ -116,7 +97,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(_svgHasNoSerializedNaN(svg))
+        #expect(svgHasNoSerializedNaN(svg))
     }
 
     @Test func treeViewRenderASCIISucceedsOnLinux() async throws {
@@ -140,7 +121,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(_svgHasNoSerializedNaN(svg))
+        #expect(svgHasNoSerializedNaN(svg))
     }
 
     @Test func eventModelingRenderASCIISucceedsOnLinux() async throws {

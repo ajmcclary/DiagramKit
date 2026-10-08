@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 9: Interactive Model Tests — DiagramMutation value-type semantics
 
 import Testing
@@ -65,3 +68,4 @@ struct DiagramMutationTests {
         #expect(set.count == 2)
     }
 }
+#endif

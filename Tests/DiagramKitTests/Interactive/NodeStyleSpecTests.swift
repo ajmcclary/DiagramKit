@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 1 — NodeStyleSpec value semantics.
 
 import Testing
@@ -52,3 +55,4 @@ struct NodeStyleSpecTests {
         #expect(a.classDefProperties == b.classDefProperties)
     }
 }
+#endif

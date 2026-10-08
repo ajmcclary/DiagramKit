@@ -1,13 +1,15 @@
-// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 import Foundation
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
 #endif
 
+#if canImport(UIKit) || canImport(AppKit)
 public func _hex(_ color: BMColor) -> String? {
     #if canImport(UIKit)
     var r: CGFloat = 0
@@ -31,6 +33,7 @@ public func _hex(_ color: BMColor) -> String? {
     let bi = Int(max(0, min(255, (b * 255).rounded())))
     return String(format: "#%02X%02X%02X", ri, gi, bi)
 }
+#endif
 
 public func _flattenKnownSvgTokens(_ svg: String, theme: DiagramTheme) -> String {
     let bg = _hex(theme.background) ?? "#FFFFFF"
@@ -241,4 +244,3 @@ internal func _parseVarBody(_ body: String) -> (name: String, fallback: String?)
         return (name, nil)
     }
 }
-#endif

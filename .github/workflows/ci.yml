@@ -75,24 +75,20 @@ jobs:
         run: ./Scripts/check-linux-check-runtime-skip.sh
 
   linux:
-    # Only the three targets that build on Linux today. The umbrella
-    # DiagramKit target has never compiled there (see DiagramKit's
-    # CLAUDE.md, Linux Portability); widen this to Scripts/linux-check.sh
-    # once that port lands. Unlike Dockerfile.linux-check's matrix, a
-    # failure here fails the job.
-    name: Linux · portable targets
+    # Every target builds and the whole portable test suite runs on Linux
+    # (Apple-only test files compile to empty), including CorpusRenderTests,
+    # which renders every corpus diagram to SVG and ASCII. Same image as
+    # DiagramKit's Scripts/linux-check.sh.
+    name: Linux · build & test
     runs-on: ubuntu-latest
     container: swift:6.3.1-noble
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
-      - name: swift build (Linux-portable targets)
-        run: |
-          for target in DiagramKitCommon DiagramKitModel DiagramKitTestSupport; do
-            echo "::group::swift build --target $target"
-            swift build --target "$target"
-            echo "::endgroup::"
-          done
+      - name: swift build --build-tests
+        run: swift build --build-tests
+      - name: swift test
+        run: swift test
 
   ios:
     name: iOS 27 · build

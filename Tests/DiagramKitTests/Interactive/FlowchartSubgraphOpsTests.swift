@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 3 — subgraph forest mutations.
 // MermaidSubgraph is a reference type; these tests deliberately pin
 // undo integrity (deep-copy correctness) for every mutation.
@@ -255,3 +258,4 @@ struct FlowchartSubgraphOpsTests {
         #expect(model.edges.count == 1)
     }
 }
+#endif

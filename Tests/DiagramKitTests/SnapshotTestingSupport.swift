@@ -1,9 +1,15 @@
 #if os(macOS)
+#if canImport(AppKit)
 import AppKit
+#endif
 import Foundation
+#if canImport(ImageIO)
 import ImageIO
+#endif
 import SnapshotTesting
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
+#endif
 import XCTest
 
 /// SnapshotTesting's perceptual comparator passes a `CGRect` to

@@ -29,18 +29,28 @@ COPY . /work/
 
 RUN swift --version > /tmp/results.txt 2>&1 && echo "" >> /tmp/results.txt
 
+# Every target must build: a FAIL fails the image build (it used to be
+# recorded and ignored, which hid a broken umbrella build for months), and the
+# results are printed so the failing target is visible in the build log.
 RUN echo "=== Build matrix ===" >> /tmp/results.txt && \
+    failed=0; \
     for tgt in DiagramKitCommon DiagramKitModel DiagramKitTestSupport DiagramKit DiagramKitLinuxTests; do \
         echo "--- swift build --target $tgt ---" >> /tmp/results.txt; \
-        swift build --target "$tgt" >> /tmp/results.txt 2>&1 \
-            && echo "RESULT: $tgt PASS" >> /tmp/results.txt \
-            || echo "RESULT: $tgt FAIL" >> /tmp/results.txt; \
+        if swift build --target "$tgt" >> /tmp/results.txt 2>&1; then \
+            echo "RESULT: $tgt PASS" >> /tmp/results.txt; \
+        else \
+            echo "RESULT: $tgt FAIL" >> /tmp/results.txt; failed=1; \
+        fi; \
         echo "" >> /tmp/results.txt; \
-    done
+    done; \
+    if [ "$failed" -ne 0 ]; then cat /tmp/results.txt; exit 1; fi
 
-RUN echo "=== swift test --filter LinuxPlatformGateTests ===" >> /tmp/results.txt && \
-    swift test --filter LinuxPlatformGateTests >> /tmp/results.txt 2>&1 \
-        && echo "RESULT: LinuxPlatformGateTests PASS" >> /tmp/results.txt \
-        || (echo "RESULT: LinuxPlatformGateTests FAIL" >> /tmp/results.txt && exit 1)
+# The whole portable test suite (Apple-only test files compile to empty).
+RUN echo "=== swift test ===" >> /tmp/results.txt && \
+    if swift test >> /tmp/results.txt 2>&1; then \
+        echo "RESULT: swift test PASS" >> /tmp/results.txt; \
+    else \
+        echo "RESULT: swift test FAIL" >> /tmp/results.txt; cat /tmp/results.txt; exit 1; \
+    fi
 
 CMD ["bash", "-c", "echo '=== Results ==='; cat /tmp/results.txt | grep -E 'RESULT:|swift build|=== '"]

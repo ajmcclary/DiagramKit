@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import CoreGraphics
 import Testing
 @testable import DiagramKit
@@ -185,3 +188,4 @@ struct TreeViewRendererTests {
         #expect(nonWhitePixels > 8)
     }
 }
+#endif

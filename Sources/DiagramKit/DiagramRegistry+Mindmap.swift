@@ -21,15 +21,7 @@ extension DiagramRegistry {
             return value
         },
         layout: { diagram, _ in
-            #if canImport(UIKit) || canImport(AppKit)
-            return try layoutMindmap(diagram)
-            #else
-            // Linux: layoutMindmap depends on BMFont + NSAttributedString
-            // text measurement. Unreachable until the portable text-measurement
-            // shim lands.
-            _ = diagram
-            throw DiagramStructuralError.payloadMismatch(.mindmap)
-            #endif
+            try layoutMindmap(diagram)
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .mindmap(positioned))

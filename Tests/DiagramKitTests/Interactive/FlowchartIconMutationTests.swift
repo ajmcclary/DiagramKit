@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 4 — setNodeIcon mutation.
 
 import Testing
@@ -106,3 +109,4 @@ struct FlowchartIconMutationTests {
         #expect(node?.properties?.icon == nil)
     }
 }
+#endif

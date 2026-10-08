@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import CoreGraphics
 import Testing
 @testable import DiagramKit
@@ -40,3 +43,4 @@ struct ZenUMLRendererTests {
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: 640, height: 480))
     }
 }
+#endif

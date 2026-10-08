@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 import CustomDump
 @testable import DiagramKit
@@ -257,3 +260,4 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
         }
     }
 }
+#endif

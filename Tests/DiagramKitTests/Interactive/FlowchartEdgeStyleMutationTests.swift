@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // FlowchartMutation.setEdgeStyle — apply, undo, error path.
 
 import Testing
@@ -115,3 +118,4 @@ struct FlowchartEdgeStyleMutationTests {
         #expect(model.edges[0].style == .solid)
     }
 }
+#endif

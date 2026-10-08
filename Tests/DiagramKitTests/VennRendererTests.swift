@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 @testable import DiagramKit
 @testable import DiagramKitCommon
@@ -53,3 +56,4 @@ final class VennRendererTests: XCTestCase {
         XCTAssertGreaterThan(box.height, 90)
     }
 }
+#endif

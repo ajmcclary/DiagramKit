@@ -1,13 +1,14 @@
-// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+// Linux-portable: shape geometry shared by every platform (see PortableRenderSupport.swift).
 //
 // Second half of `ShapeSpecRegistry+Defaults.swift`, split per REVIEW.md L1
 // to keep both files below the file-size warning threshold. Holds the
 // document / cylinder / specialized / state / icon spec factories.
 // `ShapeSpec._buildSpecs()` ties both halves into a single registry.
-#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 #if canImport(CoreGraphics)
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 #endif
 
 extension ShapeSpecRegistry {
@@ -405,4 +406,3 @@ extension ShapeSpecRegistry {
         }, path: { _, _ in .ellipse })
     }
 }
-#endif

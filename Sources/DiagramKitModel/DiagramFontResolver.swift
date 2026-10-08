@@ -65,7 +65,7 @@ public struct DiagramFontResolver: Sendable {
 
     /// CSS `font-family` fallback chain for proportional text.
     public var svgProportionalFamilyChain: String {
-        "\(svgProportionalFamily), Verdana, sans-serif"
+        DiagramSVGFontFamily.proportionalChain
     }
 
     /// CSS `font-family` fallback chain for monospace text.

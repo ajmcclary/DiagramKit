@@ -1,5 +1,4 @@
-// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 import Foundation
 import DiagramKitCommon
 
@@ -96,7 +95,7 @@ public func renderZenUMLSvg(
         titleSvg = ""
     }
 
-    let fontChain = DiagramFontResolver().svgProportionalFamilyChain
+    let fontChain = DiagramSVGFontFamily.proportionalChain
     let style = """
     <defs>
       <style>
@@ -329,4 +328,3 @@ private func renderComment(_ comment: PositionedZenUMLComment) -> String {
 private func escXml(_ s: String) -> String {
     SVG.escapeText(s)
 }
-#endif

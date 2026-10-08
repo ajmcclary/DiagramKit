@@ -1,8 +1,9 @@
-// Apple-only — depends on gated symbols (ShapePath/BMFont/etc.). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 import Foundation
 #if canImport(CoreGraphics)
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 #endif
 
 // MARK: - Path Command
@@ -252,4 +253,3 @@ public enum ArrowHeadStyle: String, Sendable {
     case cross
     case diamond
 }
-#endif

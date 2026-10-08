@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // SequenceMutation.moveMessage — apply, undo, error path.
 
 import Testing
@@ -113,3 +116,4 @@ struct SequenceMutationTests {
         #expect(model.messages.map(\.label) == ["M1", "M2", "M3"])
     }
 }
+#endif

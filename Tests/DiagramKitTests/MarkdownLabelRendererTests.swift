@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 @testable import DiagramKit
 @testable import DiagramKitCommon
@@ -99,3 +102,4 @@ final class MarkdownLabelRendererTests: XCTestCase {
         XCTAssertEqual(result.length, 0)
     }
 }
+#endif

@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 1 — setNodeShape mutation.
 
 import Testing
@@ -105,3 +108,4 @@ struct FlowchartNodeShapeMutationTests {
         #expect(model.nodesInOrder.first(where: { $0.id == "A" })?.node.shape == .rectangle)
     }
 }
+#endif

@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 5 — setNodeImage mutation.
 
 import Testing
@@ -109,3 +112,4 @@ struct FlowchartImageMutationTests {
         #expect(node?.label == "Node A")
     }
 }
+#endif

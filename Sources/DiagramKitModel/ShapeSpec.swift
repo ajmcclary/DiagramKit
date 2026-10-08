@@ -1,8 +1,9 @@
-// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: SVG/geometry code shared by every platform (see PortableRenderSupport.swift).
 import Foundation
 #if canImport(CoreGraphics)
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 #endif
 
 // MARK: - Shape Specification
@@ -333,4 +334,3 @@ public enum ShapeSpecRegistry {
     }
 
 }
-#endif

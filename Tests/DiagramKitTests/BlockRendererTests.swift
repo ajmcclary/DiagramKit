@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 import CoreGraphics
 @testable import DiagramKit
@@ -252,3 +255,4 @@ final class BlockRendererTests: XCTestCase {
         return (pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3])
     }
 }
+#endif

@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import Testing
 import SnapshotTesting
@@ -140,3 +143,4 @@ struct CorpusMultiFormatSnapshotTests {
         }
     }
 }
+#endif

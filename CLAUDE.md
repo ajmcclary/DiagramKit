@@ -356,41 +356,48 @@ enabled" warnings when re-enabled.
 
 ## Linux Portability
 
-Linux parse/layout support is partial. `DiagramKitCommon`,
-`DiagramKitModel`, and `DiagramKitTestSupport` are Linux-portable. CG, native UI,
-and CoreText-bound layout/rendering remain Apple-only or gated out.
+**Verified 2026-10-08 (`Scripts/linux-check.sh`, swift:6.3.1-noble): every
+target builds on Linux and the full portable test suite passes there**,
+including `CorpusRenderTests` (every corpus entry, all 28 families, renders to
+SVG and ASCII through `DiagramEngine`). CI runs the same suite on Linux on
+every push. The public Linux surface is `DiagramEngine.renderSVG`,
+`renderASCII`, and `parseImportResult` (plus `String.renderDiagramSVG` /
+`renderDiagramASCII`). CG rendering, native views, and the interactive editor
+(`DiagramKitRenderingCG`, `DiagramKitViews`, `DiagramKitInteractive`) are
+Apple-only and compile to empty on Linux.
 
 `BMColor`, `BMFont`, `BMImage`, `BMView`, and `BMBezierPath` are intentionally
 undefined on Linux. Any callsite using them must be platform-gated.
 
-**Verified state (2026-10-08): only `DiagramKitCommon`, `DiagramKitModel`, and
-`DiagramKitTestSupport` build on Linux.** The umbrella `DiagramKit` target
-(and therefore `DiagramKitLinuxTests`) has never compiled there: the Stage 2.5
-work below was written without a Docker run, and `Dockerfile.linux-check`
-records a matrix `FAIL` without failing the build. Blockers: `renderSVG` /
-`renderASCII` take the Apple-only `DiagramTheme`; `SVGRenderRegistry` calls the
-Apple-only flowchart/state (`src_renderer.swift`) and ZenUML renderers; and
-`_resolveSvgCssVariables` / `_flattenKnownSvgTokens` live in the gated
-`SVGHelpers.swift`. Porting the umbrella is open work — CI builds the three
-portable targets on Linux so they cannot silently regress again.
+**How the shared SVG/ASCII code compiles on both platforms.**
+`RenderConfig`, `RenderTokens`, and `DiagramTheme` are Apple types carrying
+`BMColor`/`BMFont`. On Linux, `PortableRenderSupport.swift` defines
+same-named counterparts — `DiagramTheme` (colours as `DiagramThemeColor`, plus
+`transparent`), `RenderConfig` (numeric shape metrics) — exposing only the
+members shared code reads, so the Apple types and Apple output are untouched.
+Rules: numeric defaults live once (`RenderMetricDefaults` /
+`original_src_styles`) and both platforms read them; colour math mirrors
+`BMColor` (AppKit's `.deviceRGB` round trip can make a Linux hex differ by one
+step); grow a Linux counterpart only when shared code needs a member; never
+define `BMColor`/`BMFont` on Linux. The SVG font family is the ungated
+`DiagramSVGFontFamily`. Test files that need AppKit/CoreGraphics rendering or
+the interactive editor are whole-file gated with
+`#if canImport(UIKit) || canImport(AppKit)`, like the Apple-only sources.
 
-The *intended* Linux surface once the umbrella port lands:
-`DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (plus
-`String.renderDiagramSVG` / `renderDiagramASCII`), with all 28 diagram
-families Linux-supported.
 `DiagramDescriptor.linuxSupport: Bool` is the per-family flag and
 `DiagramEngine.linuxSupport(for:)` is the public introspection API —
-both currently return `true` / `(true, nil)` for every family in the
-default registry. The `DiagramError.unsupportedOnPlatform` case remains
-as the protocol contract for third-party importers that declare
-unsupported families in custom registries.
+both return `true` / `(true, nil)` for every family in the default
+registry. The `DiagramError.unsupportedOnPlatform` case remains as the
+protocol contract for third-party importers that declare unsupported
+families in custom registries.
 
-On Linux, text measurement for `ishikawa`, `treeView`, and
-`eventModeling` falls back to `TextMetrics.shared.estimateTextWidth`'s
-char-count estimation (0.55× / 0.6× fontSize per character). Output is
-geometrically valid (no NaN, positive widths/heights) but not
-pixel-equivalent to Apple's CoreText measurement. No Linux-specific
-snapshot baselines are recorded.
+On Linux, text measurement for `ishikawa`, `treeView`, `eventModeling`,
+`mindmap`, and the CoreText-measured layouts falls back to
+`TextMetrics.shared` char-count estimation (0.55× / 0.6× fontSize per
+character). Output is geometrically valid (no NaN, positive widths/heights)
+but not pixel-equivalent to Apple's CoreText measurement, so no Linux
+snapshot baselines are recorded — `CorpusRenderTests` checks that output
+renders and is well-formed rather than comparing it.
 
 ## Forward Roadmap
 

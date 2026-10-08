@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 9: Interactive Model Tests — Source sync and format-ID-driven export
 
 import Testing
@@ -169,3 +172,4 @@ struct DiagramEditorSourceSyncTests {
         #expect(editor.lastExportDiagnostics.contains { $0.severity == .unsupported })
     }
 }
+#endif

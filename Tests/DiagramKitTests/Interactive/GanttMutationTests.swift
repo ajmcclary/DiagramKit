@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // GanttMutation.resizeTask — apply, undo, error path.
 
 import Testing
@@ -118,3 +121,4 @@ struct GanttMutationTests {
         #expect(restored.tasks.first(where: { $0.id == "t1" })?.endTime == originalEnd)
     }
 }
+#endif

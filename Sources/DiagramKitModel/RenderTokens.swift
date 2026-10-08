@@ -80,16 +80,16 @@ public struct RenderTokens: Sendable {
 
     // MARK: - Minimum Sizes
 
-    public var minimumNodeWidth: CGFloat = 60
-    public var minimumNodeHeight: CGFloat = 36
-    public var statePseudostateSize: CGFloat = 28
+    public var minimumNodeWidth: CGFloat = CGFloat(RenderMetricDefaults.minimumNodeWidth)
+    public var minimumNodeHeight: CGFloat = CGFloat(RenderMetricDefaults.minimumNodeHeight)
+    public var statePseudostateSize: CGFloat = CGFloat(RenderMetricDefaults.statePseudostateSize)
 
     // MARK: - Shape-specific
 
-    public var cylinderEllipseRadius: CGFloat = 7
-    public var subroutineInset: CGFloat = 8
-    public var asymmetricIndent: CGFloat = 12
-    public var doubleCircleGap: CGFloat = 5
+    public var cylinderEllipseRadius: CGFloat = CGFloat(RenderMetricDefaults.cylinderEllipseRadius)
+    public var subroutineInset: CGFloat = CGFloat(RenderMetricDefaults.subroutineInset)
+    public var asymmetricIndent: CGFloat = CGFloat(RenderMetricDefaults.asymmetricIndent)
+    public var doubleCircleGap: CGFloat = CGFloat(RenderMetricDefaults.doubleCircleGap)
 
     // MARK: - Edge Labels
 

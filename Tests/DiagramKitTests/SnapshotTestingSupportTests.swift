@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import Testing
 
 @Suite("Snapshot testing compatibility")
@@ -12,3 +15,4 @@ struct SnapshotTestingSupportTests {
         #expect(snapshotPerceptualPrecision(macOSMajorVersion: 28) == 1)
     }
 }
+#endif

@@ -1,5 +1,4 @@
-// Apple-only — depends on gated symbols (ShapePath/BMFont/etc.). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
+// Linux-portable: on Linux, label sizes come from TextMetrics estimation (like ishikawa/treeView).
 import Foundation
 
 private let TIDY_TREE_GAP: Double = 20
@@ -180,12 +179,18 @@ private func _measureMindmapLabelSize(text: String, fontSize: Double, fontFamily
 }
 
 private func _measureTextSize(text: String, fontSize: Double, fontFamily: String) -> (width: Double, height: Double) {
+    #if canImport(UIKit) || canImport(AppKit)
     let nsString = text as NSString
     let font = BMFont(name: fontFamily, size: CGFloat(fontSize)) ?? BMFont.systemFont(ofSize: CGFloat(fontSize))
 
     let attrs: [NSAttributedString.Key: Any] = [.font: font]
     let size = nsString.boundingRect(with: CGSize(width: 1000, height: 1000), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil)
     return (Double(size.width), Double(size.height))
+    #else
+    // No CoreText on Linux: estimate like the other Linux-portable layouts.
+    let width = TextMetrics.shared.estimateTextWidth(text, fontSize: CGFloat(fontSize), fontWeight: 400)
+    return (Double(width), fontSize * 1.05)
+    #endif
 }
 private final class _TidyTreeNodeRef {
     var id: Int
@@ -398,4 +403,3 @@ private func _svgPathForPoints(_ points: [CGPoint]) -> String {
     }
     return path
 }
-#endif

@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Async export behavior: serialization, isExporting transitions,
 // cancellation isolation, off-MainActor worker hop, atomicity
 // under exporter throw.
@@ -210,3 +213,4 @@ struct DiagramEditorAsyncExportTests {
         #expect(editor.isExporting == false)
     }
 }
+#endif

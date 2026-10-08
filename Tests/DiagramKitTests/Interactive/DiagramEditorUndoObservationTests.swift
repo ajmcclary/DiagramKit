@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // DiagramEditor Observation-tracked undo state tests
 //
 // Verifies the `canUndo` / `canRedo` / `undoActionName` / `redoActionName`
@@ -124,3 +127,4 @@ struct DiagramEditorUndoObservationTests {
         #expect(editorB.canUndo == false)
     }
 }
+#endif

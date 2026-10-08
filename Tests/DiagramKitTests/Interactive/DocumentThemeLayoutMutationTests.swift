@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 6 — setTheme / setLayoutPreset document mutations.
 
 import Testing
@@ -86,3 +89,4 @@ struct DocumentThemeLayoutMutationTests {
         #expect(editor.document.frontmatter?.theme == nil)
     }
 }
+#endif

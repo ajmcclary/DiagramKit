@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import CoreGraphics
 import Testing
 @testable import DiagramKit
@@ -48,3 +51,4 @@ private func parseTreemapDiagram(_ source: String) throws -> TreemapDiagram {
     let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     return try parseTreemapDiagram(rawLines, frontmatter: nil).0
 }
+#endif

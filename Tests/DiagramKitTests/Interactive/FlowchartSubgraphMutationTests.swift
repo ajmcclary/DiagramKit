@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 5 / Task 5.1 — FlowchartMutation.groupIntoSubgraph applier
 // + snapshot-undo inverse + .invalidSubgraphSelection error.
 
@@ -202,3 +205,4 @@ struct FlowchartSubgraphMutationTests {
         }, "expected lastExportDiagnostics to carry the .idSanitization diagnostic from the mutation, got: \(editor.lastExportDiagnostics)")
     }
 }
+#endif

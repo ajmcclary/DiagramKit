@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import XCTest
 import DiagramKitCorpus
 @testable import DiagramKit
@@ -307,3 +310,4 @@ final class VisualReportGenerator: XCTestCase {
          .replacingOccurrences(of: "\"", with: "&quot;")
     }
 }
+#endif

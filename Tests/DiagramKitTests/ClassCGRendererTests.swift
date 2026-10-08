@@ -1,3 +1,6 @@
+// Apple-only test (CoreGraphics renderer, AppKit/UIKit, image snapshots or the
+// UndoManager-based interactive editor). On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import Testing
 import Foundation
 import CoreGraphics
@@ -282,3 +285,4 @@ struct ClassCGRendererTests {
         try render(source: "classDiagram\nA --> B\nB --> C")
     }
 }
+#endif
