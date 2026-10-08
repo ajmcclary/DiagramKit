@@ -72,10 +72,7 @@ struct CorpusSnapshotTests {
         let image = try #require(await DiagramEngine.renderImage(source: diagram.source))
         assertSnapshot(
             of: image,
-            as: .image(
-                precision: snapshotPixelPrecision(),
-                perceptualPrecision: snapshotPerceptualPrecision()
-            ),
+            as: .nativePixels(precision: snapshotPixelPrecision()),
             named: diagram.id
         )
     }
@@ -137,10 +134,7 @@ struct CorpusMultiFormatSnapshotTests {
             let image = try #require(await DiagramEngine.renderImage(source: source))
             assertSnapshot(
                 of: image,
-                as: .image(
-                    precision: snapshotPixelPrecision(),
-                    perceptualPrecision: snapshotPerceptualPrecision()
-                ),
+                as: .nativePixels(precision: snapshotPixelPrecision()),
                 named: "\(diagram.id)-\(format)"
             )
         }
