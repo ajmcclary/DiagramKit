@@ -14,7 +14,7 @@ private enum ERFont {
 public func renderErSvg(
     _ diagram: PositionedErDiagram,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false
 ) throws -> String {
     try _renderErSvgEntry(diagram, colors, font, transparent)
@@ -535,7 +535,7 @@ final class original_src_er_renderer {
     public static func renderErSvg(
         _ diagram: PositionedErDiagram,
         _ colors: DiagramColors,
-        _ font: String = DiagramFontResolver.shared.svgFontFamily,
+        _ font: String = DiagramSVGFontFamily.proportional,
         _ transparent: Bool = false
     ) throws -> String {
         try _renderErSvgEntry(diagram, colors, font, transparent)

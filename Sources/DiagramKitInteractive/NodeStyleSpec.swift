@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor — typed node style value for the setNodeStyle mutation.
 // Maps 1:1 onto Mermaid classDef properties (fill:, stroke:, color:,
 // stroke-dasharray: / stroke-width:). Colors are lowercase "#rrggbb"
@@ -69,3 +71,4 @@ public struct NodeStyleSpec: Sendable, Equatable, Hashable {
         }
     }
 }
+#endif

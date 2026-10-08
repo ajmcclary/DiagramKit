@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 5 / Task 5.1 — applier for FlowchartMutation.groupIntoSubgraph.
 //
 // Wraps the named nodes in a fresh `MermaidSubgraph` whose id is
@@ -122,3 +124,4 @@ extension DiagramEditor {
         return (out, diagnostics)
     }
 }
+#endif

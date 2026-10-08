@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 10 follow-up — sequence-diagram structural mutations.
 // Pattern mirrors DiagramEditor+Flowchart: a typed enum + a
 // `performSequence(_:)` entry point that hops to the worker, applies
@@ -153,3 +155,4 @@ extension DiagramEditor {
         return doc
     }
 }
+#endif

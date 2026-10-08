@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 5 — typed image-node configuration for
 // setNodeImage. Validation is scheme/shape only (http/https + host):
 // the mutation NEVER fetches; the core pipeline stays offline and the
@@ -87,3 +89,4 @@ extension DiagramEditor {
         return doc
     }
 }
+#endif

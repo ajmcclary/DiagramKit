@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 4 — typed icon configuration for setNodeIcon.
 // The icon vocabulary is FontAwesomeMap (bundled, ~110 names) so every
 // browsable icon renders as a real SF Symbol glyph in the CG renderer
@@ -108,3 +110,4 @@ extension DiagramEditor {
         return doc
     }
 }
+#endif

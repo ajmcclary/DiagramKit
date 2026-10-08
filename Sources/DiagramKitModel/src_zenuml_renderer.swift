@@ -10,7 +10,7 @@ import DiagramKitCommon
 public func renderZenUMLSvg(
     _ diagram: PositionedZenUMLDiagram,
     colors: DiagramColors = DiagramColors(bg: "#FFFFFF", fg: "#27272A"),
-    font: String = DiagramFontResolver.shared.svgFontFamily,
+    font: String = DiagramSVGFontFamily.proportional,
     transparent: Bool = false,
     useMaxWidth: Bool? = nil
 ) -> String {

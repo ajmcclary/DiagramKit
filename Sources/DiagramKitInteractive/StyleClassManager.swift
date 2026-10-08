@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor — deduplicated generated-classDef lifecycle.
 // Style edits from the visual editor land as shared `vsN` classDefs:
 // one class per unique style, reused across nodes, orphans removed.
@@ -94,3 +96,4 @@ public enum StyleClassManager {
         return NodeStyleSpec(classDefProperties: merged)
     }
 }
+#endif

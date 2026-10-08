@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Gantt-diagram structural mutations.
 //
 // Mirrors DiagramEditor+Sequence: a typed enum + `performGantt(_:)`
@@ -132,3 +134,4 @@ extension DiagramEditor {
         return doc
     }
 }
+#endif

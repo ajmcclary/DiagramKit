@@ -50,7 +50,7 @@ private func _resolvePlotColor(_ index: Int, _ theme: XYChartThemeConfig, _ acce
 public func renderXYChartSvg(
     _ chart: PositionedXYChart,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false,
     interactive: Bool = false
 ) -> String {

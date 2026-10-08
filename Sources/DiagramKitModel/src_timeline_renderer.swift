@@ -4,7 +4,7 @@ import DiagramKitCommon
 public func renderTimelineSvg(
     _ diagram: PositionedTimelineDiagram,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false
 ) throws -> String {
     try _renderTimelineSvg(diagram, diagramId: "mermaid-0", colors, font, transparent)
@@ -14,7 +14,7 @@ public func renderTimelineSvg(
     _ diagram: PositionedTimelineDiagram,
     diagramId: String,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false
 ) throws -> String {
     try _renderTimelineSvg(diagram, diagramId: diagramId, colors, font, transparent)

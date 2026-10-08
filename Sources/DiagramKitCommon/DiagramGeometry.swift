@@ -142,8 +142,12 @@ extension DiagramPoint: _PointLike {}
 
 // MARK: - CoreGraphics bridging
 
+// `CGPoint`/`CGRect` come from CoreGraphics on Apple platforms and from
+// Foundation on Linux, so only the import is gated — the bridging itself is
+// portable.
 #if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 
 extension DiagramPoint {
     /// Create a `DiagramPoint` from a CoreGraphics point.
@@ -171,4 +175,3 @@ extension DiagramRect {
         CGRect(x: x, y: y, width: width, height: height)
     }
 }
-#endif

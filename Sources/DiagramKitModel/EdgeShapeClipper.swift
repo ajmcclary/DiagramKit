@@ -57,12 +57,28 @@ public func _clipPoint(
     cx: Double, cy: Double,
     halfW: Double, halfH: Double
 ) -> _PositionedPointPayload? {
+    #if canImport(UIKit) || canImport(AppKit)
     let spec = ShapeSpecRegistry.spec(for: shape)
     return _clipPoint(endpoint: endpoint, adjacent: adjacent,
                       shapePath: spec.path(.zero, RenderConfig.shared),
                       cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    #else
+    // `ShapeSpecRegistry` / `ShapePath` / `RenderConfig` are Apple-only, so
+    // Linux dispatches on the shape name directly (the pre-registry routing).
+    switch shape {
+    case "diamond", "rhombus", "choice":
+        return _clipToDiamond(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    case "circle", "doublecircle", "double-circle":
+        return _clipToCircle(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    case "hexagon":
+        return _clipToHexagon(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    default:
+        return _clipToEllipseApprox(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    }
+    #endif
 }
 
+#if canImport(UIKit) || canImport(AppKit)
 /// ShapePath-keyed dispatch for edge clipping.
 ///
 /// Maps each `ShapePath` case to the appropriate clipping algorithm:
@@ -88,6 +104,7 @@ public func _clipPoint(
         return _clipToEllipseApprox(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
     }
 }
+#endif
 
 public func _clipToDiamond(
     endpoint: _PositionedPointPayload,

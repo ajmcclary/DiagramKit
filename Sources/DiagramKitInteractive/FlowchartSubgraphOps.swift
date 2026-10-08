@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Visual editor plan 3 — subgraph forest mutations.
 //
 // CONCURRENCY / UNDO NOTE: `MermaidSubgraph` is a mutable final class.
@@ -209,3 +211,4 @@ extension DiagramEditor {
         return (doc, diagnostics)
     }
 }
+#endif

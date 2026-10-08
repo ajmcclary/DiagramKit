@@ -246,10 +246,11 @@ private func _renderBlockShapeBody(
     fill: String, stroke: String,
     colors: DiagramColors
 ) -> String {
+    let strokeWidth = BlockRenderConstants.strokeWidth
+    #if canImport(UIKit) || canImport(AppKit)
     let aliasName = BlockShapeMapper.shapeSpecName(for: node.type)
     let bounds = CGRect(x: x, y: y, width: w, height: h)
     let config = RenderConfig.shared
-    let strokeWidth = BlockRenderConstants.strokeWidth
 
     let spec = ShapeSpecRegistry.spec(for: aliasName)
 
@@ -284,6 +285,13 @@ private func _renderBlockShapeBody(
         )
     }
     return parts.joined()
+    #else
+    // `ShapeSpecRegistry` / `SVGPathSerializer` / `RenderConfig` are
+    // Apple-only; Linux renders every block body as a plain rectangle.
+    return """
+      <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(strokeWidth)"/>
+    """
+    #endif
 }
 
 private func renderBlockArrowSvg(node: PositionedBlockNode, id: String, fill: String, stroke: String, classList: String) -> String {

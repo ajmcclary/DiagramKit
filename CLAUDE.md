@@ -363,10 +363,21 @@ and CoreText-bound layout/rendering remain Apple-only or gated out.
 `BMColor`, `BMFont`, `BMImage`, `BMView`, and `BMBezierPath` are intentionally
 undefined on Linux. Any callsite using them must be platform-gated.
 
-`DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (plus
-`String.renderDiagramSVG` / `renderDiagramASCII`) are available on Linux.
+**Verified state (2026-10-08): only `DiagramKitCommon`, `DiagramKitModel`, and
+`DiagramKitTestSupport` build on Linux.** The umbrella `DiagramKit` target
+(and therefore `DiagramKitLinuxTests`) has never compiled there: the Stage 2.5
+work below was written without a Docker run, and `Dockerfile.linux-check`
+records a matrix `FAIL` without failing the build. Blockers: `renderSVG` /
+`renderASCII` take the Apple-only `DiagramTheme`; `SVGRenderRegistry` calls the
+Apple-only flowchart/state (`src_renderer.swift`) and ZenUML renderers; and
+`_resolveSvgCssVariables` / `_flattenKnownSvgTokens` live in the gated
+`SVGHelpers.swift`. Porting the umbrella is open work — CI builds the three
+portable targets on Linux so they cannot silently regress again.
 
-All 28 diagram families are Linux-supported as of Stage 2.5.
+The *intended* Linux surface once the umbrella port lands:
+`DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (plus
+`String.renderDiagramSVG` / `renderDiagramASCII`), with all 28 diagram
+families Linux-supported.
 `DiagramDescriptor.linuxSupport: Bool` is the per-family flag and
 `DiagramEngine.linuxSupport(for:)` is the public introspection API —
 both currently return `true` / `(true, nil)` for every family in the

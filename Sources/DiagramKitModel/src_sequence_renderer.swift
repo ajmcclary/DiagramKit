@@ -5,7 +5,7 @@ import DiagramKitCommon
 public func renderSequenceSvg(
     _ diagram: PositionedSequenceDiagram,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false
 ) throws -> String {
     try _renderSequenceSvgEntry(diagram, colors, font, transparent)
@@ -405,7 +405,7 @@ final class original_src_sequence_renderer {
     public static func renderSequenceSvg(
         _ diagram: PositionedSequenceDiagram,
         _ colors: DiagramColors,
-        _ font: String = DiagramFontResolver.shared.svgFontFamily,
+        _ font: String = DiagramSVGFontFamily.proportional,
         _ transparent: Bool = false
     ) throws -> String {
         try _renderSequenceSvgEntry(diagram, colors, font, transparent)

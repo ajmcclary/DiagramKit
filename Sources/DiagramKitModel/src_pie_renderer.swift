@@ -6,7 +6,7 @@ import DiagramKitCommon
 public func renderPieSvg(
     _ chart: PositionedPieChart,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false
 ) -> String {
     var parts: [String] = []

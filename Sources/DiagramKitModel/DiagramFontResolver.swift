@@ -49,7 +49,7 @@ public struct DiagramFontResolver: Sendable {
     /// CoreText layout measurement is independent and comes from
     /// `RenderTokens.defaultProportionalFontFamily` (typically `"Noto Sans"`,
     /// bundled for snapshot determinism).
-    public var svgProportionalFamily: String { "Inter" }
+    public var svgProportionalFamily: String { DiagramSVGFontFamily.proportional }
 
     /// Alias for `svgProportionalFamily` kept for call-site compatibility.
     public var svgFontFamily: String { svgProportionalFamily }

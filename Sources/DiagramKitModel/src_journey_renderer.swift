@@ -4,7 +4,7 @@ import DiagramKitCommon
 public func renderJourneySvg(
     _ diagram: PositionedJourneyDiagram,
     _ colors: DiagramColors,
-    _ font: String = DiagramFontResolver.shared.svgFontFamily,
+    _ font: String = DiagramSVGFontFamily.proportional,
     _ transparent: Bool = false,
     diagramId: String = "mermaid-0"
 ) throws -> String {

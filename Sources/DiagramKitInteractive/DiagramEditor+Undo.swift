@@ -1,3 +1,5 @@
+// Apple-only (UndoManager, Observation editor model) gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 // Phase 9: Interactive Model — Slice 9D
 // Undo/redo stack via Foundation.UndoManager.
 
@@ -60,3 +62,4 @@ extension DiagramEditor {
         self.selection = selection
     }
 }
+#endif

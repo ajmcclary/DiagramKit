@@ -230,7 +230,7 @@ public enum DiagramPipeline {
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
             let colors = _diagramColors(from: theme)
-            let font = DiagramFontResolver.shared.svgFontFamily
+            let font = DiagramSVGFontFamily.proportional
             let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
 
             let svg = try SVGRenderRegistry.render(
@@ -254,7 +254,7 @@ public enum DiagramPipeline {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             try _assertPlatformSupport(positioned.diagram)
             let colors = _diagramColors(from: theme)
-            let font = DiagramFontResolver.shared.svgFontFamily
+            let font = DiagramSVGFontFamily.proportional
             let diagramId = SVGIDGenerator.id(
                 for: "\(positioned.diagram.type.rawValue)-\(positioned.width)x\(positioned.height)",
                 policy: .unique

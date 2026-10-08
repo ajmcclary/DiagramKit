@@ -12,14 +12,12 @@ import CoreGraphics
 // MARK: - Helpers
 // ============================================================================
 
-#if canImport(CoreGraphics)
 /// Build the bounding rect for a `[CGPoint]` edge path, padded on all sides.
 /// Forwards to the shared `DiagramRect.bounding(points:paddedBy:)` helper
 /// so edge-hit-target geometry stays consistent across families.
 private func _boundingRect(_ points: [CGPoint], paddedBy pad: Double) -> DiagramRect {
     DiagramRect.bounding(points: points.map(DiagramPoint.init), paddedBy: pad)
 }
-#endif
 
 /// Build the bounding rect for a `[LinePoint]` (xychart series), padded
 /// on all sides. Same forwarder pattern as `_boundingRect(_:paddedBy:)`
