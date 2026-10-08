@@ -94,7 +94,7 @@ jobs:
     # which renders every corpus diagram to SVG and ASCII. Same image as
     # DiagramKit's Scripts/linux-check.sh.
     name: Linux · build & test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: swift:6.3.1-noble
     timeout-minutes: 45
     steps:
