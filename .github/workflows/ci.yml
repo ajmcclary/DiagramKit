@@ -83,6 +83,13 @@ jobs:
         run: ./Scripts/check-stale-phase-comments.sh
       - name: Scripts/check-linux-check-runtime-skip.sh
         run: ./Scripts/check-linux-check-runtime-skip.sh
+      - name: Crash reports (on failure)
+        if: failure()
+        run: |
+          shopt -s nullglob
+          for f in ~/Library/Logs/DiagnosticReports/*.ips; do
+            echo "::group::$f"; head -c 60000 "$f"; echo; echo "::endgroup::"
+          done
 
   linux:
     # Every target builds and the whole portable test suite runs on Linux
