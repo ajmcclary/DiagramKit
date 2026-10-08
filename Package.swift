@@ -51,7 +51,8 @@ let package = Package(
         // platforms `import CryptoKit` is preferred (zero-cost), but to keep
         // DiagramKitCommon Linux-portable for `StableID.derive(...)`, we
         // import `Crypto` from this package when CryptoKit is unavailable.
-        .package(url: "https://github.com/apple/swift-crypto", from: "3.0.0"),
+        // 3..<6: only `SHA256.hash` is used, which is stable across 3.x-5.x.
+        .package(url: "https://github.com/apple/swift-crypto", "3.0.0"..<"6.0.0"),
         // Test-only dependency. Upstream 1.19.3 builds cleanly under the Apple
         // Swift 6.4 / Xcode 27 toolchain this workspace targets; the former
         // `ajmcclary/swift-snapshot-testing@fix-swift-6.3-attachable` fork was
