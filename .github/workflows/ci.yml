@@ -26,6 +26,8 @@ jobs:
     name: macOS 27 · build, test, gates
     runs-on: xcode-27
     timeout-minutes: 90
+    env:
+      TZ: Pacific/Auckland
     steps:
       - uses: actions/checkout@v7
       - name: Toolchain (expects macOS 27 + Xcode 27)

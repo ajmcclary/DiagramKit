@@ -254,7 +254,7 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
     // Compute excluded ranges
     var excludedRanges: [GanttExcludedRange] = []
     if !diagram.excludes.isEmpty || !diagram.includes.isEmpty {
-        let cal = Calendar.current
+        let cal = _ganttCalendar
         var currentDate = domainMin
         let endDate = domainMax
 
@@ -341,25 +341,19 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
 // MARK: - Helpers
 
 /// Today's date for the Gantt today-marker line. Honors the
-/// `DIAGRAMKIT_GANTT_TODAY=YYYY-MM-DD` env override (parsed with a POSIX
-/// Gregorian calendar in UTC) so snapshot tests are deterministic across
-/// runs. Falls back to `Date()` for normal runtime use.
+/// `DIAGRAMKIT_GANTT_TODAY=YYYY-MM-DD` env override (on the Gantt calendar,
+/// like every other Gantt date) so snapshot tests are deterministic across
+/// runs and machines. Falls back to the user's current wall-clock date.
 func _ganttReferenceToday() -> Date {
     if let override = ProcessInfo.processInfo.environment["DIAGRAMKIT_GANTT_TODAY"],
        !override.isEmpty {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
-        calendar.locale = Locale(identifier: "en_US_POSIX")
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.locale = calendar.locale
+        let formatter = _ganttDateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         if let parsed = formatter.date(from: override) {
-            return calendar.startOfDay(for: parsed)
+            return _ganttCalendar.startOfDay(for: parsed)
         }
     }
-    return Calendar.current.startOfDay(for: Date())
+    return _ganttToday()
 }
 
 private func _uniqueInOrder(_ values: [String]) -> [String] {
@@ -394,9 +388,9 @@ private func _deriveAxisFormat(from dateFormat: String) -> String {
 }
 
 private func _ganttIsInvalidDate(_ date: Date, dateFormat: String, excludes: [String], includes: [String], weekend: String) -> Bool {
-    let df = DateFormatter()
+    let df = _ganttDateFormatter()
     df.locale = Locale(identifier: "en_US_POSIX")
-    df.timeZone = TimeZone.current
+    df.timeZone = _ganttTimeZone
     df.dateFormat = _translateDayjsFormatToSwift(dateFormat)
     let formattedDate = df.string(from: date)
 
@@ -405,7 +399,7 @@ private func _ganttIsInvalidDate(_ date: Date, dateFormat: String, excludes: [St
 
     if includes.contains(formattedDate) || includes.contains(dateOnly) { return false }
     if excludes.contains("weekends") {
-        let comps = Calendar.current.dateComponents([.weekday], from: date)
+        let comps = _ganttCalendar.dateComponents([.weekday], from: date)
         let dow = comps.weekday ?? 1
         let weekendStart: Int = weekend == "friday" ? 6 : 7
         if dow == weekendStart || dow == (weekendStart == 7 ? 1 : weekendStart + 1) {
@@ -425,7 +419,7 @@ private func _makeExcludedRange(
     config: GanttDiagramConfig,
     scale: (Date) -> Double
 ) -> GanttExcludedRange {
-    let cal = Calendar.current
+    let cal = _ganttCalendar
     let startOfRange = cal.startOfDay(for: start)
     let endOfDay = cal.date(byAdding: DateComponents(day: 1, second: -1), to: cal.startOfDay(for: end)) ?? end
     let x = scale(startOfRange)
@@ -458,7 +452,7 @@ private func _generateAxisTicks(
     config: GanttDiagramConfig,
     scale: (Date) -> Double
 ) -> [GanttAxisTick] {
-    let cal = Calendar.current
+    let cal = _ganttCalendar
     let span = maxTime.timeIntervalSince(minTime)
 
     var step: _GanttTickStep
@@ -579,7 +573,7 @@ private func _generateAxisTicks(
     var result: [GanttAxisTick] = []
     var currentDate = firstTick
 
-    let df = DateFormatter()
+    let df = _ganttDateFormatter()
     df.locale = Locale(identifier: "en_US_POSIX")
     df.dateFormat = _translateDayjsFormatToSwift(axisFormat)
 
@@ -640,7 +634,7 @@ private func _alignToWeekday(_ date: Date, weekday: String) -> Date {
         "friday": 5, "saturday": 6, "sunday": 7,
     ]
     let target = targetIso[weekday] ?? 7
-    let cal = Calendar.current
+    let cal = _ganttCalendar
     let currentDow = cal.dateComponents([.weekday], from: date).weekday ?? 1
     let currentIso = currentDow == 1 ? 7 : currentDow - 1
     let daysToAdd = (target - currentIso + 7) % 7

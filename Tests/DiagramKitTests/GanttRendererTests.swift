@@ -263,5 +263,5 @@ private func _basicPositionedDiagram() -> PositionedGanttDiagram {
 
 private func _date(_ y: Int, _ m: Int, _ d: Int) -> Date {
     let comps = DateComponents(year: y, month: m, day: d)
-    return Calendar.current.date(from: comps)!
+    return _ganttCalendar.date(from: comps)!
 }

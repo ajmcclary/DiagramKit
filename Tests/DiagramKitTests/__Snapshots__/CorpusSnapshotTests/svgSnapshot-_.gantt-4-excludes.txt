@@ -66,7 +66,7 @@
 <text id="A1B8CA29-B01E-AA64-7161-B88879992AD2-t2-text" class="taskText taskText0 width-35" x="895.3125" y="87.5">Task 2</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Work</text>
 <g class="today">
-<line class="today" x1="5515.0390625" x2="5515.0390625" y1="25.0" y2="123.0" style=""/>
+<line class="today" x1="5521.875" x2="5521.875" y1="25.0" y2="123.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">Project with Excludes</text>
 </svg>

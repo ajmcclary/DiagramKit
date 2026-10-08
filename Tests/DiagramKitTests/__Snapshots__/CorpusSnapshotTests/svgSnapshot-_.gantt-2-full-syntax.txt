@@ -66,7 +66,7 @@
 <text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Planning</text>
 <text class="sectionTitle sectionTitle1" x="0.0" y="126.35">Development</text>
 <g class="today">
-<line class="today" x1="6522.4537037037035" x2="6522.4537037037035" y1="25.0" y2="171.0" style=""/>
+<line class="today" x1="6530.555555555556" x2="6530.555555555556" y1="25.0" y2="171.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">Full Gantt Example</text>
 </svg>

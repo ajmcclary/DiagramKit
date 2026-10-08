@@ -786,7 +786,35 @@ struct GanttParserTests {
     }
 }
 
+@Suite("Gantt calendar is time-zone independent")
+struct GanttCalendarTests {
+
+    @Test("A parsed date is midnight UTC, whatever the host time zone")
+    func parsedDateIsUTCMidnight() throws {
+        let (diagram, _) = try parseGanttDiagram([
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S",
+            "Task :t1, 2024-01-06, 3d",
+        ])
+        // 2024-01-06T00:00:00Z. Before the Gantt calendar was pinned, the
+        // parser used the host zone, so this shifted by the local UTC offset.
+        #expect(diagram.tasks[0].startTime == Date(timeIntervalSince1970: 1_704_499_200))
+        #expect(diagram.tasks[0].endTime == Date(timeIntervalSince1970: 1_704_758_400))
+    }
+
+    @Test("Today is the user's wall-clock date placed on the UTC timeline")
+    func todayKeepsTheWallClockDate() throws {
+        let now = Date(timeIntervalSince1970: 1_717_420_000)  // an arbitrary instant
+        let wall = Calendar.current.dateComponents([.year, .month, .day], from: now)
+        let today = _ganttToday(now: now)
+        #expect(_ganttCalendar.dateComponents([.year, .month, .day], from: today) == wall)
+        #expect(_ganttCalendar.dateComponents([.hour, .minute, .second], from: today)
+            == DateComponents(hour: 0, minute: 0, second: 0))
+    }
+}
+
 private func _date(_ y: Int, _ m: Int, _ d: Int) -> Date {
     let comps = DateComponents(year: y, month: m, day: d)
-    return Calendar.current.date(from: comps)!
+    return _ganttCalendar.date(from: comps)!
 }

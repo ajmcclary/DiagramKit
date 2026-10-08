@@ -426,16 +426,51 @@ private let _dateFormatterCacheQueue = DispatchQueue(
     label: "diagramkit.gantt.dateFormatterCache"
 )
 
+// MARK: - Gantt calendar
+
+/// The one calendar for all Gantt date parsing, arithmetic and formatting:
+/// Gregorian, UTC, POSIX. Gantt output must not depend on the host's time
+/// zone or locale, so dates are wall-clock dates on a UTC timeline (every
+/// day is 24 h; no DST shifts). Previously parsing used the local zone while
+/// the today-override and ISO formatters used UTC, so the same chart rendered
+/// differently on machines in different zones.
+public let _ganttTimeZone = TimeZone(secondsFromGMT: 0)!
+
+public let _ganttCalendar: Calendar = {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = _ganttTimeZone
+    calendar.locale = Locale(identifier: "en_US_POSIX")
+    return calendar
+}()
+
+/// A `DateFormatter` on the Gantt calendar (UTC, POSIX). Callers may still
+/// set `dateFormat`; they should not change the zone, calendar or locale.
+public func _ganttDateFormatter() -> DateFormatter {
+    let formatter = DateFormatter()
+    formatter.calendar = _ganttCalendar
+    formatter.timeZone = _ganttTimeZone
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+}
+
+/// Today as the user experiences it — the wall-clock date in their own time
+/// zone — placed at midnight on the Gantt (UTC) timeline.
+func _ganttToday(now: Date = Date()) -> Date {
+    let wallDate = Calendar.current.dateComponents([.year, .month, .day], from: now)
+    return _ganttCalendar.date(from: wallDate) ?? _ganttCalendar.startOfDay(for: now)
+}
+
 private func _dateFormatter(for dateFormat: String) -> DateFormatter {
     let key = dateFormat as NSString
     return _dateFormatterCacheQueue.sync {
         if let cached = _dateFormatterCache.object(forKey: key) {
             return cached
         }
-        let formatter = DateFormatter()
+        let formatter = _ganttDateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = _translateDayjsFormat(dateFormat)
-        formatter.timeZone = TimeZone.current
+        formatter.calendar = _ganttCalendar
+        formatter.timeZone = _ganttTimeZone
         _dateFormatterCache.setObject(formatter, forKey: key)
         return formatter
     }
@@ -479,7 +514,7 @@ private func _findEarliestTaskStart(_ ids: [String], taskIdLookup: [String: Int]
 }
 
 private func _todayMidnight() -> Date {
-    Calendar.current.startOfDay(for: Date())
+    _ganttToday()
 }
 
 private func _getStartDate(prevTime: Date?, dateFormat: String, str: String, taskIdLookup: [String: Int], rawTasks: [GanttRawTask]) throws -> Date? {
@@ -538,7 +573,7 @@ private func _getEndDate(prevTime: Date, dateFormat: String, str: String, inclus
     let fmt = _dateFormatter(for: dateFormat)
     if let parsed = fmt.date(from: trimmed) {
         if inclusive {
-            return Calendar.current.date(byAdding: .day, value: 1, to: parsed) ?? parsed
+            return _ganttCalendar.date(byAdding: .day, value: 1, to: parsed) ?? parsed
         }
         return parsed
     }
@@ -568,7 +603,7 @@ private func _parseDuration(_ str: String) -> (Double, String) {
 }
 
 private func _addDuration(to date: Date, value: Double, unit: String) -> Date {
-    let cal = Calendar.current
+    let cal = _ganttCalendar
     switch unit {
     case "ms":
         return date.addingTimeInterval(value / 1000.0)
@@ -605,7 +640,7 @@ private func _fallbackDateParse(_ str: String) -> Date? {
     isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     if let d = isoFormatter.date(from: str) {
         if d.timeIntervalSinceReferenceDate.isNaN { return nil }
-        let comps = Calendar.current.dateComponents([.year], from: d)
+        let comps = _ganttCalendar.dateComponents([.year], from: d)
         if let year = comps.year, year < -10000 || year > 10000 { return nil }
         return d
     }
@@ -614,19 +649,19 @@ private func _fallbackDateParse(_ str: String) -> Date? {
     isoFormatter.formatOptions = [.withInternetDateTime]
     if let d = isoFormatter.date(from: str) {
         if d.timeIntervalSinceReferenceDate.isNaN { return nil }
-        let comps = Calendar.current.dateComponents([.year], from: d)
+        let comps = _ganttCalendar.dateComponents([.year], from: d)
         if let year = comps.year, year < -10000 || year > 10000 { return nil }
         return d
     }
 
     // Try common date formats
     let fallbackFormats = ["yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy", "dd/MM/yyyy"]
-    let fmtr = DateFormatter()
+    let fmtr = _ganttDateFormatter()
     fmtr.locale = Locale(identifier: "en_US_POSIX")
     for fmt in fallbackFormats {
         fmtr.dateFormat = fmt
         if let d = fmtr.date(from: str) {
-            let comps = Calendar.current.dateComponents([.year], from: d)
+            let comps = _ganttCalendar.dateComponents([.year], from: d)
             if let year = comps.year, year < -10000 || year > 10000 { return nil }
             return d
         }
@@ -641,7 +676,7 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
     let df = _dateFormatter(for: dateFormat)
     let formattedDate = df.string(from: date)
 
-    let dateOnlyFmt = DateFormatter()
+    let dateOnlyFmt = _ganttDateFormatter()
     dateOnlyFmt.locale = Locale(identifier: "en_US_POSIX")
     dateOnlyFmt.dateFormat = "yyyy-MM-dd"
     let dateOnly = dateOnlyFmt.string(from: date)
@@ -651,7 +686,7 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
     }
 
     if excludes.contains("weekends") {
-        let comps = Calendar.current.dateComponents([.weekday], from: date)
+        let comps = _ganttCalendar.dateComponents([.weekday], from: date)
         if let dow = comps.weekday {
             let weekendStart = _weekendStartDay[weekend] ?? 6
             let weekendEnd = weekendStart == 5 ? 6 : 7
@@ -662,7 +697,7 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
         }
     }
 
-    let weekDayNameFormatter = DateFormatter()
+    let weekDayNameFormatter = _ganttDateFormatter()
     weekDayNameFormatter.dateFormat = "EEEE"
     let dayName = weekDayNameFormatter.string(from: date).lowercased()
     if excludes.contains(dayName) {
@@ -679,7 +714,7 @@ private func _checkTaskDates(_ rawTask: inout GanttRawTask, dateFormat: String, 
           let startTime = rawTask.startTime,
           let endTime = rawTask.endTime else { return }
 
-    let cal = Calendar.current
+    let cal = _ganttCalendar
     var checkDate = startTime
     var adjustedEnd = endTime
     var renderEndTime: Date? = nil

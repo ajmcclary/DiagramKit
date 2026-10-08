@@ -68,7 +68,7 @@
 <text id="D19AC531-5C96-3F28-8B5B-A7E05AC2D30D-b1-text" class="clickable taskText taskText0 width-24" x="810.0" y="87.5" data-callback="myCallback" data-callback-args="b1">Beta</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Tasks</text>
 <g class="today">
-<line class="today" x1="7038.25" x2="7038.25" y1="25.0" y2="123.0" style=""/>
+<line class="today" x1="7047.0" x2="7047.0" y1="25.0" y2="123.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">Interactive Gantt</text>
 </svg>

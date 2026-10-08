@@ -193,7 +193,7 @@ import DiagramKit
         }
         // Re-parsed endTime should match the original (parser adds +1
         // day for inclusive, exporter subtracted 1 day to compensate).
-        let cal = Calendar(identifier: .gregorian)
+        let cal = _ganttCalendar
         let originalDay = cal.dateComponents([.year, .month, .day], from: originalEnd)
         let parsedDay = cal.dateComponents([.year, .month, .day], from: task.endTime)
         #expect(originalDay.year == parsedDay.year)
@@ -222,10 +222,9 @@ import DiagramKit
     // MARK: - Helpers
 
     private func isoDate(_ str: String) -> Date {
-        let f = DateFormatter()
+        let f = _ganttDateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
-        f.timeZone = TimeZone.current
         return f.date(from: str)!
     }
 }

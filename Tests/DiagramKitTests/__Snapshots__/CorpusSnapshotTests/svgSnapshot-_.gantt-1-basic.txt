@@ -62,7 +62,7 @@
 <text id="47043AA7-15A7-3C6D-5620-83922BBE2835-task1-text" class="taskText taskText0 width-62" x="915.0" y="87.5">Another task</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Section</text>
 <g class="today">
-<line class="today" x1="80248.625" x2="80248.625" y1="25.0" y2="123.0" style=""/>
+<line class="today" x1="80253.0" x2="80253.0" y1="25.0" y2="123.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">A Gantt Diagram</text>
 </svg>

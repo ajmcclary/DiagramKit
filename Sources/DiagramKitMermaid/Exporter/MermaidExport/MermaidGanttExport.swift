@@ -141,7 +141,7 @@ enum MermaidGanttExport {
         // round-trip.
         let emittedEnd: Date
         if inclusiveEndDates {
-            emittedEnd = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: task.endTime) ?? task.endTime
+            emittedEnd = _ganttCalendar.date(byAdding: .day, value: -1, to: task.endTime) ?? task.endTime
         } else {
             emittedEnd = task.endTime
         }
@@ -151,11 +151,11 @@ enum MermaidGanttExport {
         return "\(label) :\(components.joined(separator: ", "))"
     }
 
+    /// Gantt dates live on the shared UTC Gantt calendar (see
+    /// `_ganttCalendar`), so they are written back out on it too.
     private static func dateFormatter() -> DateFormatter {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
+        let f = _ganttDateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        f.timeZone = TimeZone.current
         return f
     }
 
