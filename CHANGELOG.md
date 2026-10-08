@@ -56,6 +56,15 @@ All notable changes to DiagramKit are documented in this file.
   `SHA256.hash`, which is unchanged through swift-crypto 5.0.0. Apple
   platforms keep using CryptoKit. No public API change.
 
+## [0.1.0-beta.3] - 2026-07-25
+
+### Changed
+
+- Platform floor raised from macOS 14 / iOS 17 to macOS 27 / iOS 27, and
+  every target declares Swift 6 language mode per target (the package was
+  already Swift 6; no source change).
+- Docs refer to CodeEditorKit (formerly CodeEditorPlugin).
+
 ## [0.1.0-beta.2] - 2026-07-14
 
 ### Added
