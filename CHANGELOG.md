@@ -2,6 +2,15 @@
 
 All notable changes to DiagramKit are documented in this file.
 
+## [0.1.0-beta.4] - 2026-10-08
+
+### Changed
+
+- `swift-crypto` requirement widened from `from: "3.0.0"` to
+  `"3.0.0"..<"6.0.0"`. It is linked on Linux only, for `StableID`'s
+  `SHA256.hash`, which is unchanged through swift-crypto 5.0.0. Apple
+  platforms keep using CryptoKit. No public API change.
+
 ## [0.1.0-beta.2] - 2026-07-14
 
 ### Added
