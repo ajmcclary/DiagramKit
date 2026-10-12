@@ -30,19 +30,21 @@ private enum TIP {
 // MARK: - Color resolution helpers
 
 private func _resolveColor(_ themeColor: String?, _ fallback: String) -> String {
-    if let c = themeColor, !c.isEmpty { return c }
+    if let c = themeColor, !c.isEmpty, _isSafeCSSColor(c) { return c }
     return fallback
 }
 
 private func _resolvePlotColor(_ index: Int, _ theme: XYChartThemeConfig, _ accentHex: String?, _ bgHex: String?) -> String {
     if let palette = theme.plotColorPalette, !palette.isEmpty {
         let colors = palette.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        if !colors.isEmpty {
-            return colors[index % colors.count]
+        let safeColors = colors.filter(_isSafeCSSColor)
+        if !safeColors.isEmpty {
+            return safeColors[index % safeColors.count]
         }
     }
-    if index == 0 { return accentHex ?? CHART_ACCENT_FALLBACK }
-    return getSeriesColor(index, accentHex ?? CHART_ACCENT_FALLBACK, bgHex)
+    let safeAccent = (accentHex != nil && _isSafeCSSColor(accentHex!)) ? accentHex! : CHART_ACCENT_FALLBACK
+    if index == 0 { return safeAccent }
+    return getSeriesColor(index, safeAccent, bgHex)
 }
 
 // MARK: - Public entry point
@@ -349,7 +351,7 @@ private func _chartStyles(
     _ chart: PositionedXYChart, _ interactive: Bool, _ sparse: Bool,
     _ themeAccent: String?, _ bgColor: String?
 ) -> (style: String, defs: String) {
-    let accentHex = themeAccent ?? CHART_ACCENT_FALLBACK
+    let accentHex = (themeAccent != nil && _isSafeCSSColor(themeAccent!)) ? themeAccent! : CHART_ACCENT_FALLBACK
 
     var colorIndices = Set<Int>()
     for b in chart.bars { colorIndices.insert(b.colorIndex) }

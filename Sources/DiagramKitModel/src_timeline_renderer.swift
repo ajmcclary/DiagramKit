@@ -54,6 +54,14 @@ private func _renderTimelineSvg(
     let isRedux = themeName.contains("redux")
     let isNeutral = themeName == "neutral"
 
+    let safeCScale = theme.cScale.map { _isSafeCSSColor($0) ? $0 : "var(--line, #666)" }
+    let safeCScaleLabel = theme.cScaleLabel.map { _isSafeCSSColor($0) ? $0 : "var(--fg, #27272A)" }
+    let safeCScaleInv = theme.cScaleInv.map { _isSafeCSSColor($0) ? $0 : "var(--line, #666)" }
+    let safeMainBkg = _isSafeCSSColor(theme.mainBkg) ? theme.mainBkg : "var(--_node-fill, #ffffff)"
+    let safeNodeBorder = _isSafeCSSColor(theme.nodeBorder) ? theme.nodeBorder : "var(--_node-stroke, #000000)"
+    let safeGradientStart = _isSafeCSSColor(theme.gradientStart) ? theme.gradientStart : "#ffffff"
+    let safeGradientStop = _isSafeCSSColor(theme.gradientStop) ? theme.gradientStop : "#000000"
+
     parts.append("<defs>")
     let arrowheadId = "\(diagramId)-arrowhead"
     parts.append("<marker id=\"\(arrowheadId)\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\">")
@@ -63,8 +71,8 @@ private func _renderTimelineSvg(
     if isNeo && theme.useGradient && !isNeutral {
         parts.append("""
         <linearGradient id="\(diagramId)-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="\(theme.gradientStart)" stop-opacity="1"/>
-        <stop offset="100%" stop-color="\(theme.gradientStop)" stop-opacity="1"/>
+        <stop offset="0%" stop-color="\(safeGradientStart)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="\(safeGradientStop)" stop-opacity="1"/>
         </linearGradient>
         """)
     }
@@ -95,11 +103,11 @@ private func _renderTimelineSvg(
         let sw = _tfmt(section.width)
         let sh = _tfmt(section.height)
         let colorIdx = section.colorIndex % max(1, theme.cScale.count)
-        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
-        let textFill = isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]
+        let fill = isNeo ? safeMainBkg : safeCScale[colorIdx]
+        let textFill = isNeo ? safeNodeBorder : safeCScaleLabel[colorIdx]
         let stroke = isNeo && theme.useGradient && !isNeutral
             ? "url(#\(diagramId)-gradient)"
-            : theme.cScale[colorIdx]
+            : safeCScale[colorIdx]
 
         let label = _trenderTimelineLabel(
             section.text,
@@ -128,12 +136,12 @@ private func _renderTimelineSvg(
         let tw = _tfmt(task.width)
         let th = _tfmt(task.height)
         let colorIdx = task.colorIndex % max(1, theme.cScale.count)
-        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
-        let textFill = isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]
-        let lineColor = theme.cScaleInv[colorIdx]
+        let fill = isNeo ? safeMainBkg : safeCScale[colorIdx]
+        let textFill = isNeo ? safeNodeBorder : safeCScaleLabel[colorIdx]
+        let lineColor = safeCScaleInv[colorIdx]
         let stroke = isNeo && theme.useGradient && !isNeutral
             ? "url(#\(diagramId)-gradient)"
-            : theme.cScale[colorIdx]
+            : safeCScale[colorIdx]
 
         let label = _trenderTimelineLabel(
             task.text,
@@ -165,10 +173,10 @@ private func _renderTimelineSvg(
         let ew = _tfmt(event.width)
         let eh = _tfmt(event.height)
         let colorIdx = event.colorIndex % max(1, theme.cScale.count)
-        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+        let fill = isNeo ? safeMainBkg : safeCScale[colorIdx]
         let stroke = isNeo && theme.useGradient && !isNeutral
             ? "url(#\(diagramId)-gradient)"
-            : theme.cScale[colorIdx]
+            : safeCScale[colorIdx]
 
         let label = _trenderTimelineLabel(
             event.text,

@@ -41,17 +41,44 @@ final class SVGStructuralSweepTests: XCTestCase {
     /// structural-integrity checking (no SVG output → no structural
     /// claim to make). Listed by id so additions are explicit.
     private static let preFailingEntryIDs: Set<String> = [
-        // requirementDiagram family currently has no registered Mermaid
-        // parser; the registry's D2 probe falls through and errors.
-        "req-1-basic", "req-2-all-requirement-types", "req-3-all-risk-levels",
-        "req-4-all-verify-methods", "req-5-empty-bodies", "req-6-all-relationships",
-        "req-7-reverse-relationships", "req-8-directions", "req-9-accessibility",
-        "req-10-styles", "req-11-classDef-and-class", "req-12-shorthand-classes",
-        "req-13-full-sysml", "req-15-neo-look", "req-16-neo-theme",
-        "req-17-markdown-labels",
         // config-only frontmatter source with no body — currently rejected
         // at header dispatch.
         "xychart-27-full-config",
+    ]
+
+    /// One hostile fixture per supported diagram family. Each injects a
+    /// malicious literal into a user-controlled label/title/class/style slot.
+    /// The sweep asserts the renderer either throws a typed error or returns
+    /// SVG that does not contain the literal unescaped.
+    private static let hostileFixtures: [(id: String, source: String, payload: String)] = [
+        ("hostile-flowchart", "graph TD\nA[\"><script>alert(1)</script>] --> B", "\"><script>alert(1)</script>"),
+        ("hostile-sequence", "sequenceDiagram\n\"><script>alert(1)</script>->>B: m", "\"><script>alert(1)</script>"),
+        ("hostile-class", "classDiagram\nclass A\nstyle A fill:\"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-er", "erDiagram\nA ||--o{ B : has\nA {\nstring name\nPK \"><script>alert(1)</script>\n}", "\"><script>alert(1)</script>"),
+        ("hostile-gantt", "gantt\nsection A\n\"><script>alert(1)</script> : 2024-01-01, 1d", "\"><script>alert(1)</script>"),
+        ("hostile-pie", "pie\n\"<script>alert(1)</script>\" : 1", "<script>alert(1)</script>"),
+        ("hostile-journey", "journey\nsection A\n<script>alert(1)</script>: 5: Me", "<script>alert(1)</script>"),
+        ("hostile-gitgraph", "gitGraph\ncommit\nbranch A\ncommit tag: \"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-requirement", "requirementDiagram\nrequirement req1 {\nid 1\ntext \"test\"\nrisk low\nverify method\n}\nstyle req1 fill:\"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-mindmap", "mindmap\nroot((A))\nB\nclassDef injected fill:#fff\" onload=alert(1) x=\"\nB:::injected", "onload=alert(1)"),
+        ("hostile-timeline", "timeline\ntitle\nsection A\n2024 : <script>alert(1)</script>", "<script>alert(1)</script>"),
+        ("hostile-sankey", "sankey-beta\nA[100]\nB[20]\nA --> B : \"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-xychart", "xychart-beta\nline [1,2,3]\ntitle \"<script>alert(1)</script>\"", "<script>alert(1)</script>"),
+        ("hostile-quadrant", "quadrantChart\nx-axis A --> B\ny-axis C --> D\nquadrant-1 Q1\npoint <script>alert(1)</script>: [0.5, 0.5]", "<script>alert(1)</script>"),
+        ("hostile-block", "block-beta\nA[\"<script>alert(1)</script>\"]", "<script>alert(1)</script>"),
+        ("hostile-packet", "packet-beta\nA: 1-2\nB: \"<script>alert(1)</script>\"", "<script>alert(1)</script>"),
+        ("hostile-kanban", "kanban\n[Backlog]\n[todo] \"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-architecture", "architecture-beta\nA: B\nclassDef injected fill:#fff\" onload=alert(1) x=\"\nA:::injected", "onload=alert(1)"),
+        ("hostile-radar", "radar-beta\nA\nB: 1\nC: \"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-treemap", "treemap-beta\nA [100]\nB [50]\nclassDef x fill:\"><script>alert(1)</script>\nA:::x", "\"><script>alert(1)</script>"),
+        ("hostile-venn", "venn-beta\nA: 1\nB: 2\nclassDef injected fill:#fff\" onload=alert(1) x=\"\nA:::injected", "onload=alert(1)"),
+        ("hostile-ishikawa", "ishikawa-beta\nA:::x\nB\nclassDef x fill:\"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
+        ("hostile-treeview", "treeview-beta\nA[\"<script>alert(1)</script>\"]\nC[D]", "<script>alert(1)</script>"),
+        ("hostile-eventmodeling", "eventmodeling\ngwt id01 given cmd <script>alert(1)</script> then evt B", "<script>alert(1)</script>"),
+        ("hostile-wardley", "wardley-beta\ncomponent A [0.5, 0.5] : \"<script>alert(1)</script>\"", "<script>alert(1)</script>"),
+        ("hostile-c4", "C4Context\nPerson(A, \"><script>alert(1)</script>\")", "\"><script>alert(1)</script>"),
+        ("hostile-zenuml", "zenuml\nA.\"><script>alert(1)</script>()", "\"><script>alert(1)</script>"),
+        ("hostile-state", "stateDiagram-v2\n[*] --> A\nA : \"><script>alert(1)</script>", "\"><script>alert(1)</script>"),
     ]
 
     func testLiveRenderSweep() async throws {
@@ -100,6 +127,31 @@ final class SVGStructuralSweepTests: XCTestCase {
         }
         if !violations.isEmpty {
             XCTFail("\(violations.count) on-disk violation(s):\n  " + violations.joined(separator: "\n  "))
+        }
+    }
+
+    func testHostileRenderSweep() async throws {
+        var failures: [String] = []
+        for (id, source, payload) in Self.hostileFixtures {
+            let svg: String
+            do {
+                svg = try await DiagramEngine.renderSVG(source: source)
+            } catch {
+                // Parser/renderer rejected the malformed hostile input;
+                // typed errors are acceptable. Only crashes (uncaught) would
+                // be a real failure.
+                continue
+            }
+            guard !svg.isEmpty else {
+                failures.append("\(id): empty SVG")
+                continue
+            }
+            if svg.contains(payload) {
+                failures.append("\(id): unescaped hostile payload reached SVG output")
+            }
+        }
+        if !failures.isEmpty {
+            XCTFail("\(failures.count) hostile-render failure(s):\n  " + failures.joined(separator: "\n  "))
         }
     }
 

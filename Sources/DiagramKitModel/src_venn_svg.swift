@@ -76,7 +76,8 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, isHan
     let fmt: (Double) -> String = { String(format: "%.2f", $0) }
 
     for (i, circle) in area.circles.enumerated() {
-        result += "<g class=\"venn-circle \(area.colorClass)\">\n"
+        let safeColorClass = _sanitizeSVGClassTokens(area.colorClass)
+        result += "<g class=\"venn-circle \(safeColorClass)\">\n"
 
         let fillOpacity = area.fillOpacity
         let strokeOpacity = 0.95

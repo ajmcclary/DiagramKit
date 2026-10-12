@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Core Model Types
 
@@ -301,7 +302,7 @@ public struct PositionedVennTextNode: Sendable, Equatable {
 
 // MARK: - Parser Errors
 
-public enum VennParserError: Error, LocalizedError {
+public enum VennParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader
     case invalidSetStatement(String)
     case invalidUnionStatement(String)

@@ -143,6 +143,46 @@ private func _parseClassSvgStyle(_ styles: [String]?) -> _ClassSvgStyle {
     return parsed
 }
 
+/// Builds a safe `style="..."` attribute from user-supplied class style
+/// declarations. Drops any declaration whose value is not a safe CSS color
+/// / length / dasharray, preventing `}"` or `;`-injection from breaking out
+/// of the inline style attribute.
+private func _safeClassStyleAttribute(_ styles: [String]?) -> String {
+    guard let styles = styles, !styles.isEmpty else { return "" }
+    let lengthPattern = #"^[0-9]*\.?[0-9]+\s*(px|em|rem|ex|ch|vw|vh|vmin|vmax|cm|mm|in|pt|pc|%)?$"#
+    let isLength = { (value: String) -> Bool in
+        value.range(of: lengthPattern, options: .regularExpression) != nil
+    }
+
+    let safeDeclarations = styles.compactMap { raw -> String? in
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ";"))
+        guard !trimmed.isEmpty else { return nil }
+        let parts = trimmed.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2 else { return nil }
+        let property = parts[0].lowercased()
+        let value = parts[1].trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else { return nil }
+
+        let safeValue: String?
+        switch property {
+        case "fill", "stroke", "color":
+            safeValue = _isSafeCSSColor(value) ? SVG.escapeAttribute(value) : nil
+        case "stroke-width":
+            safeValue = isLength(value) ? value : nil
+        case "stroke-dasharray":
+            let tokens = value.split { $0.isWhitespace || $0 == "," }
+            safeValue = tokens.allSatisfy({ isLength(String($0)) }) ? value : nil
+        default:
+            safeValue = nil
+        }
+        guard let safeValue = safeValue else { return nil }
+        return "\(property):\(safeValue)"
+    }
+    guard !safeDeclarations.isEmpty else { return "" }
+    return " style=\"\(safeDeclarations.joined(separator: ";"))\""
+}
+
 private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? = nil) -> String {
     let x = cls.x
     let y = cls.y
@@ -156,16 +196,19 @@ private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? 
 
     var parts: [String] = []
 
-    let cssClasses = cls.cssClasses.map { " \($0)" } ?? ""
-    let styleAttr = cls.styles.map { " style=\"\($0.joined(separator: ";"))\"" } ?? ""
+    let cssClasses = cls.cssClasses.map { classes -> String in
+        let sanitized = _sanitizeSVGClassTokens(classes)
+        return sanitized.isEmpty ? "" : " \(sanitized)"
+    } ?? ""
+    let styleAttr = _safeClassStyleAttribute(cls.styles)
     let parsedStyle = _parseClassSvgStyle(cls.styles)
-    let boxFill = parsedStyle.fill.map(SVG.escapeAttribute) ?? "var(--_node-fill)"
-    let headerFill = parsedStyle.fill.map(SVG.escapeAttribute) ?? "var(--_group-hdr)"
-    let boxStroke = parsedStyle.stroke.map(SVG.escapeAttribute) ?? "var(--_node-stroke)"
+    let boxFill = parsedStyle.fill.flatMap { _isSafeCSSColor($0) ? SVG.escapeAttribute($0) : nil } ?? "var(--_node-fill)"
+    let headerFill = parsedStyle.fill.flatMap { _isSafeCSSColor($0) ? SVG.escapeAttribute($0) : nil } ?? "var(--_group-hdr)"
+    let boxStroke = parsedStyle.stroke.flatMap { _isSafeCSSColor($0) ? SVG.escapeAttribute($0) : nil } ?? "var(--_node-stroke)"
     let boxStrokeWidth = parsedStyle.strokeWidth.map(SVG.escapeAttribute) ?? "\(original_src_styles.STROKE_WIDTHS.outerBox)"
     let dividerStrokeWidth = parsedStyle.strokeWidth.map(SVG.escapeAttribute) ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)"
     let dashAttr = parsedStyle.strokeDasharray.map { " stroke-dasharray=\"\(SVG.escapeAttribute($0))\"" } ?? ""
-    let textFill = parsedStyle.color.map(SVG.escapeAttribute) ?? "var(--_text)"
+    let textFill = parsedStyle.color.flatMap { _isSafeCSSColor($0) ? SVG.escapeAttribute($0) : nil } ?? "var(--_text)"
 
     let isSandbox = securityLevel?.lowercased() == "sandbox" || securityLevel?.lowercased() == "strict"
     let linkAttr = (!isSandbox && cls.link != nil) ? " data-link=\"\(SVG.escapeAttribute(cls.link!))\"" : ""

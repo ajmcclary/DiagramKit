@@ -11,33 +11,35 @@ private func _gitGraphResolved(_ value: String, fallback: String) -> String {
 }
 
 private func _gitGraphThemeValue(_ theme: GitGraphThemeConfig, prefix: String, index: Int, fallback: String) -> String {
+    let resolved: String
     switch (prefix, index % _GITGRAPH_THEME_COLOR_LIMIT) {
-    case ("git", 0): return _gitGraphResolved(theme.git0, fallback: fallback)
-    case ("git", 1): return _gitGraphResolved(theme.git1, fallback: fallback)
-    case ("git", 2): return _gitGraphResolved(theme.git2, fallback: fallback)
-    case ("git", 3): return _gitGraphResolved(theme.git3, fallback: fallback)
-    case ("git", 4): return _gitGraphResolved(theme.git4, fallback: fallback)
-    case ("git", 5): return _gitGraphResolved(theme.git5, fallback: fallback)
-    case ("git", 6): return _gitGraphResolved(theme.git6, fallback: fallback)
-    case ("git", 7): return _gitGraphResolved(theme.git7, fallback: fallback)
-    case ("gitInv", 0): return _gitGraphResolved(theme.gitInv0, fallback: fallback)
-    case ("gitInv", 1): return _gitGraphResolved(theme.gitInv1, fallback: fallback)
-    case ("gitInv", 2): return _gitGraphResolved(theme.gitInv2, fallback: fallback)
-    case ("gitInv", 3): return _gitGraphResolved(theme.gitInv3, fallback: fallback)
-    case ("gitInv", 4): return _gitGraphResolved(theme.gitInv4, fallback: fallback)
-    case ("gitInv", 5): return _gitGraphResolved(theme.gitInv5, fallback: fallback)
-    case ("gitInv", 6): return _gitGraphResolved(theme.gitInv6, fallback: fallback)
-    case ("gitInv", 7): return _gitGraphResolved(theme.gitInv7, fallback: fallback)
-    case ("gitBranchLabel", 0): return _gitGraphResolved(theme.gitBranchLabel0, fallback: fallback)
-    case ("gitBranchLabel", 1): return _gitGraphResolved(theme.gitBranchLabel1, fallback: fallback)
-    case ("gitBranchLabel", 2): return _gitGraphResolved(theme.gitBranchLabel2, fallback: fallback)
-    case ("gitBranchLabel", 3): return _gitGraphResolved(theme.gitBranchLabel3, fallback: fallback)
-    case ("gitBranchLabel", 4): return _gitGraphResolved(theme.gitBranchLabel4, fallback: fallback)
-    case ("gitBranchLabel", 5): return _gitGraphResolved(theme.gitBranchLabel5, fallback: fallback)
-    case ("gitBranchLabel", 6): return _gitGraphResolved(theme.gitBranchLabel6, fallback: fallback)
-    case ("gitBranchLabel", 7): return _gitGraphResolved(theme.gitBranchLabel7, fallback: fallback)
-    default: return fallback
+    case ("git", 0): resolved = _gitGraphResolved(theme.git0, fallback: fallback)
+    case ("git", 1): resolved = _gitGraphResolved(theme.git1, fallback: fallback)
+    case ("git", 2): resolved = _gitGraphResolved(theme.git2, fallback: fallback)
+    case ("git", 3): resolved = _gitGraphResolved(theme.git3, fallback: fallback)
+    case ("git", 4): resolved = _gitGraphResolved(theme.git4, fallback: fallback)
+    case ("git", 5): resolved = _gitGraphResolved(theme.git5, fallback: fallback)
+    case ("git", 6): resolved = _gitGraphResolved(theme.git6, fallback: fallback)
+    case ("git", 7): resolved = _gitGraphResolved(theme.git7, fallback: fallback)
+    case ("gitInv", 0): resolved = _gitGraphResolved(theme.gitInv0, fallback: fallback)
+    case ("gitInv", 1): resolved = _gitGraphResolved(theme.gitInv1, fallback: fallback)
+    case ("gitInv", 2): resolved = _gitGraphResolved(theme.gitInv2, fallback: fallback)
+    case ("gitInv", 3): resolved = _gitGraphResolved(theme.gitInv3, fallback: fallback)
+    case ("gitInv", 4): resolved = _gitGraphResolved(theme.gitInv4, fallback: fallback)
+    case ("gitInv", 5): resolved = _gitGraphResolved(theme.gitInv5, fallback: fallback)
+    case ("gitInv", 6): resolved = _gitGraphResolved(theme.gitInv6, fallback: fallback)
+    case ("gitInv", 7): resolved = _gitGraphResolved(theme.gitInv7, fallback: fallback)
+    case ("gitBranchLabel", 0): resolved = _gitGraphResolved(theme.gitBranchLabel0, fallback: fallback)
+    case ("gitBranchLabel", 1): resolved = _gitGraphResolved(theme.gitBranchLabel1, fallback: fallback)
+    case ("gitBranchLabel", 2): resolved = _gitGraphResolved(theme.gitBranchLabel2, fallback: fallback)
+    case ("gitBranchLabel", 3): resolved = _gitGraphResolved(theme.gitBranchLabel3, fallback: fallback)
+    case ("gitBranchLabel", 4): resolved = _gitGraphResolved(theme.gitBranchLabel4, fallback: fallback)
+    case ("gitBranchLabel", 5): resolved = _gitGraphResolved(theme.gitBranchLabel5, fallback: fallback)
+    case ("gitBranchLabel", 6): resolved = _gitGraphResolved(theme.gitBranchLabel6, fallback: fallback)
+    case ("gitBranchLabel", 7): resolved = _gitGraphResolved(theme.gitBranchLabel7, fallback: fallback)
+    default: resolved = fallback
     }
+    return _isSafeCSSColor(resolved) ? resolved : fallback
 }
 
 private func _gitGraphBranchColor(_ theme: GitGraphThemeConfig, _ index: Int) -> String {
@@ -75,6 +77,18 @@ private func _gitGraphGenerateStyles(_ options: GitGraphThemeConfig, positioned:
     let noteFontWeight = _gitGraphResolved(options.noteFontWeight, fallback: "")
     let fontWeightCSS = useReduxGeometry && !noteFontWeight.isEmpty ? "font-weight:\(noteFontWeight);" : ""
 
+    let safeCommitLineColor = _isSafeCSSColor(commitLineColor) ? commitLineColor : "#888888"
+    let safeNodeBorder = _isSafeCSSColor(nodeBorder) ? nodeBorder : "#000000"
+    let safeMainBkg = _isSafeCSSColor(mainBkg) ? mainBkg : "#ffffff"
+    let safeTextColor = _isSafeCSSColor(textColor) ? textColor : "#333333"
+    let safePrimaryColor = _isSafeCSSColor(primaryColor) ? primaryColor : "#333333"
+    let safeCommitLabelColor = _isSafeCSSColor(commitLabelColor) ? commitLabelColor : "#333333"
+    let safeCommitLabelBkg = _isSafeCSSColor(commitLabelBkg) ? commitLabelBkg : "#f2f2f2"
+    let safeTagLabelColor = _isSafeCSSColor(tagLabelColor) ? tagLabelColor : "#333333"
+    let safeTagLabelBkg = _isSafeCSSColor(tagLabelBkg) ? tagLabelBkg : "#eeeeee"
+    let safeTagLabelBorder = _isSafeCSSColor(tagLabelBorder) ? tagLabelBorder : "#777777"
+    let safeDropShadow = _isSafeCSSStyleValue(dropShadow) ? dropShadow : ""
+
     var css = ""
 
     // Branch colors - per-index
@@ -83,12 +97,12 @@ private func _gitGraphGenerateStyles(_ options: GitGraphThemeConfig, positioned:
         if useNeoColorGen {
             if i == 0 {
                 css += """
-.branch-label\(i) { fill: \(nodeBorder);}
-.commit\(i) { stroke: \(nodeBorder); }
-.commit-highlight\(i) { stroke: \(nodeBorder); fill: \(nodeBorder); }
-.arrow\(i) { stroke: \(nodeBorder); }
-.commit-bullets { fill: \(nodeBorder); }
-.commit-cherry-pick\(i) { stroke: \(nodeBorder); }
+.branch-label\(i) { fill: \(safeNodeBorder);}
+.commit\(i) { stroke: \(safeNodeBorder); }
+.commit-highlight\(i) { stroke: \(safeNodeBorder); fill: \(safeNodeBorder); }
+.arrow\(i) { stroke: \(safeNodeBorder); }
+.commit-bullets { fill: \(safeNodeBorder); }
+.commit-cherry-pick\(i) { stroke: \(safeNodeBorder); }
 
 """
             } else {
@@ -131,27 +145,27 @@ private func _gitGraphGenerateStyles(_ options: GitGraphThemeConfig, positioned:
 
 .branch {
   stroke-width: \(strokeWidth);
-  stroke: \(commitLineColor);
+  stroke: \(safeCommitLineColor);
   stroke-dasharray: \(neoDashArray);
 }
-.commit-label { font-size: \(commitLabelFontSize); fill: \(useNeoColorGen ? nodeBorder : commitLabelColor);\(useNeoColorGen && !noteFontWeight.isEmpty ? " font-weight:\(noteFontWeight);" : "") }
-.commit-label-bkg { font-size: \(commitLabelFontSize); fill: \(useNeoColorGen ? "transparent" : commitLabelBkg);\(useNeoColorGen ? "" : " opacity: 0.5;") }
-.tag-label { font-size: \(tagLabelFontSize); fill: \(tagLabelColor); }
-.tag-label-bkg { fill: \(useNeoColorGen ? mainBkg : tagLabelBkg); stroke: \(useNeoColorGen ? nodeBorder : tagLabelBorder);\(useNeoColorGen ? " filter:\(dropShadow);" : "") }
-.tag-hole { fill: \(textColor); }
+.commit-label { font-size: \(commitLabelFontSize); fill: \(useNeoColorGen ? safeNodeBorder : safeCommitLabelColor);\(useNeoColorGen && !noteFontWeight.isEmpty ? " font-weight:\(noteFontWeight);" : "") }
+.commit-label-bkg { font-size: \(commitLabelFontSize); fill: \(useNeoColorGen ? "transparent" : safeCommitLabelBkg);\(useNeoColorGen ? "" : " opacity: 0.5;") }
+.tag-label { font-size: \(tagLabelFontSize); fill: \(safeTagLabelColor); }
+.tag-label-bkg { fill: \(useNeoColorGen ? safeMainBkg : safeTagLabelBkg); stroke: \(useNeoColorGen ? safeNodeBorder : safeTagLabelBorder);\(useNeoColorGen ? " filter:\(safeDropShadow);" : "") }
+.tag-hole { fill: \(safeTextColor); }
 .commit-merge {
-  stroke: \(useNeoColorGen ? mainBkg : primaryColor);
-  fill: \(useNeoColorGen ? mainBkg : primaryColor);
+  stroke: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
+  fill: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
 }
 .commit-reverse {
-  stroke: \(useNeoColorGen ? mainBkg : primaryColor);
-  fill: \(useNeoColorGen ? mainBkg : primaryColor);
+  stroke: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
+  fill: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
   stroke-width: \(useNeoColorGen ? strokeWidth : "3");
 }
 .commit-highlight-outer {}
 .commit-highlight-inner {
-  stroke: \(useNeoColorGen ? mainBkg : primaryColor);
-  fill: \(useNeoColorGen ? mainBkg : primaryColor);
+  stroke: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
+  fill: \(useNeoColorGen ? safeMainBkg : safePrimaryColor);
 }
 .arrow {
   stroke-width: \(useReduxGeometry ? strokeWidth : "8");
@@ -161,7 +175,7 @@ private func _gitGraphGenerateStyles(_ options: GitGraphThemeConfig, positioned:
 .gitTitleText {
   text-anchor: middle;
   font-size: 18px;
-  fill: \(textColor);
+  fill: \(safeTextColor);
 }
 """
 
@@ -208,8 +222,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
 
     // Gradient defs for neo look
     if themeConfig.useGradient && useNeoColorGen {
-        let gradStart = SVG.escapeText(themeConfig.gradientStart ?? "#ffffff")
-        let gradStop = SVG.escapeText(themeConfig.gradientStop ?? "#000000")
+        let rawGradStart = themeConfig.gradientStart ?? "#ffffff"
+        let rawGradStop = themeConfig.gradientStop ?? "#000000"
+        let gradStart = SVG.escapeText(_isSafeCSSColor(rawGradStart) ? rawGradStart : "#ffffff")
+        let gradStop = SVG.escapeText(_isSafeCSSColor(rawGradStop) ? rawGradStop : "#000000")
         svg += "  <defs>\n"
         svg += "    <linearGradient id=\"\(svgId)-gradient\" gradientUnits=\"objectBoundingBox\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n"
         svg += "      <stop offset=\"0%\" stop-color=\"\(gradStart)\" stop-opacity=\"1\" />\n"
@@ -221,7 +237,8 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     // Drop-shadow filter for neo+redux
     let hasDropShadow = isNeo && useReduxGeometry
     if hasDropShadow {
-        let filterColor = SVG.escapeText(_gitGraphResolved(themeConfig.filterColor ?? "", fallback: "#000000"))
+        let rawFilterColor = _gitGraphResolved(themeConfig.filterColor ?? "", fallback: "#000000")
+        let filterColor = SVG.escapeText(_isSafeCSSColor(rawFilterColor) ? rawFilterColor : "#000000")
         svg += "  <defs>\n"
         svg += "    <filter id=\"\(svgId)-drop-shadow\" height=\"130%\" width=\"130%\">\n"
         svg += "      <feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"\(filterColor)\" />\n"
@@ -249,7 +266,8 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
         for commit in positioned.commits {
             let cx = commit.x
             let cy = commit.y
-            let colorClass = "commit \(commit.id) commit\(commit.colorIndex)"
+            let safeCommitId = _sanitizeSVGIdToken(commit.id)
+            let colorClass = "commit \(safeCommitId) commit\(commit.colorIndex)"
             let branchColor = SVG.escapeText(_gitGraphBranchColor(themeConfig, commit.colorIndex))
             let inverseColor = isDark ? "#000000" : (SVG.escapeText(_gitGraphInverseColor(themeConfig, commit.colorIndex)))
             let borderColor = SVG.escapeText(_gitGraphResolved(themeConfig.nodeBorder, fallback: branchColor))
@@ -270,14 +288,14 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                 let outerOffset: Double = useReduxGeometry ? 3 : 0
                 let innerOffset: Double = useReduxGeometry ? 2 : 0
                 lines.append("<rect x=\"\(cx - 10 + outerOffset)\" y=\"\(cy - 10 + outerOffset)\" width=\"\(outerSize)\" height=\"\(outerSize)\" class=\"\(colorClass) commit-highlight\(commit.colorIndex) \(typeClass)-outer\" fill=\"\(branchColor)\" stroke=\"\(borderColor)\" />")
-                lines.append("<rect x=\"\(cx - 6 + innerOffset)\" y=\"\(cy - 6 + innerOffset)\" width=\"\(innerSize)\" height=\"\(innerSize)\" class=\"commit \(commit.id) commit\(commit.colorIndex) \(typeClass)-inner\" fill=\"\(inverseColor)\" />")
+                lines.append("<rect x=\"\(cx - 6 + innerOffset)\" y=\"\(cy - 6 + innerOffset)\" width=\"\(innerSize)\" height=\"\(innerSize)\" class=\"commit \(safeCommitId) commit\(commit.colorIndex) \(typeClass)-inner\" fill=\"\(inverseColor)\" />")
             case .cherryPick:
                 let dotRadius: Double = useReduxGeometry ? 2.5 : 2.75
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxRStr)\" class=\"\(colorClass) \(typeClass)\" fill=\"\(branchColor)\" stroke=\"\(borderColor)\" />")
-                lines.append("<circle cx=\"\(cx - 3)\" cy=\"\(cy + 2)\" r=\"\(dotRadius)\" fill=\"\(inverseColor)\" class=\"commit \(commit.id) \(typeClass)\" />")
-                lines.append("<circle cx=\"\(cx + 3)\" cy=\"\(cy + 2)\" r=\"\(dotRadius)\" fill=\"\(inverseColor)\" class=\"commit \(commit.id) \(typeClass)\" />")
-                lines.append("<line x1=\"\(cx + 3)\" y1=\"\(cy + 1)\" x2=\"\(cx)\" y2=\"\(cy - 5)\" stroke=\"\(inverseColor)\" class=\"commit \(commit.id) \(typeClass)\" />")
-                lines.append("<line x1=\"\(cx - 3)\" y1=\"\(cy + 1)\" x2=\"\(cx)\" y2=\"\(cy - 5)\" stroke=\"\(inverseColor)\" class=\"commit \(commit.id) \(typeClass)\" />")
+                lines.append("<circle cx=\"\(cx - 3)\" cy=\"\(cy + 2)\" r=\"\(dotRadius)\" fill=\"\(inverseColor)\" class=\"commit \(safeCommitId) \(typeClass)\" />")
+                lines.append("<circle cx=\"\(cx + 3)\" cy=\"\(cy + 2)\" r=\"\(dotRadius)\" fill=\"\(inverseColor)\" class=\"commit \(safeCommitId) \(typeClass)\" />")
+                lines.append("<line x1=\"\(cx + 3)\" y1=\"\(cy + 1)\" x2=\"\(cx)\" y2=\"\(cy - 5)\" stroke=\"\(inverseColor)\" class=\"commit \(safeCommitId) \(typeClass)\" />")
+                lines.append("<line x1=\"\(cx - 3)\" y1=\"\(cy + 1)\" x2=\"\(cx)\" y2=\"\(cy - 5)\" stroke=\"\(inverseColor)\" class=\"commit \(safeCommitId) \(typeClass)\" />")
             case .merge:
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxRStr)\" class=\"\(colorClass) \(typeClass)\" fill=\"\(branchColor)\" stroke=\"\(borderColor)\" />")
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxInnerRStr)\" class=\"commit \(typeClass) \(commit.id) commit\(commit.colorIndex)\" fill=\"\(inverseColor)\" />")
@@ -303,8 +321,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                 if showLabelConfig && commit.showLabel {
                     let labelText = SVG.escapeText(commit.id)
                     let labelLen = Double(labelText.count) * 4
-                    let textColor = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelColor, fallback: "#333333"))
-                    let background = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelBackground, fallback: "#f2f2f2"))
+                    let rawTextColor = _gitGraphResolved(themeConfig.commitLabelColor, fallback: "#333333")
+                    let textColor = SVG.escapeText(_isSafeCSSColor(rawTextColor) ? rawTextColor : "#333333")
+                    let rawBackground = _gitGraphResolved(themeConfig.commitLabelBackground, fallback: "#f2f2f2")
+                    let background = SVG.escapeText(_isSafeCSSColor(rawBackground) ? rawBackground : "#f2f2f2")
                     let fontSize = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelFontSize, fallback: "12"))
                     if isVertical {
                         let lx = commit.x - labelLen * 2 - 20

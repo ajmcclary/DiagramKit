@@ -13,9 +13,9 @@ final class SequenceSvgTests: XCTestCase {
             .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
     }
 
-    private func renderSvg(_ diagram: SequenceDiagram) throws -> String {
+    private func renderSvg(_ diagram: SequenceDiagram, interactive: Bool = false) throws -> String {
         let positioned = try layoutSequenceDiagram(diagram)
-        return try renderSequenceSvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#333333"))
+        return try renderSequenceSvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#333333"), interactive: interactive)
     }
 
     // MARK: - Arrow Markers
@@ -69,7 +69,7 @@ final class SequenceSvgTests: XCTestCase {
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
         """))
-        let svg = try renderSvg(diagram)
+        let svg = try renderSvg(diagram, interactive: true)
         XCTAssertTrue(svg.contains("class=\"popup\""), "SVG should contain popup group")
         XCTAssertTrue(svg.contains("xlink:href=\"https://example.com\""), "SVG should contain link element")
         XCTAssertTrue(svg.contains("onclick"), "SVG should contain onclick handler")
@@ -82,8 +82,20 @@ final class SequenceSvgTests: XCTestCase {
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
         """))
-        let svg = try renderSvg(diagram)
+        let svg = try renderSvg(diagram, interactive: true)
         XCTAssertTrue(svg.contains("visibility=\"hidden\""), "Popups should start hidden by default")
+    }
+
+    func testPopupMenusOmittedByDefault() throws {
+        let (diagram, _) = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Dashboard @ https://example.com
+            Alice->>Bob: Hello
+        """))
+        let svg = try renderSvg(diagram)
+        XCTAssertFalse(svg.contains("class=\"popup\""), "SVG should not contain popup group by default")
+        XCTAssertFalse(svg.contains("popupMenuToggle"), "SVG should not contain toggle script by default")
+        XCTAssertFalse(svg.contains("onclick"), "SVG should not contain onclick handler by default")
     }
 
     // MARK: - Rect Highlights

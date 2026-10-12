@@ -139,20 +139,24 @@ public func renderGanttSvg(
         let interactionAttrs = _interactionAttributes(for: ptask.task)
 
         let rectMarkup: String
+        let safeTaskId = _sanitizeSVGIdToken("\(diagramId)-\(ptask.task.id)")
+        let safeSvgClass = _sanitizeSVGClassTokens(ptask.svgClass)
+        let safeLabelClass = _sanitizeSVGClassTokens(ptask.labelClass)
+
         if isMilestone {
             let cx = rect.midX
             let cy = rect.midY
-            rectMarkup = #"<rect id="\#(diagramId)-\#(ptask.task.id)" class="\#(ptask.svgClass)" x="\#(rect.origin.x)" y="\#(rect.origin.y)" width="\#(rect.width)" height="\#(rect.height)" transform="rotate(45, \#(cx), \#(cy)) scale(0.8, 0.8)"\#(interactionAttrs)/>"#
+            rectMarkup = #"<rect id="\#(safeTaskId)" class="\#(safeSvgClass)" x="\#(rect.origin.x)" y="\#(rect.origin.y)" width="\#(rect.width)" height="\#(rect.height)" transform="rotate(45, \#(cx), \#(cy)) scale(0.8, 0.8)"\#(interactionAttrs)/>"#
         } else {
-            rectMarkup = #"<rect id="\#(diagramId)-\#(ptask.task.id)" class="\#(ptask.svgClass)" x="\#(rect.origin.x)" y="\#(rect.origin.y)" width="\#(rect.width)" height="\#(rect.height)" rx="3" ry="3"\#(interactionAttrs)/>"#
+            rectMarkup = #"<rect id="\#(safeTaskId)" class="\#(safeSvgClass)" x="\#(rect.origin.x)" y="\#(rect.origin.y)" width="\#(rect.width)" height="\#(rect.height)" rx="3" ry="3"\#(interactionAttrs)/>"#
         }
 
         // 5. Task labels
-        let textMarkup = #"<text id="\#(diagramId)-\#(ptask.task.id)-text" class="\#(ptask.labelClass)" x="\#(ptask.labelPoint.x)" y="\#(ptask.labelPoint.y)"\#(interactionAttrs)>\#(SVG.escapeText(ptask.task.task))</text>"#
+        let textMarkup = #"<text id="\#(safeTaskId)-text" class="\#(safeLabelClass)" x="\#(ptask.labelPoint.x)" y="\#(ptask.labelPoint.y)"\#(interactionAttrs)>\#(SVG.escapeText(ptask.task.task))</text>"#
 
         let taskMarkup = rectMarkup + "\n" + textMarkup + "\n"
         if let link = ptask.task.link {
-            svg += #"<a xlink:href="\#(SVG.escapeText(link))" target="_self">"#
+            svg += #"<a xlink:href="\#(SVG.escapeAttribute(link))" target="_self">"#
             svg += "\n"
             svg += taskMarkup
             svg += "</a>\n"
@@ -178,10 +182,11 @@ public func renderGanttSvg(
 
     // 7. Today marker
     if let todayX = positioned.todayLineX {
-        let style = positioned.todayMarkerStyle ?? ""
+        let rawStyle = positioned.todayMarkerStyle ?? ""
+        let style = _isSafeCSSStyleValue(rawStyle) ? rawStyle : ""
         svg += #"<g class="today">"#
         svg += "\n"
-        svg += #"<line class="today" x1="\#(todayX)" x2="\#(todayX)" y1="\#(config.titleTopMargin)" y2="\#(h - config.titleTopMargin)" style="\#(SVG.escapeText(style))"/>"#
+        svg += #"<line class="today" x1="\#(todayX)" x2="\#(todayX)" y1="\#(config.titleTopMargin)" y2="\#(h - config.titleTopMargin)" style="\#(SVG.escapeAttribute(style))"/>"#
         svg += "\n"
         svg += "</g>\n"
     }

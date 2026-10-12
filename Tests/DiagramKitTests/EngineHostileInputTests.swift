@@ -180,4 +180,107 @@ struct EngineHostileInputTests {
         let svg = try? await DiagramEngine.renderSVG(source: "sequenceDiagram\nparser->>Lexer: next()")
         if let svg { #expect(!svg.isEmpty) }
     }
+
+    // MARK: - SVG attribute-injection hardening
+
+    @Test("class diagram style breakout is sanitized")
+    func classStyleBreakoutSVG() async throws {
+        let source = """
+        classDiagram
+        class A
+        style A fill:#fff;stroke-width:2\" onload=alert(1) x=\"1
+        """
+        let svg = try? await DiagramEngine.renderSVG(source: source)
+        if let svg {
+            #expect(!svg.contains("onload=alert(1)"))
+            #expect(!svg.contains("stroke-width:2\""))
+        }
+    }
+
+    @Test("ER key badge text is escaped")
+    func erKeyBadgeEscapeSVG() async throws {
+        let source = """
+        erDiagram
+        A ||--o{ B : has
+        A {
+          string name
+          PK <script>alert(1)</script>
+        }
+        """
+        let svg = try? await DiagramEngine.renderSVG(source: source)
+        if let svg {
+            #expect(!svg.contains("<script>alert(1)</script>"))
+        }
+    }
+
+    @Test("sankey aria-label is escaped")
+    func sankeyAriaLabelEscapeSVG() async throws {
+        let source = """
+        sankey-beta
+        title \" onload=alert(1) x=\"
+        A[100]
+        B[20]
+        A --> B : 20
+        """
+        let svg = try? await DiagramEngine.renderSVG(source: source)
+        if let svg {
+            #expect(!svg.contains(" onload=alert(1) x="))
+            #expect(svg.contains("aria-label="))
+        }
+    }
+
+    @Test("gantt task id and class tokens are sanitized")
+    func ganttTaskIdSanitizationSVG() async throws {
+        let source = """
+        gantt
+        section A
+        task\" onload=alert(1) x=\": 2024-01-01, 1d
+        """
+        let svg = try? await DiagramEngine.renderSVG(source: source)
+        if let svg {
+            // The task name is rendered as escaped text content, which is safe.
+            // The hardening target is the id/class attributes derived from it.
+            #expect(!svg.contains("id=\"\""))
+            #expect(!svg.contains("id=\"task\\\" onload"))
+            #expect(!svg.contains("class=\"task\\\" onload"))
+        }
+    }
+
+    @Test("ASCII HTML output escapes quotes")
+    func asciiHtmlQuoteEscape() {
+        let theme = AsciiTheme(fg: "#fff\" onload=alert(1) x=\"", border: "#aaa", line: "#888", arrow: "#555")
+        let html = colorizeLine(["<script>alert(1)</script>"], [.text], theme, .html)
+        #expect(!html.contains("<script>alert(1)</script>"))
+        #expect(!html.contains("onload=alert(1)"))
+    }
+
+    @Test("pie theme color injection is rejected")
+    func pieThemeColorInjectionSVG() async throws {
+        let source = """
+        ---
+        theme:
+          pie:
+            pieStrokeColor: '#fff\" onload=alert(1) x=\"'
+        ---
+        pie
+        "A" : 1
+        """
+        let svg = try? await DiagramEngine.renderSVG(source: source)
+        if let svg {
+            #expect(!svg.contains("onload=alert(1)"))
+        }
+    }
+
+    @Test("sequence popup script is gated by interactive flag")
+    func sequenceScriptGateSVG() async throws {
+        let source = """
+        sequenceDiagram
+        link A: Example @ https://example.com
+        A->>B: m
+        """
+        let nonInteractive = try? await DiagramEngine.renderSVG(source: source)
+        #expect(nonInteractive != nil)
+        #expect(nonInteractive?.contains("popupMenuToggle") == false)
+        #expect(nonInteractive?.contains("<script") == false)
+    }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - DiagramFrontmatter
 //
@@ -22,12 +23,18 @@ public struct DiagramFrontmatter: Sendable {
 
     public var shared: SharedFrontmatter
     public var perDiagram: PerDiagramFrontmatter
+    /// Diagnostics collected while binding frontmatter values (e.g. rejected
+    /// unsafe colors or style values). Merged into `DiagramImportResult` by
+    /// the importer.
+    public var diagnostics: [DiagramDiagnostic]
 
     public init(
         shared: SharedFrontmatter = SharedFrontmatter(),
-        perDiagram: PerDiagramFrontmatter = PerDiagramFrontmatter()
+        perDiagram: PerDiagramFrontmatter = PerDiagramFrontmatter(),
+        diagnostics: [DiagramDiagnostic] = []
     ) {
         self.shared = shared
         self.perDiagram = perDiagram
+        self.diagnostics = diagnostics
     }
 }

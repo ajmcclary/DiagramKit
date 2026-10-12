@@ -1,7 +1,7 @@
 import Foundation
 import DiagramKitCommon
 
-public enum ArchitectureParserError: Error, LocalizedError {
+public enum ArchitectureParserError: Error, LocalizedError, _RecoverableDiagramError {
     case missingHeader
     case duplicateId(String, existingType: String)
     case selfParenting(String)

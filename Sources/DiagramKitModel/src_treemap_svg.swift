@@ -99,7 +99,10 @@ private func _renderLeafSvg(_ leaf: PositionedTreemapLeaf, font: String) -> Stri
     let h = _ti(leaf.y1 - leaf.y0)
 
     var classes = "treemapNode treemapLeafGroup leaf\(leaf.index)"
-    if let sel = leaf.classSelector { classes += " \(SVG.escapeText(sel))" }
+    if let sel = leaf.classSelector {
+        let sanitized = _sanitizeSVGClassTokens(sel)
+        if !sanitized.isEmpty { classes += " \(sanitized)" }
+    }
 
     var result = ""
     result += "<g class=\"\(classes)\" transform=\"translate(\(_ti(leaf.x0)),\(_ti(leaf.y0)))\">\n"

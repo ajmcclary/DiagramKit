@@ -6,16 +6,18 @@ public func renderSequenceSvg(
     _ diagram: PositionedSequenceDiagram,
     _ colors: DiagramColors,
     _ font: String = DiagramSVGFontFamily.proportional,
-    _ transparent: Bool = false
+    _ transparent: Bool = false,
+    interactive: Bool = false
 ) throws -> String {
-    try _renderSequenceSvgEntry(diagram, colors, font, transparent)
+    try _renderSequenceSvgEntry(diagram, colors, font, transparent, interactive: interactive)
 }
 
 private func _renderSequenceSvgEntry(
     _ diagram: PositionedSequenceDiagram,
     _ colors: DiagramColors,
     _ font: String,
-    _ transparent: Bool
+    _ transparent: Bool,
+    interactive: Bool
 ) throws -> String {
     var parts: [String] = []
 
@@ -82,36 +84,48 @@ private func _renderSequenceSvgEntry(
 
     // Actor boxes (on top)
     for (idx, actor) in diagram.actors.enumerated() {
-        parts.append(_renderActor(actor, index: idx))
+        parts.append(_renderActor(actor, index: idx, interactive: interactive))
     }
 
-    // Popup menus (hidden unless forceMenus)
-    for (idx, actor) in diagram.actors.enumerated() {
-        if !actor.links.isEmpty {
-            parts.append(_renderPopup(actor, index: idx, forceMenus: false))
-        }
-    }
+    let anyLinks = diagram.actors.contains(where: { !$0.links.isEmpty })
+        || diagram.bottomActors.contains(where: { !$0.links.isEmpty })
 
-    // Mirror actors at bottom
+    // Mirror actors at bottom (always rendered; popups are interactive-only)
     for (idx, actor) in diagram.bottomActors.enumerated() {
         let bottomIdx = diagram.actors.count + idx
-        parts.append(_renderActor(actor, index: bottomIdx))
-        if !actor.links.isEmpty {
-            parts.append(_renderPopup(actor, index: bottomIdx, forceMenus: false))
+        parts.append(_renderActor(actor, index: bottomIdx, interactive: interactive))
+    }
+
+    // Popup menus (only when interactive; otherwise the hidden menus
+    // and toggle script are omitted entirely).
+    if interactive {
+        for (idx, actor) in diagram.actors.enumerated() {
+            if !actor.links.isEmpty {
+                parts.append(_renderPopup(actor, index: idx, forceMenus: false))
+            }
+        }
+
+        for (idx, actor) in diagram.bottomActors.enumerated() {
+            let bottomIdx = diagram.actors.count + idx
+            if !actor.links.isEmpty {
+                parts.append(_renderPopup(actor, index: bottomIdx, forceMenus: false))
+            }
         }
     }
 
-    // Popup menu toggle script
-    parts.append("""
-    <script type="text/javascript">
-    function popupMenuToggle(popId) {
-      var pop = document.getElementById(popId);
-      if (!pop) return;
-      var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
-      pop.setAttribute('visibility', vis);
+    // Popup menu toggle script (only when interactive and links exist)
+    if interactive && anyLinks {
+        parts.append("""
+        <script type="text/javascript">
+        function popupMenuToggle(popId) {
+          var pop = document.getElementById(popId);
+          if (!pop) return;
+          var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
+          pop.setAttribute('visibility', vis);
+        }
+        </script>
+        """)
     }
-    </script>
-    """)
 
     parts.append(svgBuilder.close())
     return parts.joined(separator: "\n")
@@ -191,7 +205,7 @@ private func _renderPopup(_ actor: PositionedSequenceActor, index: Int, forceMen
 
 // MARK: - Actor
 
-private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> String {
+private func _renderActor(_ actor: PositionedSequenceActor, index: Int, interactive: Bool = false) -> String {
     let x = actor.x
     let y = actor.y
     let width = actor.width
@@ -211,8 +225,8 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> Strin
     if let detailsId = actor.detailsElementId {
         dataAttrs += " data-details=\"\(SVG.escapeAttribute(detailsId))\""
     }
-    let interactive = hasLinks ? " onclick=\"popupMenuToggle('actor\(index)_popup')\" cursor=\"pointer\"" : ""
-    parts.append("<g class=\"actor\"\(dataAttrs)\(interactive)>")
+    let interactiveAttr = (interactive && hasLinks) ? " onclick=\"popupMenuToggle('actor\(index)_popup')\" cursor=\"pointer\"" : ""
+    parts.append("<g class=\"actor\"\(dataAttrs)\(interactiveAttr)>")
 
     switch pType {
     case .actor:
@@ -406,8 +420,9 @@ final class original_src_sequence_renderer {
         _ diagram: PositionedSequenceDiagram,
         _ colors: DiagramColors,
         _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false
+        _ transparent: Bool = false,
+        interactive: Bool = false
     ) throws -> String {
-        try _renderSequenceSvgEntry(diagram, colors, font, transparent)
+        try _renderSequenceSvgEntry(diagram, colors, font, transparent, interactive: interactive)
     }
 }

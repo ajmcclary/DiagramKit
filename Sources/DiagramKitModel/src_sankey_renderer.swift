@@ -82,7 +82,7 @@ public func renderSankeySvg(
         #"aria-roledescription="sankey""#,
     ]
     if let label = ariaLabel, !label.isEmpty {
-        extraAttrs.append(#"aria-label="\#(label)""#)
+        extraAttrs.append(#"aria-label="\#(SVG.escapeAttribute(label))""#)
     }
     parts.append(builder.open(extraAttributes: extraAttrs.joined(separator: " ")))
 
