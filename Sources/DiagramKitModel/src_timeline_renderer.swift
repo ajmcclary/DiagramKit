@@ -234,7 +234,7 @@ private func _renderTimelineSvg(
 // MARK: - SVG helpers
 
 private func _tfmt(_ value: Double) -> String {
-    if let intVal = _safeInt(value) {
+    if let intVal = _safeIntegralInt(value) {
         return String(intVal)
     }
     return String(format: "%.1f", value)

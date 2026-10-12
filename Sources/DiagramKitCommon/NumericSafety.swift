@@ -2,15 +2,26 @@ import Foundation
 
 // MARK: - Safe numeric conversion
 
-/// Converts a `Double` to `Int` only when the value is finite, within a
-/// safe magnitude, and mathematically an integer. Returns `nil` otherwise.
+/// Converts a `Double` to `Int` only when the value is finite and within a
+/// safe magnitude, truncating toward zero exactly like `Int(Double)`.
+/// Returns `nil` otherwise.
 ///
 /// This is the shared guard for every `Int(Double)` site that consumes
 /// user-provided diagram numbers (pie values, autonumber offsets,
-/// frontmatter dimensions, etc.). The `1e15` ceiling is well below
-/// `Int.max` but above any reasonable diagram coordinate; it also avoids
-/// the absorption-by-rounding region where `v + 1 == v`.
+/// frontmatter dimensions, coordinates, etc.). The `1e15` ceiling is well
+/// below `Int.max` but above any reasonable diagram coordinate; it also
+/// avoids the absorption-by-rounding region where `v + 1 == v`.
 public func _safeInt(_ value: Double) -> Int? {
+    guard value.isFinite, abs(value) < 1e15 else {
+        return nil
+    }
+    return Int(value)
+}
+
+/// Strict variant of `_safeInt` that additionally requires the value to be
+/// mathematically an integer. Use at sites whose original code was an
+/// explicit `value == value.rounded()` check (integer-only formatting).
+public func _safeIntegralInt(_ value: Double) -> Int? {
     guard value.isFinite, abs(value) < 1e15, value == value.rounded() else {
         return nil
     }
@@ -20,7 +31,7 @@ public func _safeInt(_ value: Double) -> Int? {
 /// `Int64` variant of `_safeInt`. Used where the downstream API is `Int64`
 /// (e.g. packet-bitfield widths, treemap comma formatting).
 public func _safeInt64(_ value: Double) -> Int64? {
-    guard value.isFinite, abs(value) < 1e15, value == value.rounded() else {
+    guard value.isFinite, abs(value) < 1e15 else {
         return nil
     }
     return Int64(value)

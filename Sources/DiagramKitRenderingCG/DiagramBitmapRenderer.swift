@@ -59,8 +59,8 @@ public enum DiagramBitmapRenderer {
               size.width * size.height <= 100_000_000 else {
             return nil
         }
-        let pixelWidth = _safeInt((size.width * scale).rounded(), default: 0)
-        let pixelHeight = _safeInt((size.height * scale).rounded(), default: 0)
+        let pixelWidth = _safeInt(size.width * scale, default: 0)
+        let pixelHeight = _safeInt(size.height * scale, default: 0)
         guard pixelWidth > 0, pixelHeight > 0,
               pixelWidth <= 32767 * 4, pixelHeight <= 32767 * 4,
               pixelWidth * pixelHeight <= 400_000_000,

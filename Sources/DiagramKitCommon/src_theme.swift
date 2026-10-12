@@ -329,7 +329,7 @@ public final class original_src_theme {
     }
 
     private static func _formatNumber(_ value: Double) -> String {
-        if let v = _safeInt(value) {
+        if let v = _safeIntegralInt(value) {
             return String(v)
         }
         return String(value)

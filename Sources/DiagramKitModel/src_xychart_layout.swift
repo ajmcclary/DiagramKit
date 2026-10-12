@@ -416,7 +416,7 @@ public func _niceTickValues(_ min: Double, _ max: Double) -> [Double] {
 }
 
 public func _formatTickValue(_ v: Double) -> String {
-    if let intVal = _safeInt(v) { return String(intVal) }
+    if let intVal = _safeIntegralInt(v) { return String(intVal) }
     return abs(v) < 10 ? String(format: "%.1f", v) : String(format: "%.0f", v)
 }
 

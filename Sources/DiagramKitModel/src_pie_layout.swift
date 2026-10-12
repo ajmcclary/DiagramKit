@@ -237,7 +237,7 @@ private func layoutLegend(
     for (index, section) in sections.enumerated() {
         let vertical = Double(index) * rowHeight - offset
         let valueStr: String
-        if let v = _safeInt(section.value) {
+        if let v = _safeIntegralInt(section.value) {
             valueStr = String(v)
         } else {
             valueStr = String(section.value)

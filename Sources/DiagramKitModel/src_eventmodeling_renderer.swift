@@ -96,7 +96,7 @@ public func renderEventModelingSvg(
 }
 
 private func emFmt(_ value: Double) -> String {
-    if let v = _safeInt(value) {
+    if let v = _safeIntegralInt(value) {
         return String(v)
     }
     var text = String(format: "%.3f", value)
