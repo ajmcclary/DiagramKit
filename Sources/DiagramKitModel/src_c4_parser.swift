@@ -527,9 +527,10 @@ private func _parseC4AccTitle(_ line: String) -> String? {
 }
 
 private func _parseC4Direction(_ line: String) -> String? {
+    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
     let dirs = ["TB", "BT", "RL", "LR"]
     for d in dirs {
-        if line.range(of: "direction\\s+\(d)", options: .regularExpression) != nil {
+        if trimmed.range(of: "^direction\\s+\(d)$", options: .regularExpression) != nil {
             return d
         }
     }

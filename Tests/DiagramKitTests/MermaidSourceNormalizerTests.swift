@@ -84,14 +84,13 @@ import Foundation
         #expect(lines[1] == "next")
     }
 
-    @Test("statements is quote-aware — newlines inside quotes are preserved")
-    func statementsPreservesQuotedNewlines() {
+    @Test("statements splits on newlines even inside quotes")
+    func statementsSplitsOnNewlinesInsideQuotes() {
         let source = "label \"line1\nline2\"; next"
         let lines = DiagramSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n;"))
         #expect(lines.count == 2)
-        #expect(lines[0].contains("line1"))
-        #expect(lines[0].contains("line2"))
-        #expect(lines[1] == "next")
+        #expect(lines[0] == "label \"line1")
+        #expect(lines[1] == "line2\"; next")
     }
 
     @Test("statements handles escaped quotes inside strings")

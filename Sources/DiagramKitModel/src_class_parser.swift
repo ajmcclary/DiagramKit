@@ -1427,9 +1427,39 @@ private func _finalizeLollipops(_ diagram: ClassDiagram) -> ClassDiagram {
 
 // MARK: - Regex Helpers
 
+private let _classRegexCache = _ClassRegexCache()
+
+// Concurrency Contract: class-parser regex lookups go through a lock-guarded
+// dictionary cache. `NSRegularExpression` instances are thread-safe once
+// constructed, the lock makes get-or-insert atomic, and the key set is the
+// parser's own fixed pattern vocabulary (no user-controllable unbounded
+// growth). All parser entry points run on the 8 MB worker thread, but the
+// cache is safe under arbitrary concurrency.
+private final class _ClassRegexCache: @unchecked Sendable {
+    private var storage: [String: NSRegularExpression] = [:]
+    private let lock = NSLock()
+
+    func regex(for pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
+        let key = "\(pattern)\(options.rawValue)"
+        lock.lock()
+        if let cached = storage[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        lock.lock()
+        storage[key] = regex
+        lock.unlock()
+        return regex
+    }
+}
+
 private func _regexTest(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> Bool {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return false }
+    guard let regex = _classRegexCache.regex(for: pattern, options: options) else { return false }
     let range = NSRange(value.startIndex..<value.endIndex, in: value)
     return regex.firstMatch(in: value, options: [], range: range) != nil
 }
@@ -1440,7 +1470,7 @@ private func _firstGroup(_ pattern: String, _ value: String, caseInsensitive: Bo
 
 private func _groups(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> [String]? {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
+    guard let regex = _classRegexCache.regex(for: pattern, options: options) else { return nil }
     let nsValue = value as NSString
     let range = NSRange(location: 0, length: nsValue.length)
     guard let match = regex.firstMatch(in: value, options: [], range: range) else { return nil }

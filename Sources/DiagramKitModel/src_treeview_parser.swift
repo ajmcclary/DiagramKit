@@ -1,6 +1,12 @@
 import Foundation
 import DiagramKitCommon
 
+private let _treeviewTitlePattern = try! NSRegularExpression(pattern: "^title\\s+(.+)$", options: .caseInsensitive)
+private let _treeviewAccTitlePattern = try! NSRegularExpression(pattern: "^accTitle\\s*:\\s*(.+)$", options: .caseInsensitive)
+private let _treeviewAccDescrPattern = try! NSRegularExpression(pattern: "^accDescr\\s*:\\s*(.+)$", options: .caseInsensitive)
+private let _treeviewAccDescrOpenPattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.*)$")
+private let _treeviewAccDescrInlinePattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+?)\\s*\\}\\s*$", options: .caseInsensitive)
+
 private final class _MutableTreeNode: @unchecked Sendable {
     var name: String
     var nodeType: TreeViewNodeType
@@ -71,12 +77,6 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
         throw TreeViewParserError.invalidHeader("treeView-beta header not found")
     }
 
-    let titlePattern = try! NSRegularExpression(pattern: "^title\\s+(.+)$", options: .caseInsensitive)
-    let accTitlePattern = try! NSRegularExpression(pattern: "^accTitle\\s*:\\s*(.+)$", options: .caseInsensitive)
-    let accDescrPattern = try! NSRegularExpression(pattern: "^accDescr\\s*:\\s*(.+)$", options: .caseInsensitive)
-    let accDescrOpenPattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.*)$")
-    let accDescrInlinePattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+?)\\s*\\}\\s*$", options: .caseInsensitive)
-
     let root = _MutableTreeNode(name: "/", nodeType: .directory, iconId: nil, cssClass: nil, description: nil, level: -1)
     var stack: [(level: Int, node: _MutableTreeNode)] = [(-1, root)]
     var allNodes: [_MutableTreeNode] = [root]
@@ -103,12 +103,12 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
 
         if trimmedLine.isEmpty || trimmedLine.hasPrefix("%%") { continue }
 
-        if let match = accDescrInlinePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
+        if let match = _treeviewAccDescrInlinePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
             accDescr = (trimmedLine as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces)
             continue
         }
 
-        if let match = accDescrOpenPattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
+        if let match = _treeviewAccDescrOpenPattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
             inAccDescrBlock = true
             accDescrLines = []
             let firstContent = (trimmedLine as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces)
@@ -121,17 +121,17 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
             continue
         }
 
-        if let match = accTitlePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
+        if let match = _treeviewAccTitlePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
             accTitle = _unquoteLabel((trimmedLine as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }
 
-        if let match = accDescrPattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
+        if let match = _treeviewAccDescrPattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
             accDescr = _unquoteLabel((trimmedLine as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }
 
-        if let match = titlePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
+        if let match = _treeviewTitlePattern.firstMatch(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine)) {
             diagramTitle = _unquoteLabel((trimmedLine as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }
@@ -186,8 +186,8 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
         diagramTitle: diagramTitle,
         accTitle: accTitle,
         accDescr: accDescr,
-        config: TreeViewDiagramConfig.default,
-        theme: frontmatter.flatMap { _ in nil }
+        config: frontmatter?.perDiagram.treeView.config ?? TreeViewDiagramConfig.default,
+        theme: frontmatter?.perDiagram.treeView.theme
     ), [])
 }
 

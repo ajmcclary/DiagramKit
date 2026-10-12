@@ -1,5 +1,9 @@
 import Foundation
 
+private let _plantUMLERRelationshipRegex = try! NSRegularExpression(
+    pattern: #"([A-Za-z_][A-Za-z0-9_]*)\s+([|}o]+)(--|\.\.)([|{o]+)\s+([A-Za-z_][A-Za-z0-9_]*)(\s*:\s*(.+))?"#
+)
+
 struct PlantUMLERParser {
 
     func parse(_ body: String) -> PlantUMLERAST {
@@ -82,10 +86,8 @@ struct PlantUMLERParser {
     }
 
     private func parseRelationshipLine(_ line: String) -> PlantUMLERAST.Relationship? {
-        let pattern = #"([A-Za-z_][A-Za-z0-9_]*)\s+([|}o]+)(--|\.\.)([|{o]+)\s+([A-Za-z_][A-Za-z0-9_]*)(\s*:\s*(.+))?"#
-        guard let nsre = try? NSRegularExpression(pattern: pattern) else { return nil }
         let range = NSRange(line.startIndex..., in: line)
-        guard let match = nsre.firstMatch(in: line, range: range) else { return nil }
+        guard let match = _plantUMLERRelationshipRegex.firstMatch(in: line, range: range) else { return nil }
 
         func cap(_ i: Int) -> String? {
             let r = match.range(at: i)

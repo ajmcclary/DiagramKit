@@ -47,10 +47,27 @@ extension DiagramEditor {
     static func _removeNodeIDs(
         _ ids: Set<String>,
         from subs: [original_src_types.MermaidSubgraph]
-    ) {
-        for sub in subs {
-            sub.nodeIds.removeAll { ids.contains($0) }
-            _removeNodeIDs(ids, from: sub.children)
+    ) -> [original_src_types.MermaidSubgraph] {
+        subs.map { sub in
+            var mutated = sub
+            mutated.nodeIds.removeAll { ids.contains($0) }
+            mutated.children = _removeNodeIDs(ids, from: sub.children)
+            return mutated
+        }
+    }
+
+    static func _appendNodeIDs(
+        _ ids: [String],
+        toSubgraphID target: String,
+        in subs: [original_src_types.MermaidSubgraph]
+    ) -> [original_src_types.MermaidSubgraph] {
+        subs.map { sub in
+            var mutated = sub
+            if sub.id == target {
+                mutated.nodeIds.append(contentsOf: ids)
+            }
+            mutated.children = _appendNodeIDs(ids, toSubgraphID: target, in: sub.children)
+            return mutated
         }
     }
 
@@ -85,16 +102,81 @@ extension DiagramEditor {
         if let target, Self._findSubgraph(target, in: forest) == nil {
             throw DiagramEditorError.elementNotFound(id: target, kind: "subgraph")
         }
-        Self._removeNodeIDs(Set(nodeIDs), from: forest)
-        if let target, let destination = Self._findSubgraph(target, in: forest) {
-            destination.nodeIds.append(contentsOf: nodeIDs)
+        var nextForest = Self._removeNodeIDs(Set(nodeIDs), from: forest)
+        if let target {
+            nextForest = Self._appendNodeIDs(nodeIDs, toSubgraphID: target, in: nextForest)
         }
-        model.subgraphs = forest
+        model.subgraphs = nextForest
         doc.payload = .flowchart(model)
         return doc
     }
 
     // MARK: - ungroupSubgraph
+
+    /// Recursively ungroup the subgraph with `id`.
+    ///
+    /// - Root-level target: removed and replaced by its children; its own
+    ///   `nodeIds` lose group membership (they remain in `nodesInOrder`).
+    /// - Nested target: removed and replaced by its children inside its parent,
+    ///   and its `nodeIds` are appended to the parent’s `nodeIds`.
+    static func _ungroupSubgraph(
+        id: String,
+        in subs: [original_src_types.MermaidSubgraph]
+    ) -> [original_src_types.MermaidSubgraph] {
+        var result: [original_src_types.MermaidSubgraph] = []
+        for sub in subs {
+            if sub.id == id {
+                // Root-level: promote children; member nodes become ungrouped.
+                result.append(contentsOf: sub.children)
+            } else if let promoted = Self._replaceSubgraphWithChildren(id: id, in: sub.children) {
+                var mutated = sub
+                mutated.children = promoted.children
+                mutated.nodeIds.append(contentsOf: promoted.nodeIds)
+                result.append(mutated)
+            } else {
+                var mutated = sub
+                mutated.children = _ungroupSubgraph(id: id, in: sub.children)
+                result.append(mutated)
+            }
+        }
+        return result
+    }
+
+    /// If `id` is a direct child of `subs`, replace it with its children and
+    /// return the new child list plus the removed subgraph’s `nodeIds`.
+    /// Otherwise recurse; when found deeper, apply the promotion to the
+    /// ancestor and return the updated subtree.
+    static func _replaceSubgraphWithChildren(
+        id: String,
+        in subs: [original_src_types.MermaidSubgraph]
+    ) -> (children: [original_src_types.MermaidSubgraph], nodeIds: [String])? {
+        if let idx = subs.firstIndex(where: { $0.id == id }) {
+            let sub = subs[idx]
+            var newChildren = subs
+            newChildren.remove(at: idx)
+            newChildren.insert(contentsOf: sub.children, at: idx)
+            return (newChildren, sub.nodeIds)
+        }
+
+        var result: [original_src_types.MermaidSubgraph] = []
+        var found: Bool = false
+        for sub in subs {
+            if found {
+                var mutated = sub
+                mutated.children = _ungroupSubgraph(id: id, in: sub.children)
+                result.append(mutated)
+            } else if let promoted = Self._replaceSubgraphWithChildren(id: id, in: sub.children) {
+                var mutated = sub
+                mutated.children = promoted.children
+                mutated.nodeIds.append(contentsOf: promoted.nodeIds)
+                result.append(mutated)
+                found = true
+            } else {
+                result.append(sub)
+            }
+        }
+        return found ? (result, []) : nil
+    }
 
     func _ungroupSubgraph(
         id: String,
@@ -104,39 +186,34 @@ extension DiagramEditor {
         guard case .flowchart(var model) = doc.payload else {
             throw DiagramEditorError.notAFlowchart
         }
-        var forest = Self._copySubgraphForest(model.subgraphs)
-
-        if let idx = forest.firstIndex(where: { $0.id == id }) {
-            // Root-level: children float up to root; member nodes
-            // simply lose group membership (they stay in nodesInOrder).
-            let sub = forest.remove(at: idx)
-            forest.insert(contentsOf: sub.children, at: idx)
-        } else if let parent = Self._findParent(of: id, in: forest) {
-            let idx = parent.children.firstIndex { $0.id == id }!
-            let sub = parent.children.remove(at: idx)
-            parent.children.insert(contentsOf: sub.children, at: idx)
-            parent.nodeIds.append(contentsOf: sub.nodeIds)
-        } else {
+        let forest = Self._copySubgraphForest(model.subgraphs)
+        let present = forest.contains { $0.id == id } || forest.contains {
+            Self._findSubgraph(id, in: $0.children) != nil
+        }
+        guard present else {
             throw DiagramEditorError.elementNotFound(id: id, kind: "subgraph")
         }
-
-        model.subgraphs = forest
+        model.subgraphs = Self._ungroupSubgraph(id: id, in: forest)
         doc.payload = .flowchart(model)
         return doc
     }
 
-    static func _findParent(
-        of id: String,
-        in subs: [original_src_types.MermaidSubgraph]
-    ) -> original_src_types.MermaidSubgraph? {
-        for sub in subs {
-            if sub.children.contains(where: { $0.id == id }) { return sub }
-            if let hit = _findParent(of: id, in: sub.children) { return hit }
-        }
-        return nil
-    }
-
     // MARK: - renameSubgraph
+
+    static func _renameSubgraph(
+        id: String,
+        to title: String,
+        in subs: [original_src_types.MermaidSubgraph]
+    ) -> [original_src_types.MermaidSubgraph] {
+        subs.map { sub in
+            var mutated = sub
+            if sub.id == id {
+                mutated.label = title
+            }
+            mutated.children = _renameSubgraph(id: id, to: title, in: sub.children)
+            return mutated
+        }
+    }
 
     func _renameSubgraph(
         id: String,
@@ -148,11 +225,10 @@ extension DiagramEditor {
             throw DiagramEditorError.notAFlowchart
         }
         let forest = Self._copySubgraphForest(model.subgraphs)
-        guard let sub = Self._findSubgraph(id, in: forest) else {
+        guard Self._findSubgraph(id, in: forest) != nil else {
             throw DiagramEditorError.elementNotFound(id: id, kind: "subgraph")
         }
-        sub.label = title
-        model.subgraphs = forest
+        model.subgraphs = Self._renameSubgraph(id: id, to: title, in: forest)
         doc.payload = .flowchart(model)
         return doc
     }
@@ -163,19 +239,26 @@ extension DiagramEditor {
     /// forest, searching recursively. Returns nil when absent.
     static func _extractSubgraph(
         _ id: String,
-        from forest: inout [original_src_types.MermaidSubgraph]
-    ) -> original_src_types.MermaidSubgraph? {
-        if let idx = forest.firstIndex(where: { $0.id == id }) {
-            return forest.remove(at: idx)
-        }
-        for sub in forest {
-            var children = sub.children
-            if let hit = _extractSubgraph(id, from: &children) {
-                sub.children = children
-                return hit
+        from subs: [original_src_types.MermaidSubgraph]
+    ) -> (forest: [original_src_types.MermaidSubgraph], extracted: original_src_types.MermaidSubgraph?) {
+        var result: [original_src_types.MermaidSubgraph] = []
+        var extracted: original_src_types.MermaidSubgraph?
+        for sub in subs {
+            if extracted != nil {
+                var mutated = sub
+                mutated.children = Self._extractSubgraph(id, from: sub.children).forest
+                result.append(mutated)
+            } else if sub.id == id {
+                extracted = sub
+            } else {
+                let (children, childExtracted) = Self._extractSubgraph(id, from: sub.children)
+                var mutated = sub
+                mutated.children = children
+                result.append(mutated)
+                extracted = childExtracted
             }
         }
-        return nil
+        return (result, extracted)
     }
 
     /// All node ids transitively contained in `sub` (its own plus

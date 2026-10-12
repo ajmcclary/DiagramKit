@@ -1,6 +1,13 @@
 import Foundation
 import DiagramKitCommon
 
+private func _ganttHasKeyword(_ line: String, keyword: String) -> Bool {
+    let lower = line.lowercased()
+    guard lower.hasPrefix(keyword) else { return false }
+    let endIndex = lower.index(lower.startIndex, offsetBy: keyword.count)
+    return endIndex == lower.endIndex || lower[endIndex].isWhitespace
+}
+
 // MARK: - Errors
 
 public enum GanttParserError: Error, LocalizedError, _RecoverableDiagramError {
@@ -168,7 +175,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // title
-            if lower.hasPrefix("title") {
+            if _ganttHasKeyword(trimmed, keyword: "title") {
                 let value = _extractAfterKeyword(trimmed, keyword: "title")
                 diagram.title = value
                 continue
@@ -220,7 +227,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // section
-            if lower.hasPrefix("section") {
+            if _ganttHasKeyword(trimmed, keyword: "section") {
                 let value = _extractAfterKeyword(trimmed, keyword: "section")
                 currentSection = value
                 let section = GanttSection(name: value, index: sections.count)
@@ -229,7 +236,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // click statement
-            if lower.hasPrefix("click") {
+            if _ganttHasKeyword(trimmed, keyword: "click") {
                 _parseClickStatement(trimmed, rawTasks: &rawTasks, taskIdLookup: taskIdLookup)
                 continue
             }

@@ -11,6 +11,26 @@ private typealias ParsedEdge = original_src_types.MermaidEdge
 private typealias ParsedSubgraph = original_src_types.MermaidSubgraph
 private typealias ParsedGraph = original_src_types.MermaidGraph
 
+private func _setSubgraphDirection(_ stack: inout [ParsedSubgraph], _ direction: ParsedDirection) {
+    var top = stack[stack.count - 1]
+    top.direction = direction
+    stack[stack.count - 1] = top
+}
+
+private func _appendSubgraphChild(_ stack: inout [ParsedSubgraph], _ child: ParsedSubgraph) {
+    var top = stack[stack.count - 1]
+    top.children.append(child)
+    stack[stack.count - 1] = top
+}
+
+private func _trackNodeInSubgraph(_ stack: inout [ParsedSubgraph], _ nodeId: String) {
+    var top = stack[stack.count - 1]
+    if !top.nodeIds.contains(nodeId) {
+        top.nodeIds.append(nodeId)
+    }
+    stack[stack.count - 1] = top
+}
+
 private struct _StateNodeMeta {
     var descriptions: [String] = []
     var stateClasses: [String] = []
@@ -154,26 +174,26 @@ private func _regex(_ pattern: String) -> NSRegularExpression {
 /// Text-embedded label regex — matches "-- label -->", "-. label .->", "== label ==>" syntax.
 /// Used as fallback when the edge tokenizer doesn't capture a label.
 private let _textEmbeddedArrowRegex = _regex(#"^(<)?(--|-\.|==)\s+(.+?)\s+(-->|---|\.\->|-\.\-|==>|===)"#)
-private let _bareNodeRegex = _regex(#"^([\w\p{L}.-]+)"#)
+private let _bareNodeRegex = _regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)"#)
 private let _classShorthandRegex = _regex(#"^:::([\w][\w-]*)"#)
-private let _clickRegex = _regex(#"^click\s+([\w\p{L}.-]+)\s+(.+)$"#)
+private let _clickRegex = _regex(#"^click\s+((?:[\w\p{L}.]|-(?![>\-.]))+)\s+(.+)$"#)
 
 private let _nodePatterns: [(regex: NSRegularExpression, shape: ParsedNodeShape)] = [
-    (_regex(#"^([\w\p{L}.-]+)\(\(\((.+?)\)\)\)"#), .doublecircle),
-    (_regex(#"^([\w\p{L}.-]+)\(\[(.+?)\]\)"#), .stadium),
-    (_regex(#"^([\w\p{L}.-]+)\(\((.+?)\)\)"#), .circle),
-    (_regex(#"^([\w\p{L}.-]+)\(-([^-]*?)-\)"#), .ellipse),
-    (_regex(#"^([\w\p{L}.-]+)\[\[(.+?)\]\]"#), .subroutine),
-    (_regex(#"^([\w\p{L}.-]+)\[\((.+?)\)\]"#), .cylinder),
-    (_regex(#"^([\w\p{L}.-]+)\[\/(.+?)\\\]"#), .trapezoid),
-    (_regex(#"^([\w\p{L}.-]+)\[\\(.+?)\/\]"#), .trapezoidAlt),
-    (_regex(#"^([\w\p{L}.-]+)\[\/(.+?)\/\]"#), .parallelogram),
-    (_regex(#"^([\w\p{L}.-]+)\[\\(.+?)\\\]"#), .parallelogramAlt),
-    (_regex(#"^([\w\p{L}.-]+)>(.+?)\]"#), .asymmetric),
-    (_regex(#"^([\w\p{L}.-]+)\{\{(.+?)\}\}"#), .hexagon),
-    (_regex(#"^([\w\p{L}.-]+)\[(.+?)\]"#), .rectangle),
-    (_regex(#"^([\w\p{L}.-]+)\((.+?)\)"#), .rounded),
-    (_regex(#"^([\w\p{L}.-]+)\{(.+?)\}"#), .diamond),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\(\((.+?)\)\)\)"#), .doublecircle),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\[(.+?)\]\)"#), .stadium),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\((.+?)\)\)"#), .circle),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(-([^-]*?)-\)"#), .ellipse),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\[(.+?)\]\]"#), .subroutine),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\((.+?)\)\]"#), .cylinder),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\/(.+?)\\\]"#), .trapezoid),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\\(.+?)\/\]"#), .trapezoidAlt),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\/(.+?)\/\]"#), .parallelogram),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\\(.+?)\\\]"#), .parallelogramAlt),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)>(.+?)\]"#), .asymmetric),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\{\{(.+?)\}\}"#), .hexagon),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[(.+?)\]"#), .rectangle),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\((.+?)\)"#), .rounded),
+    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\{(.+?)\}"#), .diamond),
 ]
 
 public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> (DiagramDocument, [DiagramDiagnostic]) {
@@ -297,7 +317,7 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
             continue
         }
 
-        if let classAssignMatch = _regexGroups(#"^class\s+([\w\p{L}.-]+(?:\s*,\s*[\w\p{L}.-]+)*)\s+(\w+)$"#, line),
+        if let classAssignMatch = _regexGroups(#"^class\s+((?:[\w\p{L}.]|-(?![>\-.]))+(?:\s*,\s*(?:[\w\p{L}.]|-(?![>\-.]))+)*)\s+(\w+)$"#, line),
            let idsRaw = classAssignMatch[safe: 1],
            let className = classAssignMatch[safe: 2]
         {
@@ -403,7 +423,7 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
            let dir = _parseDirection(dirToken),
            !subgraphStack.isEmpty
         {
-            subgraphStack[subgraphStack.count - 1].direction = dir
+            _setSubgraphDirection(&subgraphStack, dir)
             continue
         }
 
@@ -451,7 +471,7 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
             let completed = subgraphStack.popLast()
             if let completed {
                 if !subgraphStack.isEmpty {
-                    subgraphStack[subgraphStack.count - 1].children.append(completed)
+                    _appendSubgraphChild(&subgraphStack, completed)
                 } else {
                     graph.subgraphs.append(completed)
                 }
@@ -558,7 +578,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         if let dm = _regexGroups(#"^direction\s+(TD|TB|LR|BT|RL)\s*$"#, line, caseInsensitive: true),
            let dirToken = dm[safe: 1], let direction = _parseDirection(dirToken) {
             if !compositeStack.isEmpty {
-                compositeStack[compositeStack.count - 1].direction = direction
+                _setSubgraphDirection(&compositeStack, direction)
             } else {
                 graph.direction = direction
             }
@@ -663,7 +683,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
             if let completed = compositeStack.popLast() {
                 let processed = _splitConcurrentRegions(completed, &graph)
                 if !compositeStack.isEmpty {
-                    compositeStack[compositeStack.count - 1].children.append(processed)
+                    _appendSubgraphChild(&compositeStack, processed)
                 } else {
                     graph.subgraphs.append(processed)
                 }
@@ -824,10 +844,7 @@ private func _registerStateNode(_ graph: inout _WorkingGraph, _ compositeStack: 
         graph.upsertNode(node)
     }
     if !compositeStack.isEmpty {
-        let current = compositeStack[compositeStack.count - 1]
-        if !current.nodeIds.contains(node.id) {
-            current.nodeIds.append(node.id)
-        }
+        _trackNodeInSubgraph(&compositeStack, node.id)
     }
 }
 
@@ -835,10 +852,7 @@ private func _ensureStateNode(_ graph: inout _WorkingGraph, _ compositeStack: in
     if graph.nodesById[id] == nil {
         _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: id, shape: .rounded))
     } else if !compositeStack.isEmpty {
-        let current = compositeStack[compositeStack.count - 1]
-        if !current.nodeIds.contains(id) {
-            current.nodeIds.append(id)
-        }
+        _trackNodeInSubgraph(&compositeStack, id)
     }
 }
 
@@ -870,7 +884,7 @@ private func _splitConcurrentRegions(_ subgraph: ParsedSubgraph, _ graph: inout 
         regions.append(currentRegion)
     }
     if regions.count <= 1 {
-        let result = subgraph
+        var result = subgraph
         result.nodeIds = regions.first ?? []
         return result
     }
@@ -889,7 +903,7 @@ private func _splitConcurrentRegions(_ subgraph: ParsedSubgraph, _ graph: inout 
         regionSubgraphs.append(regionSub)
     }
 
-    let result = subgraph
+    var result = subgraph
     result.nodeIds = []
     result.children = regionSubgraphs + subgraph.children
     return result
@@ -907,9 +921,7 @@ private func _addStateNote(_ graph: inout _WorkingGraph, compositeStack: inout [
         _registerStateNode(&graph, &compositeStack, ParsedNode(id: targetId, label: targetId, shape: .rounded))
     } else if !compositeStack.isEmpty {
         // Ensure target is tracked in current composite if it exists
-        if !compositeStack[compositeStack.count - 1].nodeIds.contains(targetId) {
-            compositeStack[compositeStack.count - 1].nodeIds.append(targetId)
-        }
+        _trackNodeInSubgraph(&compositeStack, targetId)
     }
 
     // Create note node and register in composite scope
@@ -1194,10 +1206,7 @@ private func _registerNode(_ graph: inout _WorkingGraph, _ subgraphStack: inout 
 
 private func _trackInSubgraph(_ subgraphStack: inout [ParsedSubgraph], _ nodeId: String) {
     if !subgraphStack.isEmpty {
-        let current = subgraphStack[subgraphStack.count - 1]
-        if !current.nodeIds.contains(nodeId) {
-            current.nodeIds.append(nodeId)
-        }
+        _trackNodeInSubgraph(&subgraphStack, nodeId)
     }
 }
 
@@ -1220,13 +1229,43 @@ private func _parseDirection(_ token: String) -> ParsedDirection? {
     }
 }
 
+private let _regexCache = _RegexCache()
+
+// Concurrency Contract: flowchart/state-parser regex lookups go through a
+// lock-guarded dictionary cache. `NSRegularExpression` instances are
+// thread-safe once constructed, the lock makes get-or-insert atomic, and
+// the key set is the parser's own fixed pattern vocabulary (no
+// user-controllable unbounded growth). All parser entry points run on the
+// 8 MB worker thread, but the cache is safe under arbitrary concurrency.
+private final class _RegexCache: @unchecked Sendable {
+    private var storage: [String: NSRegularExpression] = [:]
+    private let lock = NSLock()
+
+    func regex(for pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
+        let key = "\(pattern)\(options.rawValue)"
+        lock.lock()
+        if let cached = storage[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        lock.lock()
+        storage[key] = regex
+        lock.unlock()
+        return regex
+    }
+}
+
 private func _regexTest(_ pattern: String, _ input: String, caseInsensitive: Bool = false) -> Bool {
     _regexGroups(pattern, input, caseInsensitive: caseInsensitive) != nil
 }
 
 private func _regexGroups(_ pattern: String, _ input: String, caseInsensitive: Bool = false) -> [String]? {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options),
+    guard let regex = _regexCache.regex(for: pattern, options: options),
           let match = regex.firstMatch(in: input, options: [], range: NSRange(input.startIndex..., in: input))
     else {
         return nil

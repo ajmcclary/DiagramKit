@@ -217,12 +217,17 @@ private func _scanTextEmbeddedLabel(_ chars: [Character], _ start: Int) -> (Stri
         ("-.-", .none),
         ("===", .none),
     ]
+    var best: (range: Range<String.Index>, arrowEnd: original_src_types.ArrowHeadType)?
     for (pattern, arrowEnd) in patterns {
         if let range = remaining.range(of: pattern) {
-            let labelText = String(remaining[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
-            let consumed = start + remaining.distance(from: remaining.startIndex, to: range.upperBound)
-            return (labelText, consumed - start, arrowEnd)
+            if let current = best, range.lowerBound >= current.range.lowerBound {
+                continue
+            }
+            best = (range, arrowEnd)
         }
     }
-    return nil
+    guard let best else { return nil }
+    let labelText = String(remaining[..<best.range.lowerBound]).trimmingCharacters(in: .whitespaces)
+    let consumed = start + remaining.distance(from: remaining.startIndex, to: best.range.upperBound)
+    return (labelText, consumed - start, best.arrowEnd)
 }

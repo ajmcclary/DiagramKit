@@ -60,15 +60,11 @@ final class SankeyParserTests: XCTestCase {
         A,B,+.5
         B,C,1e3
         C,D,-2.5e1
-        D,E,Infinity
-        E,F,abc
         """
         let (diagram, _) = try parseSankeyDiagram(lines(source))
         XCTAssertEqual(diagram.links[0].value, 0.5)
         XCTAssertEqual(diagram.links[1].value, 1000)
         XCTAssertEqual(diagram.links[2].value, -25)
-        XCTAssertEqual(diagram.links[3].value, .infinity)
-        XCTAssertTrue(diagram.links[4].value.isNaN)
     }
 
     func testQuotedNewlineIsPreservedInField() throws {
@@ -295,5 +291,20 @@ final class SankeyParserTests: XCTestCase {
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA&amp;B,C,10"))
         let node = diagram.nodes.first(where: { $0.id == "A&amp;B" })
         XCTAssertNotNil(node)
+    }
+
+    func testNonFiniteValueThrowsInvalidValue() throws {
+        XCTAssertThrowsError(try parseSankeyDiagram(lines("sankey\nA,B,NaN"))) {
+            guard case SankeyParserError.invalidValue = $0 else {
+                XCTFail("Expected invalidValue error, got \($0)")
+                return
+            }
+        }
+        XCTAssertThrowsError(try parseSankeyDiagram(lines("sankey\nA,B,Infinity"))) {
+            guard case SankeyParserError.invalidValue = $0 else {
+                XCTFail("Expected invalidValue error, got \($0)")
+                return
+            }
+        }
     }
 }

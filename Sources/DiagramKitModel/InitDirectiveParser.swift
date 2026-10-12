@@ -31,14 +31,44 @@ public enum InitDirectiveParser {
     }
 
     /// Parse the JSON payload into a dictionary. Single-quoted keys/values
-    /// are normalized to double quotes before parsing.
+    /// outside double-quoted strings are normalized to double quotes before
+    /// parsing; apostrophes inside double-quoted values are preserved.
     public static func parseJSON(_ payload: String) -> [String: Any]? {
-        let normalized = payload.replacingOccurrences(of: "'", with: "\"")
+        let normalized = _normalizeJSONQuotes(payload)
         guard let data = normalized.data(using: .utf8),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return nil
         }
         return object
+    }
+
+    private static func _normalizeJSONQuotes(_ payload: String) -> String {
+        var result = ""
+        var inDoubleQuote = false
+        var isEscaped = false
+        for ch in payload {
+            if isEscaped {
+                result.append(ch)
+                isEscaped = false
+                continue
+            }
+            if ch == "\\" {
+                result.append(ch)
+                isEscaped = true
+                continue
+            }
+            if ch == "\"" {
+                inDoubleQuote.toggle()
+                result.append(ch)
+                continue
+            }
+            if ch == "'", !inDoubleQuote {
+                result.append("\"")
+                continue
+            }
+            result.append(ch)
+        }
+        return result
     }
 
     /// Parse and convert an init directive payload into `FrontmatterValue`

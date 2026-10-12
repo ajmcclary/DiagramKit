@@ -226,7 +226,7 @@ public struct SequenceDiagram: Sendable {
         for a in legacyActors { items.append(.actor(a)) }
         for m in legacyMessages { items.append(.message(m)) }
         // Reconstruct blocks from indices — approximate conversion
-        let sortedBlocks = legacyBlocks.sorted { $0.startItemIndex <= $1.startItemIndex }
+        let sortedBlocks = legacyBlocks.sorted { $0.startItemIndex < $1.startItemIndex }
         for block in sortedBlocks {
             items.append(.blockStart(type: block.type, label: block.label))
             for div in block.dividers {

@@ -2915,18 +2915,48 @@
         "mermaid": "mermaid",
         "graphviz": "graphviz"
       }
+    },
+    {
+      "id": "seq-24-apostrophe-message",
+      "category": "sequence",
+      "name": "Apostrophe in message label",
+      "source": "sequenceDiagram\n  Alice->>Bob: I'm here\n  Bob->>Alice: ok"
+    },
+    {
+      "id": "seq-25-block-keyword-actors",
+      "category": "sequence",
+      "name": "Actor names starting with block keywords",
+      "source": "sequenceDiagram\n  participant parser\n  participant android\n  loop retry\n    parser->>Lexer: next()\n    android->>B: ping\n  end"
+    },
+    {
+      "id": "flow-32-apostrophe-label",
+      "category": "flowchart",
+      "name": "Unquoted apostrophe in node label",
+      "source": "flowchart TD\n  A[Don't panic] --> B[Keep calm]"
+    },
+    {
+      "id": "flow-33-no-space-arrow",
+      "category": "flowchart",
+      "name": "No-space arrow between nodes",
+      "source": "graph TD\n  A-->B"
+    },
+    {
+      "id": "gantt-8-apostrophe-task",
+      "category": "gantt",
+      "name": "Apostrophe in task label",
+      "source": "gantt\n  title Alice's plan\n  section Phase\n  Alice's task :a1, 2024-01-01, 1d"
     }
   ],
   "metadata": {
     "counts": {
-      "flowchart": 54,
+      "flowchart": 56,
       "state": 12,
-      "sequence": 29,
+      "sequence": 31,
       "class": 61,
       "er": 25,
       "xychart": 27,
       "journey": 3,
-      "gantt": 7,
+      "gantt": 8,
       "quadrantChart": 12,
       "pie": 14,
       "requirement": 16,
@@ -2956,8 +2986,8 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 46,
-    "gantt": 7,
+    "flowchart": 48,
+    "gantt": 8,
     "gitGraph": 18,
     "ishikawa": 7,
     "journey": 3,
@@ -2969,7 +2999,7 @@
     "radar": 10,
     "requirement": 16,
     "sankey": 10,
-    "sequence": 29,
+    "sequence": 31,
     "state": 12,
     "timeline": 13,
     "treeView": 10,
@@ -2978,6 +3008,6 @@
     "wardleyBeta": 12,
     "xychart": 27,
     "zenuml": 15,
-    "totalDiagrams": 426
+    "totalDiagrams": 431
   }
 }

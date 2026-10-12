@@ -197,12 +197,13 @@ extension DiagramEditor {
                 graph.edges.remove(at: index)
             } else if id.hasPrefix("group:") {
                 let groupID = String(id.dropFirst(6))
-                var forest = Self._copySubgraphForest(graph.subgraphs)
-                guard let removed = Self._extractSubgraph(groupID, from: &forest) else {
+                let forest = Self._copySubgraphForest(graph.subgraphs)
+                let (nextForest, removed) = Self._extractSubgraph(groupID, from: forest)
+                guard let removed else {
                     throw DiagramEditorError.elementNotFound(id: groupID, kind: "subgraph")
                 }
                 let memberIDs = Self._allMemberNodeIDs(in: removed)
-                graph.subgraphs = forest
+                graph.subgraphs = nextForest
                 graph.nodesInOrder.removeAll { memberIDs.contains($0.id) }
                 graph.edges.removeAll {
                     memberIDs.contains($0.source) || memberIDs.contains($0.target)

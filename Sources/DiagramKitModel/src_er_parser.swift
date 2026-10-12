@@ -1045,6 +1045,61 @@ private func _normalizeErStyleValue(_ value: String) -> String {
 
 // MARK: - Relationship Parsing (Token-Based)
 
+private func _preprocessRelationshipLine(_ line: String) -> String {
+    var result = ""
+    var inQuote = false
+    var quoteChar: Character?
+    var i = line.startIndex
+    while i < line.endIndex {
+        let ch = line[i]
+
+        // Strip inline comments outside quotes.
+        if !inQuote, ch == "%", line[i...].hasPrefix("%%") {
+            break
+        }
+
+        if inQuote {
+            result.append(ch)
+            if ch == quoteChar {
+                inQuote = false
+                quoteChar = nil
+            }
+            i = line.index(after: i)
+            continue
+        }
+
+        if ch == "\"" || ch == "'" {
+            inQuote = true
+            quoteChar = ch
+            result.append(ch)
+            i = line.index(after: i)
+            continue
+        }
+
+        let remaining = String(line[i...])
+        var matched = false
+        for op in ["--", "..", ".-", "-."] {
+            if remaining.hasPrefix(op) {
+                result.append(" \(op) ")
+                i = line.index(i, offsetBy: op.count)
+                matched = true
+                break
+            }
+        }
+        if matched { continue }
+
+        if remaining.hasPrefix(":::") {
+            result.append(" __ER_CLASS__ ")
+            i = line.index(i, offsetBy: 3)
+            continue
+        }
+
+        result.append(ch)
+        i = line.index(after: i)
+    }
+    return result
+}
+
 private func _parseRelationshipLine(
     _ line: String,
     _ ensureEntity: (String) -> (ErEntity, String),
@@ -1052,11 +1107,7 @@ private func _parseRelationshipLine(
 ) -> ErRelationship? {
     // Preprocess: insert spaces around identification operators (--, .., .-, -.)
     // so that combined tokens like "||--o{" become "|| -- o{"
-    var preprocessed = line
-    for op in ["--", "..", ".-", "-."] {
-        preprocessed = preprocessed.replacingOccurrences(of: op, with: " \(op) ")
-    }
-    preprocessed = preprocessed.replacingOccurrences(of: ":::", with: " __ER_CLASS__ ")
+    let preprocessed = _preprocessRelationshipLine(line)
     // Also separate cardinality symbols from each other
     // e.g., "||" stays "||", "o{" stays "o{", but "}o" stays "}o"
     // Already handled by the cardinality prefix parser.
@@ -1385,13 +1436,43 @@ private func _parseIdentification(_ token: String, _ tokens: [String], _ idx: in
 
 // MARK: - Regex Helpers
 
+private let _erRegexCache = _ERRegexCache()
+
+// Concurrency Contract: ER-parser regex lookups go through a lock-guarded
+// dictionary cache. `NSRegularExpression` instances are thread-safe once
+// constructed, the lock makes get-or-insert atomic, and the key set is the
+// parser's own fixed pattern vocabulary (no user-controllable unbounded
+// growth). All parser entry points run on the 8 MB worker thread, but the
+// cache is safe under arbitrary concurrency.
+private final class _ERRegexCache: @unchecked Sendable {
+    private var storage: [String: NSRegularExpression] = [:]
+    private let lock = NSLock()
+
+    func regex(for pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
+        let key = "\(pattern)\(options.rawValue)"
+        lock.lock()
+        if let cached = storage[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        lock.lock()
+        storage[key] = regex
+        lock.unlock()
+        return regex
+    }
+}
+
 private func _firstGroup(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> String? {
     _groups(pattern, value, caseInsensitive: caseInsensitive)?[safe: 1]
 }
 
 private func _groups(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> [String]? {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
+    guard let regex = _erRegexCache.regex(for: pattern, options: options) else { return nil }
     let nsValue = value as NSString
     let range = NSRange(location: 0, length: nsValue.length)
     guard let match = regex.firstMatch(in: value, options: [], range: range) else { return nil }

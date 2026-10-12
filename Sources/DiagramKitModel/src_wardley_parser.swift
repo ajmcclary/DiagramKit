@@ -300,8 +300,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
     var headerFound = false
     var currentPipeline: (parent: String, componentLines: [(component: String, evolution: Double, labelOffsetX: Double?, labelOffsetY: Double?)])? = nil
     var inPipeline = false
-    var skipLines = 0
-    var i = 0
+    var rawSkipUntil: Int = -1
 
     // Parse lines, handling pipeline blocks
     var parsedLines: [(index: Int, line: String)] = []
@@ -330,12 +329,14 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             if lower.hasPrefix("wardley-beta") {
                 headerFound = true
                 continue
-            } else if lower.hasPrefix("wardley-beta") {
-                headerFound = true
-                continue
             } else {
                 throw WardleyMapParserError.invalidHeader(trimmed)
             }
+        }
+
+        // Skip lines already consumed by multiline accDescr blocks.
+        if entry.index < rawSkipUntil {
+            continue
         }
 
         // Parse accessibility multiline block (accDescr { }) - handle specially as it spans lines
@@ -343,20 +344,10 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let parts = parseAccDescrMultiline(from: Array(lines[entry.index...]))
             diagram.accDescr = parts.text
             if parts.consumed > 0 {
-                skipLines = parts.consumed - 1
+                rawSkipUntil = entry.index + parts.consumed
             }
-            i += 1
             continue
         }
-
-        // Skip lines already consumed by multiline
-        if skipLines > 0 {
-            skipLines -= 1
-            i += 1
-            continue
-        }
-
-        if i >= lines.count { break }
 
         // Handle pipeline block
         if inPipeline {
@@ -395,7 +386,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 }
                 currentPipeline = nil
                 inPipeline = false
-                i += 1
                 continue
             }
 
@@ -424,7 +414,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 }
 
                 currentPipeline?.componentLines.append((component: compName, evolution: evolution, labelOffsetX: labelOffsetX, labelOffsetY: labelOffsetY))
-                i += 1
                 continue
             }
         }
@@ -437,14 +426,12 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 let parentName = trimmingQuotes(String(rest.dropLast()).trimmingCharacters(in: .whitespaces))
                 currentPipeline = (parent: parentName, componentLines: [])
                 inPipeline = true
-                i += 1
                 continue
             } else if rest.contains("{") {
                 let parts = rest.split(separator: "{", maxSplits: 1)
                 let parentName = trimmingQuotes(parts[0].trimmingCharacters(in: .whitespaces))
                 currentPipeline = (parent: parentName, componentLines: [])
                 inPipeline = true
-                i += 1
                 continue
             } else {
                 // { might be on the next line
@@ -458,7 +445,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                         currentPipeline = (parent: parentName, componentLines: [])
                         inPipeline = true
                         found = true
-                        i = j + 1
                         break
                     }
                 }
@@ -473,21 +459,18 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         if hasPrefixOutsideQuotes(trimmed, prefix: "title ") {
             let titleText = String(trimmed.dropFirst("title ".count)).trimmingCharacters(in: .whitespaces)
             diagram.diagramTitle = titleText
-            i += 1
             continue
         }
 
         // Parse accTitle
         if let accTitle = parseAccTitleFromLine(trimmed) {
             diagram.accTitle = accTitle
-            i += 1
             continue
         }
 
         // Parse accDescr single-line
         if let accDescr = parseAccDescrFromLine(trimmed) {
             diagram.accDescr = accDescr
-            i += 1
             continue
         }
 
@@ -500,7 +483,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 throw WardleyMapParserError.invalidSize(trimmed)
             }
             diagram.size = WardleySize(width: w, height: h)
-            i += 1
             continue
         }
 
@@ -510,7 +492,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let (stages, boundaries) = try parseEvolutionStages(rest)
             diagram.axes.stages = stages
             diagram.axes.stageBoundaries = boundaries
-            i += 1
             continue
         }
 
@@ -522,7 +503,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let (x, y) = try parseCoordinatePair(coordPart, context: "Anchor '\(name)'")
             let node = WardleyNode(id: name, label: name, x: x, y: y, className: .anchor)
             diagram.nodes.append(node)
-            i += 1
             continue
         }
 
@@ -576,7 +556,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 sourceStrategy: sourceStrategy
             )
             diagram.nodes.append(node)
-            i += 1
             continue
         }
 
@@ -601,7 +580,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let coordPart = String(afterQuote).trimmingCharacters(in: .whitespaces)
             let (x, y) = try parseCoordinatePair(coordPart, context: "Note")
             diagram.notes.append(WardleyNote(text: text, x: x, y: y))
-            i += 1
             continue
         }
 
@@ -616,7 +594,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             }
             let (x, y) = try parseCoordinateValue(rest, context: "Annotations box")
             diagram.annotationsBox = WardleyCoordinate(x: x, y: y)
-            i += 1
             continue
         }
 
@@ -655,7 +632,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 coordinates: [WardleyCoordinate(x: x, y: y)],
                 text: text
             ))
-            i += 1
             continue
         }
 
@@ -672,7 +648,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let nodeY = node?.y ?? 0
 
             diagram.trends.append(WardleyTrend(nodeId: componentNameClean, targetX: targetX, targetY: nodeY))
-            i += 1
             continue
         }
 
@@ -683,7 +658,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let name = trimmingQuotes(namePart)
             let (x, y) = try parseCoordinatePair(coordPart, context: "Accelerator '\(name)'")
             diagram.accelerators.append(WardleyAccelerator(name: name, x: x, y: y))
-            i += 1
             continue
         }
 
@@ -694,7 +668,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             let name = trimmingQuotes(namePart)
             let (x, y) = try parseCoordinatePair(coordPart, context: "Deaccelerator '\(name)'")
             diagram.deaccelerators.append(WardleyDeaccelerator(name: name, x: x, y: y))
-            i += 1
             continue
         }
 
@@ -712,14 +685,12 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                     flow: arrowInfo.flow
                 )
                 diagram.links.append(link)
-                i += 1
                 continue
             }
         }
 
         // Skip empty/comment lines
         if trimmed.isEmpty || trimmed.hasPrefix("%%") {
-            i += 1
             continue
         }
 
@@ -1007,13 +978,11 @@ private func splitOnArrow(_ text: String) -> [String] {
             if ch == "\"" {
                 inQuote = false
             }
-            i += 1
             continue
         }
         if ch == "\"" {
             inQuote = true
             current.append(ch)
-            i += 1
             continue
         }
         if ch == "-" && i + 1 < chars.count && chars[i + 1] == ">" {

@@ -139,12 +139,63 @@ private struct _SankeyRecord {
     let line: Int
 }
 
+/// Returns whether scanning the line from a non-quoted start leaves the CSV parser
+/// inside a quoted field at the end, honoring escaped `""` pairs.
+private func _lineLeavesUnterminatedQuote(_ line: String) -> Bool {
+    var inQuote = false
+    var i = line.startIndex
+    while i < line.endIndex {
+        let ch = line[i]
+        if ch == "\"" {
+            let next = line.index(after: i)
+            if next < line.endIndex && line[next] == "\"" {
+                i = line.index(after: next)
+                continue
+            }
+            inQuote.toggle()
+            i = next
+        } else {
+            i = line.index(after: i)
+        }
+    }
+    return inQuote
+}
+
 private func _tokenizeSankeyCSV(_ lines: [String]) throws -> [_SankeyRecord] {
     var records: [_SankeyRecord] = []
     var lineNumber = 0
+    var pendingLine: String?
+    var pendingStartLine = 0
 
     for line in lines {
         lineNumber += 1
+        if var pending = pendingLine {
+            pending.append("\n")
+            pending.append(line)
+            pendingLine = pending
+            if !_lineLeavesUnterminatedQuote(pending) {
+                let fields = try _tokenizeCSVLine(pending, lineNumber: pendingStartLine)
+                pendingLine = nil
+                if fields.isEmpty { continue }
+                guard fields.count == 3 else {
+                    throw SankeyParserError.malformedRecord(line: pendingStartLine, text: pending)
+                }
+                records.append(_SankeyRecord(
+                    source: fields[0],
+                    target: fields[1],
+                    value: fields[2],
+                    line: pendingStartLine
+                ))
+            }
+            continue
+        }
+
+        if _lineLeavesUnterminatedQuote(line) {
+            pendingLine = line
+            pendingStartLine = lineNumber
+            continue
+        }
+
         let fields = try _tokenizeCSVLine(line, lineNumber: lineNumber)
         if fields.isEmpty { continue }
         guard fields.count == 3 else {
@@ -156,6 +207,10 @@ private func _tokenizeSankeyCSV(_ lines: [String]) throws -> [_SankeyRecord] {
             value: fields[2],
             line: lineNumber
         ))
+    }
+
+    if pendingLine != nil {
+        throw SankeyParserError.unterminatedQuote(line: pendingStartLine)
     }
     return records
 }
@@ -228,6 +283,9 @@ private func _buildSankeyDiagram(
         let sourceID = _sanitizeSankeyText(sourceRaw)
         let targetID = _sanitizeSankeyText(targetRaw)
         let value = _parseFloatCompat(record.value)
+        guard value.isFinite else {
+            throw SankeyParserError.invalidValue(line: record.line, raw: record.value)
+        }
 
         let sourceNode: SankeyNode
         if let existing = nodeMap[sourceID] {

@@ -516,12 +516,16 @@ extension DiagramRenderer {
 
     // MARK: - Color helper
 
+    private static let _rgbaRegex = try! NSRegularExpression(
+        pattern: #"rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)"#,
+        options: []
+    )
+
     private func _parseCSSColor(_ str: String) -> CGColor? {
         let s = str.lowercased()
         if s == "transparent" { return CGColor(red: 0, green: 0, blue: 0, alpha: 0) }
         // rgb(r,g,b) / rgba(r,g,b,a)
-        if let m = try? NSRegularExpression(pattern: #"rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)"#, options: [])
-            .firstMatch(in: s, options: [], range: NSRange(s.startIndex..., in: s)),
+        if let m = Self._rgbaRegex.firstMatch(in: s, options: [], range: NSRange(s.startIndex..., in: s)),
            let r1 = Range(m.range(at: 1), in: s), let r2 = Range(m.range(at: 2), in: s), let r3 = Range(m.range(at: 3), in: s) {
             let r = CGFloat(Int(s[r1]) ?? 0) / 255
             let g = CGFloat(Int(s[r2]) ?? 0) / 255

@@ -103,19 +103,17 @@ final class SankeyLayoutTests: XCTestCase {
     }
 
     func testNaNAndInfiniteValuesDoNotPoisonLayout() throws {
-        let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,abc\nB,C,Infinity"))
-        let positioned = layoutSankeyDiagram(diagram)
-        for node in positioned.nodes {
-            XCTAssertTrue(node.x0.isFinite)
-            XCTAssertTrue(node.x1.isFinite)
-            XCTAssertTrue(node.y0.isFinite)
-            XCTAssertTrue(node.y1.isFinite)
-            XCTAssertTrue(node.value.isFinite)
+        XCTAssertThrowsError(try parseSankeyDiagram(lines("sankey\nA,B,abc"))) {
+            guard case SankeyParserError.invalidValue = $0 else {
+                XCTFail("Expected invalidValue error for non-numeric value, got \($0)")
+                return
+            }
         }
-        for link in positioned.links {
-            XCTAssertTrue(link.width.isFinite)
-            XCTAssertTrue(link.path.sourceY.isFinite)
-            XCTAssertTrue(link.path.targetY.isFinite)
+        XCTAssertThrowsError(try parseSankeyDiagram(lines("sankey\nB,C,Infinity"))) {
+            guard case SankeyParserError.invalidValue = $0 else {
+                XCTFail("Expected invalidValue error for non-finite value, got \($0)")
+                return
+            }
         }
     }
 

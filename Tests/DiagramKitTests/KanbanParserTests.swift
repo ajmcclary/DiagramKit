@@ -417,4 +417,14 @@ final class KanbanParserTests: XCTestCase {
         let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         XCTAssertEqual(diagram.diagramTitle, "Frontmatter Board")
     }
+
+    func testTitleKeywordBoundary() throws {
+        let source = "kanban\n  titleholder\n    card1"
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        XCTAssertEqual(diagram.sections.count, 1)
+        XCTAssertEqual(diagram.sections[0].label, "titleholder")
+        let cards = diagram.nodes.filter { !$0.isGroup }
+        XCTAssertEqual(cards.count, 1)
+        XCTAssertEqual(cards[0].label, "card1")
+    }
 }

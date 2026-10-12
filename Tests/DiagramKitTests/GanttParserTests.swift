@@ -784,6 +784,25 @@ struct GanttParserTests {
         let (_, diagnostics) = try parseGanttDiagram(source)
         #expect(diagnostics.isEmpty, "well-formed source should not emit diagnostics, got: \(diagnostics)")
     }
+
+    @Test("Keyword boundaries prevent task names from matching directives")
+    func keywordBoundaries() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S",
+            "titleholder :t1, 2024-01-01, 1d",
+            "sectional :t2, 2024-01-02, 1d",
+            "clicker :t3, 2024-01-03, 1d",
+        ]
+        let (diagram, _) = try parseGanttDiagram(source)
+        #expect(diagram.sections.count == 1)
+        #expect(diagram.tasks.count == 3)
+        let taskNames = Set(diagram.tasks.map { $0.task })
+        #expect(taskNames.contains("titleholder"))
+        #expect(taskNames.contains("sectional"))
+        #expect(taskNames.contains("clicker"))
+    }
 }
 
 @Suite("Gantt calendar is time-zone independent")

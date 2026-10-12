@@ -69,7 +69,9 @@ struct D2StateMapper {
         func recordInCurrentSubgraph(_ id: String) {
             guard !subgraphStack.isEmpty else { return }
             let idx = subgraphStack.count - 1
-            appendUnique(id, to: &subgraphStack[idx].nodeIds)
+            var current = subgraphStack[idx]
+            appendUnique(id, to: &current.nodeIds)
+            subgraphStack[idx] = current
         }
 
         for stmt in document.statements {
@@ -86,7 +88,7 @@ struct D2StateMapper {
                 subgraphStack.append((subgraph: subgraph, nodeIds: []))
             case .containerClose:
                 guard !subgraphStack.isEmpty else { break }
-                let closed = subgraphStack.removeLast()
+                var closed = subgraphStack.removeLast()
                 closed.subgraph.nodeIds = closed.nodeIds
                 // Skip empty containers (e.g. `_start: { shape: circle }`
                 // which only carry shape decoration, no inner states).
@@ -99,12 +101,14 @@ struct D2StateMapper {
                     subgraphs.append(closed.subgraph)
                 } else {
                     let parentIdx = subgraphStack.count - 1
-                    subgraphStack[parentIdx].subgraph.children.append(closed.subgraph)
+                    var parent = subgraphStack[parentIdx]
+                    parent.subgraph.children.append(closed.subgraph)
                     // The nested subgraph's contents also belong to the
                     // outer container's nodeIds for layout purposes.
                     for nodeId in closed.nodeIds {
-                        appendUnique(nodeId, to: &subgraphStack[parentIdx].nodeIds)
+                        appendUnique(nodeId, to: &parent.nodeIds)
                     }
+                    subgraphStack[parentIdx] = parent
                 }
             case .nodeDefinition(let def):
                 if def.id.lowercased().hasPrefix("entry") || def.id.lowercased().hasPrefix("exit") {
