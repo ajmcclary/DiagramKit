@@ -24,7 +24,7 @@ enum DOTClassProbe {
     }
 
     static func isClassRecordNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         guard attrs["shape"] == "record" else { return false }
         guard let label = attrs["label"], label.hasPrefix("{") else { return false }
         return labelLooksLikeClassRecord(label)
@@ -69,19 +69,20 @@ struct DOTClassMapper {
         let diagnostics: [DiagramDiagnostic] = []
 
         let nodeByID: [String: DOTNodeStatement] = Dictionary(
-            uniqueKeysWithValues: document.statements.compactMap { stmt -> (String, DOTNodeStatement)? in
+            document.statements.compactMap { stmt -> (String, DOTNodeStatement)? in
                 if case .nodeStatement(let node) = stmt, DOTClassProbe.isClassRecordNode(node) {
                     return (node.id, node)
                 }
                 return nil
-            }
+            },
+            uniquingKeysWith: { first, _ in first }
         )
 
         for stmt in document.statements {
             switch stmt {
             case .nodeStatement(let node):
                 guard let n = nodeByID[node.id] else { continue }
-                let attrs = Dictionary(uniqueKeysWithValues: n.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(n.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 guard let label = attrs["label"] else { continue }
                 let parsed = DOTClassProbe.parseRecordLabel(label)
                 let attributes = parsed.attributes.map { makeMember($0, isMethod: false) }
@@ -105,7 +106,7 @@ struct DOTClassMapper {
                     type2: ClassRelationType.none.rawValue,
                     lineType: ClassLineType.solid.rawValue
                 )
-                let edgeAttrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let edgeAttrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 let label = edgeAttrs["label"] ?? ""
                 relationships.append(ClassRelationship(
                     id1: edge.source,
@@ -123,7 +124,7 @@ struct DOTClassMapper {
             }
         }
 
-        let classMap = Dictionary(uniqueKeysWithValues: classes.map { ($0.id, $0) })
+        let classMap = Dictionary(classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         return (
             ClassDiagram(classes: classes, classMap: classMap, relationships: relationships),
             diagnostics

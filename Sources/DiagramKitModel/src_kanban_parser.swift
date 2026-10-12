@@ -749,25 +749,11 @@ public func _splitKanbanKeyValue(_ line: String) -> [(String, String)] {
 }
 
 public func _unquoteKanbanValue(_ value: String) -> String {
-    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(value.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 public func _kbnStripQuotes(_ text: String) -> String {
-    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(text.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 public func _kbnSanitizeText(_ text: String) -> String {

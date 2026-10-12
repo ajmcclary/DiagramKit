@@ -805,22 +805,9 @@ private func _reqParseStyleValues(_ text: String) -> [String] {
 }
 
 private func _reqUnquotedValue(_ raw: String) -> String {
-    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(raw.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 private func _reqStripQuotes(_ s: String) -> String {
-    let t = s.trimmingCharacters(in: .whitespaces)
-    if t.hasPrefix("\"") && t.hasSuffix("\"") && t.count >= 2 {
-        let start = t.index(after: t.startIndex)
-        let end = t.index(before: t.endIndex)
-        return String(t[start..<end])
-    }
-    return t
+    _unquote(s.trimmingCharacters(in: .whitespaces), quote: "\"")
 }

@@ -143,7 +143,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
                 cd.classes[idx].annotations.append(stereotype)
             }
         }
-        cd.classMap = Dictionary(uniqueKeysWithValues: cd.classes.map { ($0.id, $0) })
+        cd.classMap = Dictionary(cd.classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     }
 
     /// Apply er-cardinality recovery markers to a built `ErDiagram`.

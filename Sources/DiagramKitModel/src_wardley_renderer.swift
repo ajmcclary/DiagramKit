@@ -1,6 +1,8 @@
 import Foundation
 import DiagramKitCommon
 
+private func _wi(_ value: Double) -> Int { _safeInt(value, default: 0) }
+
 public func renderWardleyMapSvg(
     _ diagram: PositionedWardleyMapDiagram,
     colors: DiagramColors,
@@ -52,30 +54,30 @@ public func renderWardleyMapSvg(
     <style>
     .wardley-background { fill: \(bgColor); }
     .wardley-axes { stroke: \(axisColor); stroke-width: 1.5; }
-    .wardley-axis-label { font-family: "\(font)", sans-serif; font-size: \(Int(config.axisFontSize))px; fill: \(axisTextColor); }
+    .wardley-axis-label { font-family: "\(font)", sans-serif; font-size: \(_wi(config.axisFontSize))px; fill: \(axisTextColor); }
     .wardley-axis-label-x { text-anchor: middle; }
     .wardley-axis-label-y { text-anchor: middle; }
-    .wardley-stage-label { font-family: "\(font)", sans-serif; font-size: \(Int(config.axisFontSize - 2))px; fill: \(axisTextColor); text-anchor: middle; }
+    .wardley-stage-label { font-family: "\(font)", sans-serif; font-size: \(_wi(config.axisFontSize - 2))px; fill: \(axisTextColor); text-anchor: middle; }
     .wardley-grid { stroke: \(gridColor); stroke-dasharray: 2 6; stroke-width: 1; }
     .wardley-node { font-family: "\(font)", sans-serif; }
     .wardley-node--anchor { font-weight: bold; }
     .wardley-node--component { font-weight: normal; }
     .wardley-node--pipeline-component { font-weight: normal; }
-    .wardley-node-label { fill: \(componentLabelColor); font-size: \(Int(config.labelFontSize))px; }
+    .wardley-node-label { fill: \(componentLabelColor); font-size: \(_wi(config.labelFontSize))px; }
     .wardley-link { stroke: \(linkStroke); stroke-width: 1; fill: none; }
     .wardley-link--dashed { stroke-dasharray: 6 6; }
-    .wardley-link-label { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize - 2))px; fill: \(componentLabelColor); text-anchor: start; }
+    .wardley-link-label { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize - 2))px; fill: \(componentLabelColor); text-anchor: start; }
     .wardley-trend { stroke: \(evolutionStroke); stroke-dasharray: 4 4; stroke-width: 1; fill: none; }
     .wardley-annotation-line { stroke: \(annotationStroke); stroke-dasharray: 4 4; stroke-width: 1; fill: none; }
     .wardley-annotation { fill: \(annotationFill); stroke: \(annotationStroke); stroke-width: 1; }
-    .wardley-annotation-text { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize))px; fill: \(annotationTextColor); text-anchor: middle; dominant-baseline: central; }
+    .wardley-annotation-text { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize))px; fill: \(annotationTextColor); text-anchor: middle; dominant-baseline: central; }
     .wardley-annotations-box { fill: \(annotationFill); stroke: \(annotationStroke); stroke-width: 1; }
-    .wardley-annotations-box-text { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize - 2))px; fill: \(annotationTextColor); text-anchor: start; }
-    .wardley-notes { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize))px; fill: \(axisTextColor); font-weight: bold; text-anchor: start; }
+    .wardley-annotations-box-text { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize - 2))px; fill: \(annotationTextColor); text-anchor: start; }
+    .wardley-notes { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize))px; fill: \(axisTextColor); font-weight: bold; text-anchor: start; }
     .wardley-accelerators { fill: \(componentFill); stroke: \(componentStroke); stroke-width: 1; }
-    .wardley-accelerator-label { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize))px; fill: \(componentLabelColor); font-weight: bold; text-anchor: middle; }
+    .wardley-accelerator-label { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize))px; fill: \(componentLabelColor); font-weight: bold; text-anchor: middle; }
     .wardley-deaccelerators { fill: \(componentFill); stroke: \(componentStroke); stroke-width: 1; }
-    .wardley-deaccelerator-label { font-family: "\(font)", sans-serif; font-size: \(Int(config.labelFontSize))px; fill: \(componentLabelColor); font-weight: bold; text-anchor: middle; }
+    .wardley-deaccelerator-label { font-family: "\(font)", sans-serif; font-size: \(_wi(config.labelFontSize))px; fill: \(componentLabelColor); font-weight: bold; text-anchor: middle; }
     .wardley-pipelines { }
     .wardley-pipeline-box { fill: none; stroke: \(componentStroke); stroke-width: 1.5; }
     .wardley-pipeline-evolution-link { fill: none; stroke: \(componentStroke); stroke-dasharray: 4 4; stroke-width: 1; }
@@ -86,7 +88,7 @@ public func renderWardleyMapSvg(
     .wardley-buy-overlay { fill: #ccc; }
     .wardley-build-overlay { fill: #eee; stroke: #000; stroke-width: 1; }
     .wardley-inertia { stroke: \(componentStroke); stroke-width: 6; stroke-linecap: round; }
-    .wardley-title { font-family: "\(font)", sans-serif; font-size: \(Int(config.axisFontSize * 1.05))px; fill: \(axisTextColor); font-weight: bold; text-anchor: middle; }
+    .wardley-title { font-family: "\(font)", sans-serif; font-size: \(_wi(config.axisFontSize * 1.05))px; fill: \(axisTextColor); font-weight: bold; text-anchor: middle; }
     </style>
 
     """
@@ -109,26 +111,26 @@ public func renderWardleyMapSvg(
 
     // Background
     if !transparent {
-        svg += "<rect class=\"wardley-background\" x=\"0\" y=\"0\" width=\"\(Int(width))\" height=\"\(Int(height))\" />\n"
+        svg += "<rect class=\"wardley-background\" x=\"0\" y=\"0\" width=\"\(_wi(width))\" height=\"\(_wi(height))\" />\n"
     }
 
     // Title
     if let title = diagram.diagramTitle {
-        svg += "<text class=\"wardley-title\" x=\"\(Int(width / 2))\" y=\"\(Int(config.padding / 2))\">\(escapingXml(title))</text>\n"
+        svg += "<text class=\"wardley-title\" x=\"\(_wi(width / 2))\" y=\"\(_wi(config.padding / 2))\">\(escapingXml(title))</text>\n"
     }
 
     // Axis group
-    let axisX1 = Int(padding)
-    let axisY1 = Int(height - padding)
-    let axisX2 = Int(width - padding)
-    let axisY2 = Int(padding)
+    let axisX1 = _wi(padding)
+    let axisY1 = _wi(height - padding)
+    let axisX2 = _wi(width - padding)
+    let axisY2 = _wi(padding)
 
     svg += """
     <g class="wardley-axes">
     <line x1="\(axisX1)" y1="\(axisY1)" x2="\(axisX2)" y2="\(axisY1)" />
     <line x1="\(axisX1)" y1="\(axisY1)" x2="\(axisX1)" y2="\(axisY2)" />
-    <text class="wardley-axis-label wardley-axis-label-x" x="\(Int(width / 2))" y="\(Int(height - padding / 4))">\(escapingXml(diagram.axes.xLabel ?? "Evolution"))</text>
-    <text class="wardley-axis-label wardley-axis-label-y" x="\(Int(padding / 4))" y="\(Int(height / 2))" transform="rotate(-90, \(Int(padding / 4)), \(Int(height / 2)))">\(escapingXml(diagram.axes.yLabel ?? "Visibility"))</text>
+    <text class="wardley-axis-label wardley-axis-label-x" x="\(_wi(width / 2))" y="\(_wi(height - padding / 4))">\(escapingXml(diagram.axes.xLabel ?? "Evolution"))</text>
+    <text class="wardley-axis-label wardley-axis-label-y" x="\(_wi(padding / 4))" y="\(_wi(height / 2))" transform="rotate(-90, \(_wi(padding / 4)), \(_wi(height / 2)))">\(escapingXml(diagram.axes.yLabel ?? "Visibility"))</text>
     </g>
 
     """
@@ -136,8 +138,8 @@ public func renderWardleyMapSvg(
     // Stage group
     svg += "<g class=\"wardley-stages\">\n"
     for stage in diagram.stages {
-        svg += "<line class=\"wardley-stage-divider\" x1=\"\(Int(stage.startX))\" y1=\"\(Int(padding))\" x2=\"\(Int(stage.startX))\" y2=\"\(Int(height - padding))\" stroke=\"\(axisColor)\" stroke-dasharray=\"5 5\" opacity=\"0.8\" />\n"
-        svg += "<text class=\"wardley-stage-label\" x=\"\(Int(stage.centerX))\" y=\"\(Int(stage.labelY))\">\(escapingXml(stage.name))</text>\n"
+        svg += "<line class=\"wardley-stage-divider\" x1=\"\(_wi(stage.startX))\" y1=\"\(_wi(padding))\" x2=\"\(_wi(stage.startX))\" y2=\"\(_wi(height - padding))\" stroke=\"\(axisColor)\" stroke-dasharray=\"5 5\" opacity=\"0.8\" />\n"
+        svg += "<text class=\"wardley-stage-label\" x=\"\(_wi(stage.centerX))\" y=\"\(_wi(stage.labelY))\">\(escapingXml(stage.name))</text>\n"
     }
     svg += "</g>\n"
 
@@ -145,7 +147,7 @@ public func renderWardleyMapSvg(
     if diagram.showGrid && !diagram.gridLines.isEmpty {
         svg += "<g class=\"wardley-grid\">\n"
         for grid in diagram.gridLines {
-            svg += "<line x1=\"\(Int(grid.x1))\" y1=\"\(Int(grid.y1))\" x2=\"\(Int(grid.x2))\" y2=\"\(Int(grid.y2))\" />\n"
+            svg += "<line x1=\"\(_wi(grid.x1))\" y1=\"\(_wi(grid.y1))\" x2=\"\(_wi(grid.x2))\" y2=\"\(_wi(grid.y2))\" />\n"
         }
         svg += "</g>\n"
     }
@@ -154,9 +156,9 @@ public func renderWardleyMapSvg(
     if !diagram.pipelineBoxes.isEmpty {
         svg += "<g class=\"wardley-pipelines\">\n"
         for box in diagram.pipelineBoxes {
-            svg += "<rect class=\"wardley-pipeline-box\" x=\"\(Int(box.x))\" y=\"\(Int(box.y))\" width=\"\(Int(box.width))\" height=\"\(Int(box.height))\" rx=\"4\" ry=\"4\" />\n"
+            svg += "<rect class=\"wardley-pipeline-box\" x=\"\(_wi(box.x))\" y=\"\(_wi(box.y))\" width=\"\(_wi(box.width))\" height=\"\(_wi(box.height))\" rx=\"4\" ry=\"4\" />\n"
             for childLink in box.childLinks {
-                svg += "<line class=\"wardley-pipeline-evolution-link\" x1=\"\(Int(childLink.x1))\" y1=\"\(Int(childLink.y1))\" x2=\"\(Int(childLink.x2))\" y2=\"\(Int(childLink.y2))\" />\n"
+                svg += "<line class=\"wardley-pipeline-evolution-link\" x1=\"\(_wi(childLink.x1))\" y1=\"\(_wi(childLink.y1))\" x2=\"\(_wi(childLink.x2))\" y2=\"\(_wi(childLink.y2))\" />\n"
             }
         }
         svg += "</g>\n"
@@ -178,11 +180,11 @@ public func renderWardleyMapSvg(
                 markerStart = " marker-start=\"url(#link-arrow-start-\(diagramId))\""
             }
 
-            svg += "<line class=\"\(classAttr)\" x1=\"\(Int(link.sourceX))\" y1=\"\(Int(link.sourceY))\" x2=\"\(Int(link.targetX))\" y2=\"\(Int(link.targetY))\"\(markerEnd)\(markerStart) />\n"
+            svg += "<line class=\"\(classAttr)\" x1=\"\(_wi(link.sourceX))\" y1=\"\(_wi(link.sourceY))\" x2=\"\(_wi(link.targetX))\" y2=\"\(_wi(link.targetY))\"\(markerEnd)\(markerStart) />\n"
 
             if let label = link.label, let lx = link.labelX, let ly = link.labelY {
                 let angle = link.labelAngle ?? 0
-                svg += "<text class=\"wardley-link-label\" x=\"\(Int(lx))\" y=\"\(Int(ly))\" transform=\"rotate(\(Int(angle)), \(Int(lx)), \(Int(ly)))\">\(escapingXml(label))</text>\n"
+                svg += "<text class=\"wardley-link-label\" x=\"\(_wi(lx))\" y=\"\(_wi(ly))\" transform=\"rotate(\(_wi(angle)), \(_wi(lx)), \(_wi(ly)))\">\(escapingXml(label))</text>\n"
             }
         }
         svg += "</g>\n"
@@ -192,7 +194,7 @@ public func renderWardleyMapSvg(
     if !diagram.trends.isEmpty {
         svg += "<g class=\"wardley-trends\">\n"
         for trend in diagram.trends {
-            svg += "<line class=\"wardley-trend\" x1=\"\(Int(trend.originX))\" y1=\"\(Int(trend.originY))\" x2=\"\(Int(trend.targetX))\" y2=\"\(Int(trend.targetY))\" marker-end=\"url(#arrow-\(diagramId))\" />\n"
+            svg += "<line class=\"wardley-trend\" x1=\"\(_wi(trend.originX))\" y1=\"\(_wi(trend.originY))\" x2=\"\(_wi(trend.targetX))\" y2=\"\(_wi(trend.targetY))\" marker-end=\"url(#arrow-\(diagramId))\" />\n"
         }
         svg += "</g>\n"
     }
@@ -213,23 +215,23 @@ public func renderWardleyMapSvg(
         // Source strategy overlays (rendered behind main node)
         switch node.sourceStrategy {
         case .outsource:
-            svg += "<circle class=\"wardley-outsource-overlay\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y))\" r=\"\(Int(nodeRadius * 2))\" />\n"
+            svg += "<circle class=\"wardley-outsource-overlay\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y))\" r=\"\(_wi(nodeRadius * 2))\" />\n"
         case .buy:
-            svg += "<circle class=\"wardley-buy-overlay\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y))\" r=\"\(Int(nodeRadius * 2))\" />\n"
+            svg += "<circle class=\"wardley-buy-overlay\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y))\" r=\"\(_wi(nodeRadius * 2))\" />\n"
         case .build:
-            svg += "<circle class=\"wardley-build-overlay\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y))\" r=\"\(Int(nodeRadius * 2))\" />\n"
+            svg += "<circle class=\"wardley-build-overlay\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y))\" r=\"\(_wi(nodeRadius * 2))\" />\n"
         case .market:
-            svg += "<circle class=\"wardley-market-overlay\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y))\" r=\"\(Int(nodeRadius * 2))\" />\n"
+            svg += "<circle class=\"wardley-market-overlay\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y))\" r=\"\(_wi(nodeRadius * 2))\" />\n"
             // Three small circles in triangle
-            let mc = Int(nodeRadius * 2)
-            let mdx = Int(Double(mc) * cos(.pi / 6))
-            let mdy = Int(Double(mc) * sin(.pi / 6))
-            svg += "<circle class=\"wardley-market-dot\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y) - mc)\" r=\"2\" />\n"
-            svg += "<circle class=\"wardley-market-dot\" cx=\"\(Int(node.x) - mdx)\" cy=\"\(Int(node.y) + mdy)\" r=\"2\" />\n"
-            svg += "<circle class=\"wardley-market-dot\" cx=\"\(Int(node.x) + mdx)\" cy=\"\(Int(node.y) + mdy)\" r=\"2\" />\n"
-            svg += "<line class=\"wardley-market-line\" x1=\"\(Int(node.x))\" y1=\"\(Int(node.y) - mc)\" x2=\"\(Int(node.x) - mdx)\" y2=\"\(Int(node.y) + mdy)\" />\n"
-            svg += "<line class=\"wardley-market-line\" x1=\"\(Int(node.x) - mdx)\" y1=\"\(Int(node.y) + mdy)\" x2=\"\(Int(node.x) + mdx)\" y2=\"\(Int(node.y) + mdy)\" />\n"
-            svg += "<line class=\"wardley-market-line\" x1=\"\(Int(node.x) + mdx)\" y1=\"\(Int(node.y) + mdy)\" x2=\"\(Int(node.x))\" y2=\"\(Int(node.y) - mc)\" />\n"
+            let mc = _wi(nodeRadius * 2)
+            let mdx = _wi(Double(mc) * cos(.pi / 6))
+            let mdy = _wi(Double(mc) * sin(.pi / 6))
+            svg += "<circle class=\"wardley-market-dot\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y) - mc)\" r=\"2\" />\n"
+            svg += "<circle class=\"wardley-market-dot\" cx=\"\(_wi(node.x) - mdx)\" cy=\"\(_wi(node.y) + mdy)\" r=\"2\" />\n"
+            svg += "<circle class=\"wardley-market-dot\" cx=\"\(_wi(node.x) + mdx)\" cy=\"\(_wi(node.y) + mdy)\" r=\"2\" />\n"
+            svg += "<line class=\"wardley-market-line\" x1=\"\(_wi(node.x))\" y1=\"\(_wi(node.y) - mc)\" x2=\"\(_wi(node.x) - mdx)\" y2=\"\(_wi(node.y) + mdy)\" />\n"
+            svg += "<line class=\"wardley-market-line\" x1=\"\(_wi(node.x) - mdx)\" y1=\"\(_wi(node.y) + mdy)\" x2=\"\(_wi(node.x) + mdx)\" y2=\"\(_wi(node.y) + mdy)\" />\n"
+            svg += "<line class=\"wardley-market-line\" x1=\"\(_wi(node.x) + mdx)\" y1=\"\(_wi(node.y) + mdy)\" x2=\"\(_wi(node.x))\" y2=\"\(_wi(node.y) - mc)\" />\n"
         case .none:
             break
         }
@@ -237,11 +239,11 @@ public func renderWardleyMapSvg(
         // Main node shape
         if node.isPipelineParent {
             let sqSize = nodeRadius * 1.6
-            svg += "<rect class=\"wardley-node-shape\" x=\"\(Int(node.x - sqSize / 2))\" y=\"\(Int(node.y - sqSize / 2))\" width=\"\(Int(sqSize))\" height=\"\(Int(sqSize))\" fill=\"\(componentFill)\" stroke=\"\(componentStroke)\" stroke-width=\"1\" />\n"
+            svg += "<rect class=\"wardley-node-shape\" x=\"\(_wi(node.x - sqSize / 2))\" y=\"\(_wi(node.y - sqSize / 2))\" width=\"\(_wi(sqSize))\" height=\"\(_wi(sqSize))\" fill=\"\(componentFill)\" stroke=\"\(componentStroke)\" stroke-width=\"1\" />\n"
         } else if node.className == .anchor {
             // Anchors don't have a circle, just bold centered label
         } else {
-            svg += "<circle class=\"wardley-node-shape\" cx=\"\(Int(node.x))\" cy=\"\(Int(node.y))\" r=\"\(Int(nodeRadius))\" fill=\"\(componentFill)\" stroke=\"\(componentStroke)\" stroke-width=\"1\" />\n"
+            svg += "<circle class=\"wardley-node-shape\" cx=\"\(_wi(node.x))\" cy=\"\(_wi(node.y))\" r=\"\(_wi(nodeRadius))\" fill=\"\(componentFill)\" stroke=\"\(componentStroke)\" stroke-width=\"1\" />\n"
         }
 
         // Inertia line
@@ -251,7 +253,7 @@ public func renderWardleyMapSvg(
             if node.sourceStrategy != nil {
                 inertiaOffset = nodeRadius * 2 + 10
             }
-            svg += "<line class=\"wardley-inertia\" x1=\"\(Int(node.x + inertiaOffset))\" y1=\"\(Int(node.y - 8))\" x2=\"\(Int(node.x + inertiaOffset))\" y2=\"\(Int(node.y + 8))\" />\n"
+            svg += "<line class=\"wardley-inertia\" x1=\"\(_wi(node.x + inertiaOffset))\" y1=\"\(_wi(node.y - 8))\" x2=\"\(_wi(node.x + inertiaOffset))\" y2=\"\(_wi(node.y + 8))\" />\n"
         }
 
         // Node label
@@ -259,9 +261,9 @@ public func renderWardleyMapSvg(
         let labelOffsetY = node.labelOffsetY ?? 0
 
         if node.className == .anchor {
-            svg += "<text class=\"wardley-node-label\" x=\"\(Int(node.x))\" y=\"\(Int(node.y - nodeRadius - 3))\" text-anchor=\"middle\" font-weight=\"bold\">\(escapingXml(node.label))</text>\n"
+            svg += "<text class=\"wardley-node-label\" x=\"\(_wi(node.x))\" y=\"\(_wi(node.y - nodeRadius - 3))\" text-anchor=\"middle\" font-weight=\"bold\">\(escapingXml(node.label))</text>\n"
         } else {
-            svg += "<text class=\"wardley-node-label\" x=\"\(Int(node.x + labelOffsetX))\" y=\"\(Int(node.y + labelOffsetY + 4))\" text-anchor=\"start\">\(escapingXml(node.label))</text>\n"
+            svg += "<text class=\"wardley-node-label\" x=\"\(_wi(node.x + labelOffsetX))\" y=\"\(_wi(node.y + labelOffsetY + 4))\" text-anchor=\"start\">\(escapingXml(node.label))</text>\n"
         }
 
         svg += "</g>\n"
@@ -273,16 +275,16 @@ public func renderWardleyMapSvg(
         svg += "<g class=\"wardley-annotations\">\n"
         for point in diagram.annotationPoints {
             for line in point.connectingLines {
-                svg += "<line class=\"wardley-annotation-line\" x1=\"\(Int(line.x1))\" y1=\"\(Int(line.y1))\" x2=\"\(Int(line.x2))\" y2=\"\(Int(line.y2))\" />\n"
+                svg += "<line class=\"wardley-annotation-line\" x1=\"\(_wi(line.x1))\" y1=\"\(_wi(line.y1))\" x2=\"\(_wi(line.x2))\" y2=\"\(_wi(line.y2))\" />\n"
             }
-            svg += "<circle class=\"wardley-annotation\" cx=\"\(Int(point.x))\" cy=\"\(Int(point.y))\" r=\"10\" />\n"
-            svg += "<text class=\"wardley-annotation-text\" x=\"\(Int(point.x))\" y=\"\(Int(point.y))\">\(point.number)</text>\n"
+            svg += "<circle class=\"wardley-annotation\" cx=\"\(_wi(point.x))\" cy=\"\(_wi(point.y))\" r=\"10\" />\n"
+            svg += "<text class=\"wardley-annotation-text\" x=\"\(_wi(point.x))\" y=\"\(_wi(point.y))\">\(point.number)</text>\n"
         }
 
         if let box = diagram.annotationBox {
-            svg += "<rect class=\"wardley-annotations-box\" x=\"\(Int(box.x))\" y=\"\(Int(box.y))\" width=\"\(Int(box.width))\" height=\"\(Int(box.height))\" rx=\"4\" ry=\"4\" />\n"
+            svg += "<rect class=\"wardley-annotations-box\" x=\"\(_wi(box.x))\" y=\"\(_wi(box.y))\" width=\"\(_wi(box.width))\" height=\"\(_wi(box.height))\" rx=\"4\" ry=\"4\" />\n"
             for entry in box.entries {
-                svg += "<text class=\"wardley-annotations-box-text\" x=\"\(Int(entry.x))\" y=\"\(Int(entry.y))\">\(escapingXml(entry.text))</text>\n"
+                svg += "<text class=\"wardley-annotations-box-text\" x=\"\(_wi(entry.x))\" y=\"\(_wi(entry.y))\">\(escapingXml(entry.text))</text>\n"
             }
         }
         svg += "</g>\n"
@@ -292,7 +294,7 @@ public func renderWardleyMapSvg(
     if !diagram.notes.isEmpty {
         svg += "<g class=\"wardley-notes\">\n"
         for note in diagram.notes {
-            svg += "<text class=\"wardley-notes\" x=\"\(Int(note.x))\" y=\"\(Int(note.y))\">\(escapingXml(note.text))</text>\n"
+            svg += "<text class=\"wardley-notes\" x=\"\(_wi(note.x))\" y=\"\(_wi(note.y))\">\(escapingXml(note.text))</text>\n"
         }
         svg += "</g>\n"
     }
@@ -307,8 +309,8 @@ public func renderWardleyMapSvg(
             let ax = acc.x - aw / 2
             let ay = acc.y - ah / 2
             // Right-pointing arrow: shaft + arrowhead
-            svg += "<path class=\"wardley-accelerators\" d=\"M \(Int(ax)) \(Int(ay)) L \(Int(ax + aw - ahw)) \(Int(ay)) L \(Int(ax + aw - ahw)) \(Int(ay - ah / 2)) L \(Int(ax + aw)) \(Int(acc.y)) L \(Int(ax + aw - ahw)) \(Int(ay + ah + ah / 2)) L \(Int(ax + aw - ahw)) \(Int(ay + ah)) L \(Int(ax)) \(Int(ay + ah)) Z\" />\n"
-            svg += "<text class=\"wardley-accelerator-label\" x=\"\(Int(acc.x))\" y=\"\(Int(acc.y + ah + 12))\">\(escapingXml(acc.name))</text>\n"
+            svg += "<path class=\"wardley-accelerators\" d=\"M \(_wi(ax)) \(_wi(ay)) L \(_wi(ax + aw - ahw)) \(_wi(ay)) L \(_wi(ax + aw - ahw)) \(_wi(ay - ah / 2)) L \(_wi(ax + aw)) \(_wi(acc.y)) L \(_wi(ax + aw - ahw)) \(_wi(ay + ah + ah / 2)) L \(_wi(ax + aw - ahw)) \(_wi(ay + ah)) L \(_wi(ax)) \(_wi(ay + ah)) Z\" />\n"
+            svg += "<text class=\"wardley-accelerator-label\" x=\"\(_wi(acc.x))\" y=\"\(_wi(acc.y + ah + 12))\">\(escapingXml(acc.name))</text>\n"
         }
         svg += "</g>\n"
     }
@@ -323,8 +325,8 @@ public func renderWardleyMapSvg(
             let dx = dec.x - dw / 2
             let dy = dec.y - dh / 2
             // Left-pointing arrow: shaft + arrowhead
-            svg += "<path class=\"wardley-deaccelerators\" d=\"M \(Int(dx + dw)) \(Int(dy)) L \(Int(dx + dhw)) \(Int(dy)) L \(Int(dx + dhw)) \(Int(dy - dh / 2)) L \(Int(dx)) \(Int(dec.y)) L \(Int(dx + dhw)) \(Int(dy + dh + dh / 2)) L \(Int(dx + dhw)) \(Int(dy + dh)) L \(Int(dx + dw)) \(Int(dy + dh)) Z\" />\n"
-            svg += "<text class=\"wardley-deaccelerator-label\" x=\"\(Int(dec.x))\" y=\"\(Int(dec.y + dh + 12))\">\(escapingXml(dec.name))</text>\n"
+            svg += "<path class=\"wardley-deaccelerators\" d=\"M \(_wi(dx + dw)) \(_wi(dy)) L \(_wi(dx + dhw)) \(_wi(dy)) L \(_wi(dx + dhw)) \(_wi(dy - dh / 2)) L \(_wi(dx)) \(_wi(dec.y)) L \(_wi(dx + dhw)) \(_wi(dy + dh + dh / 2)) L \(_wi(dx + dhw)) \(_wi(dy + dh)) L \(_wi(dx + dw)) \(_wi(dy + dh)) Z\" />\n"
+            svg += "<text class=\"wardley-deaccelerator-label\" x=\"\(_wi(dec.x))\" y=\"\(_wi(dec.y + dh + 12))\">\(escapingXml(dec.name))</text>\n"
         }
         svg += "</g>\n"
     }

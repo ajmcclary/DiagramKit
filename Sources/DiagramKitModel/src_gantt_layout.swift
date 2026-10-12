@@ -171,7 +171,7 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
 
         // CSS class assembly
         let sectionIndex = diagram.sections.firstIndex(where: { $0.name == task.section }) ?? 0
-        let styleIndex = sectionIndex % config.numberSectionStyles
+        let styleIndex = sectionIndex % max(1, config.numberSectionStyles)
 
         let tagClass: String
         if task.tags.contains(.done) && task.tags.contains(.crit) {
@@ -234,7 +234,7 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
         let bgHeight = Double(rowCount) * gap - 2
         let bgRect = CGRect(x: 0, y: bgY, width: width - config.rightPadding / 2, height: max(bgHeight, 1))
 
-        let styleIndex = section.index % config.numberSectionStyles
+        let styleIndex = section.index % max(1, config.numberSectionStyles)
 
         // Section label: vertically centered
         let labelY = bgY + bgHeight / 2 + config.sectionFontSize / 2 - 2

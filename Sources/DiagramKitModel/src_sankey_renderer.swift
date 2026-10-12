@@ -215,12 +215,7 @@ public func renderSankeySvg(
 }
 
 private func _sankeyFmt(_ n: Double) -> String {
-    let rounded = (n * 10).rounded() / 10
-    if rounded.isFinite && abs(rounded) < 1e15 && rounded == rounded.rounded() {
-        return String(Int(rounded))
-    }
-    if !rounded.isFinite { return "0" }
-    return String(format: "%.1f", rounded)
+    _svgNum(n)
 }
 
 private func _sankeyInjectSvgAttributes(_ svgTag: String, _ attributes: [String]) -> String {

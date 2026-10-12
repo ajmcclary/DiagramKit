@@ -105,12 +105,7 @@ private func parseCoordinateValue(_ text: String, context: String) throws -> (Do
 }
 
 private func stripQuotes(_ s: String) -> String {
-    var str = s.trimmingCharacters(in: .whitespaces)
-    if str.hasPrefix("\"") && str.hasSuffix("\"") {
-        str.removeFirst()
-        str.removeLast()
-    }
-    return str
+    _unquote(s.trimmingCharacters(in: .whitespaces))
 }
 
 // MARK: - Name tokenization (handles hyphenated names)
@@ -645,10 +640,11 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
 
             let afterBracket = String(afterNumber[bracketEnd...].dropFirst()).trimmingCharacters(in: .whitespaces)
             guard let firstQuote = afterBracket.firstIndex(of: "\""),
-                  let lastQuote = afterBracket.lastIndex(of: "\"") else {
+                  let lastQuote = afterBracket.lastIndex(of: "\""),
+                  firstQuote < lastQuote,
+                  let text = _safeSubstring(afterBracket, from: afterBracket.index(after: firstQuote), to: lastQuote) else {
                 throw WardleyMapParserError.annotationMissingText(trimmed)
             }
-            let text = String(afterBracket[afterBracket.index(after: firstQuote)..<lastQuote])
 
             if diagram.annotations.contains(where: { $0.number == number }) {
                 throw WardleyMapParserError.duplicateAnnotationNumber(number)
@@ -756,7 +752,8 @@ private func parseAccDescrMultiline(from lines: [String]) -> (text: String, cons
             started = true
             let contentAfterBrace: String
             if let braceIdx = trimmed.firstIndex(of: "{") {
-                contentAfterBrace = String(trimmed[trimmed.index(after: braceIdx)]).trimmingCharacters(in: .whitespaces)
+                let afterBrace = trimmed.index(after: braceIdx)
+                contentAfterBrace = (afterBrace <= trimmed.endIndex ? String(trimmed[afterBrace...]) : "").trimmingCharacters(in: .whitespaces)
             } else {
                 contentAfterBrace = trimmed
             }

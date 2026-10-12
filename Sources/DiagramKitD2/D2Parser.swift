@@ -259,7 +259,12 @@ public struct D2Parser {
         // Check if this is a property on the current node context
         // In this simple parser, we treat key.subkey as a property of key
         if key.contains(".") {
-            let parts = key.split(separator: ".")
+            let parts = key.split(separator: ".", omittingEmptySubsequences: false)
+            guard parts.count >= 2, !parts[0].isEmpty else {
+                // Invalid dotted key like `.: foo` — treat as a node definition with
+                // the raw key as the id rather than trapping on an empty base id.
+                return .nodeDefinition(D2NodeDefinition(id: key, label: value))
+            }
             let baseId = String(parts[0])
             let property = parts.dropFirst().joined(separator: ".")
 

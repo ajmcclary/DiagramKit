@@ -15,7 +15,7 @@ enum DOTStateProbe {
         if DOTClassProbe.detectsClassDiagram(document) { return false }
         for stmt in document.statements {
             if case .nodeStatement(let node) = stmt {
-                let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 let shape = attrs["shape"]
                 if shape == "point" || shape == "doublecircle" { return true }
             }
@@ -24,12 +24,12 @@ enum DOTStateProbe {
     }
 
     static func isStateStartNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         return attrs["shape"] == "point"
     }
 
     static func isStateEndNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         return attrs["shape"] == "doublecircle"
     }
 }
@@ -92,7 +92,7 @@ struct DOTStateMapper {
             case .edgeStatement(let edge):
                 ensureNode(edge.source, ctx: &ctx)
                 ensureNode(edge.target, ctx: &ctx)
-                let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 ctx.edges.append(original_src_types.MermaidEdge(
                     source: edge.source,
                     target: edge.target,
@@ -152,7 +152,7 @@ struct DOTStateMapper {
             case .edgeStatement(let edge):
                 ensureNode(edge.source, ctx: &ctx)
                 ensureNode(edge.target, ctx: &ctx)
-                let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 ctx.edges.append(original_src_types.MermaidEdge(
                     source: edge.source,
                     target: edge.target,

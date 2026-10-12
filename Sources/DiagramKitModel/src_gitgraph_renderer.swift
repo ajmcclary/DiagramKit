@@ -183,8 +183,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     }
 
     let svgId = diagramId ?? UUID().uuidString
-    let vb = "0 0 \(Int(positioned.width)) \(Int(positioned.height))"
-    svg += "<svg id=\"gitgraph-\(svgId)\" viewBox=\"\(vb)\" width=\"\(Int(positioned.width))\" height=\"\(Int(positioned.height))\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+    let w = _safeInt(positioned.width, default: 0)
+    let h = _safeInt(positioned.height, default: 0)
+    let vb = "0 0 \(w) \(h)"
+    svg += "<svg id=\"gitgraph-\(svgId)\" viewBox=\"\(vb)\" width=\"\(w)\" height=\"\(h)\" xmlns=\"http://www.w3.org/2000/svg\">\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
         svg += "  <title>\(SVG.escapeText(accTitle))</title>\n"

@@ -9,7 +9,7 @@ public func renderC4Ascii(_ model: C4Diagram) -> String {
         lines.append(String(repeating: "=", count: max(title.count, 1)))
     }
 
-    let boundariesById = Dictionary(uniqueKeysWithValues: model.boundaries.map { ($0.alias, $0) })
+    let boundariesById = Dictionary(model.boundaries.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
     let shapesByBoundary = Dictionary(grouping: model.shapes, by: \.parentBoundary)
 
     func emit(boundaryAlias: String, depth: Int) {

@@ -9,7 +9,7 @@ public func renderArchitectureAscii(_ model: ArchitectureDiagram) -> String {
         lines.append(String(repeating: "=", count: max(title.count, 1)))
     }
 
-    let groupsById = Dictionary(uniqueKeysWithValues: model.groups.map { ($0.id, $0) })
+    let groupsById = Dictionary(model.groups.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
     func emitServicesUnder(groupId: String?, depth: Int) {
         let indent = String(repeating: "  ", count: depth)

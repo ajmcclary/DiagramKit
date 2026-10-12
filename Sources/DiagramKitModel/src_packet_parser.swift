@@ -300,14 +300,7 @@ private func _parseQuotedLabel(_ raw: String) throws -> String {
 }
 
 private func _unquoteString(_ s: String) -> String {
-    let trimmed = s.trimmingCharacters(in: .whitespaces)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(s.trimmingCharacters(in: .whitespaces))
 }
 
 // MARK: - Whitespace-flexible keyword matchers
@@ -391,17 +384,21 @@ public func normalizePacketBlocks(
             start = lastBit + 1
         }
 
-        // Compute end and bits
+        // Compute end and bits, guarding against Int overflow on hostile ranges.
         var end: Int
         var bits: Int
         if let b = raw.bits {
             // +count form
             bits = b
-            end = start + bits - 1
+            let (sum, sumOverflow) = start.addingReportingOverflow(bits)
+            let (result, resultOverflow) = sum.subtractingReportingOverflow(1)
+            end = sumOverflow || resultOverflow ? Int.max : result
         } else if let e = raw.end {
             // explicit range
             end = e
-            bits = end - start + 1
+            let (diff, diffOverflow) = end.subtractingReportingOverflow(start)
+            let (result, resultOverflow) = diff.addingReportingOverflow(1)
+            bits = diffOverflow || resultOverflow ? Int.max : result
         } else {
             // single bit
             end = start

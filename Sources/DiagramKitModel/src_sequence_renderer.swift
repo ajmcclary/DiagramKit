@@ -314,7 +314,7 @@ private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) ->
     // Sequence number
     if msg.sequenceVisible, let num = msg.sequenceNumber {
         let numX = msg.isSelf ? msg.x1 - 18 : min(msg.x1, msg.x2) - 18
-        parts.append("<text class=\"sequenceNumber\" x=\"\(numX)\" y=\"\(msg.y - 2)\" font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"end\" fill=\"var(--_text-muted)\">\(Int(num))</text>")
+        parts.append("<text class=\"sequenceNumber\" x=\"\(numX)\" y=\"\(msg.y - 2)\" font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"end\" fill=\"var(--_text-muted)\">\(_safeInt(num, default: 1))</text>")
     }
 
     // Central connection circle at source

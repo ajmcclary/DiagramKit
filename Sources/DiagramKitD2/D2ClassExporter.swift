@@ -124,7 +124,7 @@ struct D2ClassMapper {
             }
         }
 
-        let classMap = Dictionary(uniqueKeysWithValues: classes.map { ($0.id, $0) })
+        let classMap = Dictionary(classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let diagram = ClassDiagram(
             classes: classes,
             classMap: classMap,
@@ -191,9 +191,11 @@ private struct PartialClass {
             let methodName: String
             let params: String
             if let lp = nameAndParams.firstIndex(of: "("),
-               let rp = nameAndParams.lastIndex(of: ")") {
+               let rp = nameAndParams.lastIndex(of: ")"),
+               lp < rp,
+               let paramsSlice = _safeSubstring(nameAndParams, from: nameAndParams.index(after: lp), to: rp) {
                 methodName = String(nameAndParams[..<lp])
-                params = String(nameAndParams[nameAndParams.index(after: lp)..<rp])
+                params = paramsSlice
             } else {
                 methodName = nameAndParams
                 params = ""

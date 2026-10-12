@@ -406,13 +406,17 @@ public func _niceTickValues(_ min: Double, _ max: Double) -> [Double] {
     var v = start
     while v <= max + niceInterval * 0.001 {
         ticks.append((v * 1e10).rounded() / 1e10)
-        v += niceInterval
+        let next = v + niceInterval
+        // Hostile inputs can make `next` round back to `v` at 1e17+;
+        // bail to avoid an infinite loop. Also cap the total tick count.
+        guard next != v, ticks.count < 1000 else { break }
+        v = next
     }
     return ticks
 }
 
 public func _formatTickValue(_ v: Double) -> String {
-    if v == v.rounded() && abs(v) < 1e15 { return String(Int(v)) }
+    if let intVal = _safeInt(v) { return String(intVal) }
     return abs(v) < 10 ? String(format: "%.1f", v) : String(format: "%.0f", v)
 }
 

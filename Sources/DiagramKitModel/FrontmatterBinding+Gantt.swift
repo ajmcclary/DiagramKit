@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 /// Maps `config.gantt.*` and top-level `displayMode` to `GanttDiagramConfig`.
 public struct GanttFrontmatterBinding: FrontmatterBinding {
@@ -38,7 +39,10 @@ public struct GanttFrontmatterBinding: FrontmatterBinding {
                 case "gridLineStartPadding":  guard let v = value.double else { return false }; config.gridLineStartPadding = v
                 case "fontSize":              guard let v = value.double else { return false }; config.fontSize = v
                 case "sectionFontSize":       guard let v = value.double else { return false }; config.sectionFontSize = v
-                case "numberSectionStyles":   guard let v = value.int else { return false }; config.numberSectionStyles = v
+                case "numberSectionStyles":
+                    let raw = value.double ?? Double(value.int ?? 0)
+                    config.numberSectionStyles = _clampedInt(raw, min: 1, max: 1000, default: 4)
+                    return true
                 case "axisFormat":            config.axisFormat = value.string
                 case "tickInterval":          config.tickInterval = value.string
                 case "topAxis":               guard let v = value.bool else { return false }; config.topAxis = v

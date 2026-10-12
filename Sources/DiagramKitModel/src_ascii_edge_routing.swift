@@ -50,7 +50,9 @@ public func getPath(_ grid: [String: AsciiNode], _ from: GridCoord, _ to: GridCo
     var costSoFar: [String: Int] = [gridKey(from): 0]
     var cameFrom: [String: GridCoord?] = [gridKey(from): nil]
 
-    while !pq.isEmpty {
+    // Cap explored cells to prevent unbounded search on hostile inputs.
+    let maxExploredCells = max(1_000, grid.count * 100)
+    while !pq.isEmpty, costSoFar.count <= maxExploredCells {
         pq.sort { $0.priority < $1.priority }
         let current = pq.removeFirst().coord
 

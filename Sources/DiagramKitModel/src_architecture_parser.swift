@@ -209,9 +209,11 @@ private func _scanId(from text: String) -> String.Index? {
         if trimmed[lastCharIdx] == "-" {
             return nil
         }
-        let offset = idx.utf16Offset(in: trimmed)
-        let textStart = text.distance(from: text.startIndex, to: text.firstIndex(of: first) ?? text.startIndex)
-        return text.index(text.startIndex, offsetBy: textStart + offset)
+        // Use Character distance, not UTF-16 offsets, so non-BMP ids are
+        // sliced at the right grapheme-cluster boundary.
+        let trimmedStart = text.drop(while: { $0.isWhitespace }).startIndex
+        let idLength = trimmed.distance(from: trimmed.startIndex, to: idx)
+        return text.index(trimmedStart, offsetBy: idLength)
     }
     return nil
 }

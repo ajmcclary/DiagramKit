@@ -555,8 +555,8 @@ private class XYChartTokenParser {
             chart.titleText = XYText(text: sanitized)
             chart.title = sanitized
         default:
-            // Put back if not a text token
-            pos -= 1
+            // Put back if not a text token and we actually consumed one.
+            if case .eof = tok.type {} else { pos -= 1 }
         }
     }
 

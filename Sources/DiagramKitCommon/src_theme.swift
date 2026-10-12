@@ -329,8 +329,8 @@ public final class original_src_theme {
     }
 
     private static func _formatNumber(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
+        if let v = _safeInt(value) {
+            return String(v)
         }
         return String(value)
     }

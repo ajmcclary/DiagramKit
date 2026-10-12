@@ -60,7 +60,7 @@ public func renderMindmapSvg(
 
     parts.append("<g class=\"nodes\">")
     for node in positioned.nodes {
-        let transform = "translate(\(Int(node.x - node.width / 2)),\(Int(node.y - node.height / 2)))"
+        let transform = "translate(\(_safeInt(node.x - node.width / 2, default: 0)),\(_safeInt(node.y - node.height / 2, default: 0)))"
         parts.append("<g class=\"\(_svgAttrEscape(node.fullCssClass))\" id=\"node_\(node.id)\" transform=\"\(transform)\">")
         parts.append(contentsOf: _drawMindmapNodeShape(node: node, theme: positioned.theme, config: positioned.config))
         parts.append(contentsOf: _drawMindmapNodeLabel(node: node, theme: positioned.theme, config: positioned.config))
@@ -75,8 +75,8 @@ public func renderMindmapSvg(
 }
 
 private func _drawMindmapNodeShape(node: PositionedMindmapNode, theme: MindmapThemeConfig, config: MindmapConfig) -> [String] {
-    let w = Int(node.width)
-    let h = Int(node.height)
+    let w = _safeInt(node.width, default: 0)
+    let h = _safeInt(node.height, default: 0)
     let fill = _nodeFillColor(node: node, theme: theme, config: config)
     let stroke = _nodeStrokeColor(node: node, theme: theme, config: config)
     let strokeW = theme.strokeWidth
@@ -125,7 +125,7 @@ private func _drawMindmapNodeShape(node: PositionedMindmapNode, theme: MindmapTh
         ]
 
     case .hexagon:
-        let mh = Int(Double(h) / 4.0)
+        let mh = _safeInt(Double(h) / 4.0, default: 0)
         return [
             "<polygon class=\"node-bkg\" fill=\"\(fill)\" points=\"\(mh),0 \(w - mh),0 \(w),\(h / 2) \(w - mh),\(h) \(mh),\(h) 0,\(h / 2)\" stroke=\"\(stroke)\" stroke-width=\"\(strokeW)\"/>"
         ]
@@ -198,8 +198,8 @@ private func _fmt(_ v: Double) -> String {
 }
 
 private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapThemeConfig, config: MindmapConfig) -> [String] {
-    let w = Int(node.width)
-    let h = Int(node.height)
+    let w = _safeInt(node.width, default: 0)
+    let h = _safeInt(node.height, default: 0)
     let fillColor = _labelFillColor(node: node, theme: theme, config: config)
     let fontSize = theme.fontSize
     let isCircle = node.type == .circle
@@ -213,13 +213,13 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
         if isCircle {
             // Mermaid: foreignObject width=node.width height="50px" style="text-align:center;"
             // Icon placed at top, text below
-            let foW = Int(node.width)
+            let foW = _safeInt(node.width, default: 0)
             result.append("<foreignObject x=\"0\" y=\"0\" width=\"\(foW)\" height=\"50\" style=\"text-align: center;\">")
             result.append("<div class=\"icon-container\"><i class=\"\(_svgAttrEscape(iconClass + " " + node.icon!))\"></i></div>")
             result.append("</foreignObject>")
         } else {
             // Mermaid: foreignObject width="60px" height=node.height with margin-top
-            let orgHeight = Int(node.height)
+            let orgHeight = _safeInt(node.height, default: 0)
             let foW = 60
             result.append("<foreignObject x=\"0\" y=\"0\" width=\"\(foW)\" height=\"\(orgHeight)\" style=\"text-align: center;\">")
             result.append("<div class=\"icon-container\"><i class=\"\(_svgAttrEscape(iconClass + " " + node.icon!))\"></i></div>")
@@ -244,7 +244,7 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
             }
             let textY = startY + Double(idx) * lineHeight
             result.append(_renderMarkdownTextSVG(
-                String(line), x: textX, y: Int(textY), fill: fillColor, fontFamily: theme.fontFamily, fontSize: Int(fontSize)
+                String(line), x: textX, y: _safeInt(textY, default: 0), fill: fillColor, fontFamily: theme.fontFamily, fontSize: _safeInt(fontSize, default: 0)
             ))
         }
     } else {
@@ -254,9 +254,9 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
         } else {
             textX = w / 2
         }
-        let textY = h / 2 + Int(fontSize) / 3
+        let textY = h / 2 + _safeInt(fontSize, default: 0) / 3
         result.append(_renderMarkdownTextSVG(
-            label, x: textX, y: textY, fill: fillColor, fontFamily: theme.fontFamily, fontSize: Int(fontSize), dominantBaseline: true
+            label, x: textX, y: textY, fill: fillColor, fontFamily: theme.fontFamily, fontSize: _safeInt(fontSize, default: 0), dominantBaseline: true
         ))
     }
 

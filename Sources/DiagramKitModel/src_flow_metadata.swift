@@ -1,5 +1,6 @@
 // Metadata parser for @{ ... } blocks in flowcharts
 import Foundation
+import DiagramKitCommon
 
 /// Join multiline @{ ... } blocks into single logical lines before line-splitting.
 /// Mermaid supports metadata blocks spanning multiple lines, e.g.:
@@ -135,14 +136,4 @@ private func _splitTopLevelCommas(_ text: String) -> [String] {
     return result
 }
 
-/// Strip surrounding quotes from a string value.
-public func _unquote(_ value: String) -> String {
-    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
-}
+// `_unquote` is provided by DiagramKitCommon.

@@ -57,6 +57,11 @@ enum D2C4Mapper {
                 let nextContent = nextContentLine(from: i + 1, in: lines)
                 if let nc = nextContent, let nativeShape = parseShapeAttr(nc.trimmed) {
                     // Shape
+                    // Deduplicate by alias to avoid downstream duplicate-key traps.
+                    if ctx.shapeDeclarationsByAlias[block.alias] != nil {
+                        i += 1
+                        continue
+                    }
                     let nominal = inferShapeType(native: nativeShape, diagramKind: ctx.preliminaryDiagramKind(from: markers))
                     let shape = C4Shape(
                         alias: block.alias,
@@ -93,6 +98,13 @@ enum D2C4Mapper {
                     continue
                 } else {
                     // Boundary (or empty block — treat as boundary)
+                    // Deduplicate by alias: the Structurizr exporter builds a
+                    // dictionary keyed by boundary alias, and duplicate aliases
+                    // would trap. Keep the first declaration.
+                    if ctx.boundaryDeclarationsByAlias[block.alias] != nil {
+                        i += 1
+                        continue
+                    }
                     let boundary = C4Boundary(
                         alias: block.alias,
                         label: block.label,

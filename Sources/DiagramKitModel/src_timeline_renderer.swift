@@ -226,9 +226,7 @@ private func _renderTimelineSvg(
 // MARK: - SVG helpers
 
 private func _tfmt(_ value: Double) -> String {
-    let rounded = value.rounded()
-    if rounded == value && rounded.isFinite {
-        let intVal = Int(rounded)
+    if let intVal = _safeInt(value) {
         return String(intVal)
     }
     return String(format: "%.1f", value)

@@ -31,7 +31,7 @@ public enum QuadrantChartParserError: Error, LocalizedError {
 
 // MARK: - Coordinate validation (matches Jison lexer token shapes)
 
-private let pointCoordinatePattern = try! NSRegularExpression(pattern: #"^(1|0(\.\d+)?)$"#)
+private let pointCoordinatePattern = try! NSRegularExpression(pattern: #"^(1|0(\.[0-9]+)?)$"#)
 private let hexCodePattern = try! NSRegularExpression(pattern: #"^#?([\dA-Fa-f]{6}|[\dA-Fa-f]{3})$"#)
 private let pixelsPattern = try! NSRegularExpression(pattern: #"^\d+px$"#)
 private let intPattern = try! NSRegularExpression(pattern: #"^\d+$"#)
@@ -414,8 +414,9 @@ private func parsePointLine(_ line: String) throws -> ParsedPoint? {
         throw QuadrantChartParserError.invalidPointCoordinate(pointText, Double(yStr) ?? -1)
     }
 
-    let x = Double(xStr)!
-    let y = Double(yStr)!
+    guard let x = Double(xStr), let y = Double(yStr) else {
+        throw QuadrantChartParserError.invalidPointCoordinate(pointText, -1)
+    }
 
     let afterBracket = String(trimmed[trimmed.index(after: closeBracket)...]).trimmingCharacters(in: CharacterSet.whitespaces)
     var styles: [String] = []

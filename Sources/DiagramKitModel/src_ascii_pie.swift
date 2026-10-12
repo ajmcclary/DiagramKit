@@ -5,6 +5,7 @@
 // horizontal value bars carries the same information as the SVG
 // pie. Output is deterministic given the parsed `PieChart` payload.
 import Foundation
+import DiagramKitCommon
 
 public func renderPieAscii(_ chart: PieChart) -> String {
     let total = chart.sections.reduce(0.0) { $0 + $1.value }
@@ -27,7 +28,7 @@ public func renderPieAscii(_ chart: PieChart) -> String {
     for slice in chart.sections {
         let percent = slice.value / total * 100
         // Bar width: 0–50 columns, scaled by percent.
-        let barWidth = Int((percent / 2.0).rounded())
+        let barWidth = _safeInt((percent / 2.0).rounded(), default: 0)
         let bar = String(repeating: "#", count: max(0, barWidth))
         let paddedLabel = slice.label.padding(
             toLength: maxLabelWidth,

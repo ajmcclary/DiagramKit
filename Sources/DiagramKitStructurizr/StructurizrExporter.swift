@@ -66,7 +66,8 @@ enum StructurizrC4Export {
         // flatten to siblings with one `.warning` per dropped parent link. Empty
         // authored boundaries (no direct shape members) are dropped with a `.warning`.
         let labelByAuthoredAlias: [String: String] = Dictionary(
-            uniqueKeysWithValues: authoredBoundaries.map { ($0.alias, $0.label) }
+            authoredBoundaries.map { ($0.alias, $0.label) },
+            uniquingKeysWith: { first, _ in first }
         )
         for boundary in authoredBoundaries {
             let hasAuthoredParent = !boundary.parentBoundary.isEmpty

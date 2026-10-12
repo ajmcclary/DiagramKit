@@ -344,15 +344,16 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 if t.contains(":") {
                     let parts = t.split(separator: ":")
                     // Reject non-positive spans at parse time. Downstream layout
-                    // divides `size.width` by widthInColumns; 0 → NaN.
-                    if parts.count == 2, let n = Int(parts[1]), n > 0 { span = n }
+                    // divides `size.width` by widthInColumns; 0 → NaN. Cap huge
+                    // spans to a single node so `space:1000000000` cannot OOM.
+                    if parts.count == 2, let n = Int(parts[1]), n > 0 {
+                        span = min(n, 1000)
+                    }
                 }
-                for j in 0..<span {
-                    let spaceId = generateBlockId() + "-s\(j)"
-                    let spaceNode = BlockNode(id: spaceId, type: .space, widthInColumns: 1)
-                    tempChildren[spaceId] = spaceNode
-                    addToParent(child: spaceNode)
-                }
+                let spaceId = generateBlockId() + "-s"
+                let spaceNode = BlockNode(id: spaceId, type: .space, widthInColumns: span)
+                tempChildren[spaceId] = spaceNode
+                addToParent(child: spaceNode)
                 i += 1
                 continue
             }

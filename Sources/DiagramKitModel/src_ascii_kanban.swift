@@ -10,9 +10,6 @@ public func renderKanbanAscii(_ model: KanbanDiagram) -> String {
         lines.append(String(repeating: "=", count: max(title.count, 1)))
     }
 
-    let nodesById = Dictionary(uniqueKeysWithValues: model.nodes.map { ($0.id, $0) })
-    _ = nodesById
-
     for section in model.sections {
         lines.append("[\(section.label.isEmpty ? section.id : section.label)]")
         let children = model.nodes.filter { $0.parentId == section.id }

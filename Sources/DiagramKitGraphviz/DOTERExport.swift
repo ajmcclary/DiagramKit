@@ -16,7 +16,7 @@ enum DOTERProbe {
         var sawRecord = false
         for stmt in document.statements {
             if case .nodeStatement(let node) = stmt {
-                let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 guard attrs["shape"] == "record" else { continue }
                 guard let label = attrs["label"], label.hasPrefix("{") else { continue }
                 if DOTClassProbe.labelLooksLikeClassRecord(label) {
@@ -29,7 +29,7 @@ enum DOTERProbe {
     }
 
     static func isERRecordNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         guard attrs["shape"] == "record" else { return false }
         guard let label = attrs["label"], label.hasPrefix("{") else { return false }
         return !DOTClassProbe.labelLooksLikeClassRecord(label)
@@ -54,7 +54,7 @@ struct DOTERMapper {
         let erNodeIDs = Set(erNodes.map { $0.id })
 
         for node in erNodes {
-            let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+            let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
             guard let label = attrs["label"] else { continue }
             let parsed = DOTClassProbe.parseRecordLabel(label)
             var attributes: [ErAttribute] = []
@@ -78,7 +78,7 @@ struct DOTERMapper {
         for stmt in document.statements {
             if case .edgeStatement(let edge) = stmt {
                 guard erNodeIDs.contains(edge.source), erNodeIDs.contains(edge.target) else { continue }
-                let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 // DOT's UML-ish ER convention encodes cardinality on the
                 // arrowtail/arrowhead attributes (`tee`/`crow`/`odot`/etc.).
                 // When present, lift them into ErRelSpec.cardA/.cardB so the

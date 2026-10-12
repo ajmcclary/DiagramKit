@@ -107,7 +107,9 @@ final class original_src_ascii_pathfinder {
         var costSoFar: [String: Int] = [original_src_ascii_converter.gridKey(from): 0]
         var cameFrom: [String: GridCoord?] = [original_src_ascii_converter.gridKey(from): nil]
 
-        while pq.count > 0 {
+        // Cap explored cells to prevent unbounded search on hostile inputs.
+        let maxExploredCells = max(1_000, grid.count * 100)
+        while pq.count > 0, costSoFar.count <= maxExploredCells {
             guard let current = pq.pop()?.coord else { break }
 
             if original_src_ascii_converter.gridCoordEquals(current, to) {
