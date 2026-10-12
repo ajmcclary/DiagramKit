@@ -136,15 +136,46 @@ public func renderSequenceAscii(
             arrowHead: message.arrowHead
         )
     }
-    let asciiBlocks = parsed.blocks.map { block in
-        AsciiSequenceBlock(
+    // Blocks and notes carry ITEM indices into `parsed.items` (messages,
+    // notes, and block markers interleaved), but the ASCII renderer below
+    // positions everything by MESSAGE index. Convert item index → message
+    // index here so loop boxes and notes land on the right rows (H3).
+    let items = parsed.items
+    func asciiMessageCount(before itemIdx: Int) -> Int {
+        var count = 0
+        for (idx, item) in items.enumerated() {
+            if idx >= itemIdx { break }
+            if case .message = item { count += 1 }
+        }
+        return count
+    }
+    func asciiLastMessageIndex(atOrBefore itemIdx: Int) -> Int {
+        var last = -1
+        for (idx, item) in items.enumerated() {
+            if idx > itemIdx { break }
+            if case .message = item { last += 1 }
+        }
+        return last
+    }
+
+    let asciiBlocks = parsed.blocks.map { block -> AsciiSequenceBlock in
+        // Start: message row the block header sits above (first inner
+        // message, or the first following message for empty blocks — the
+        // same reference the SVG layout uses). End: last inner message.
+        let startIndex = asciiMessageCount(before: block.startItemIndex)
+        let endIndex = max(asciiLastMessageIndex(atOrBefore: block.endItemIndex), startIndex)
+        return AsciiSequenceBlock(
             type: block.type,
             label: block.label.isEmpty ? nil : block.label,
-            startIndex: block.startIndex,
-            endIndex: block.endIndex,
-            dividers: block.dividers.map { divider in
-                AsciiSequenceDivider(
-                    index: divider.index,
+            startIndex: startIndex,
+            endIndex: endIndex,
+            dividers: block.dividers.compactMap { divider -> AsciiSequenceDivider? in
+                let index = asciiMessageCount(before: divider.itemIndex)
+                // A divider with no message between it and the block end
+                // (e.g. `alt` without `else`) has no row to sit on.
+                guard index <= endIndex else { return nil }
+                return AsciiSequenceDivider(
+                    index: index,
                     label: divider.label.isEmpty ? nil : divider.label
                 )
             }
@@ -152,7 +183,7 @@ public func renderSequenceAscii(
     }
     let asciiNotes = parsed.notes.map { note in
         AsciiSequenceNote(
-            afterIndex: note.afterItemIndex,
+            afterIndex: max(0, asciiLastMessageIndex(atOrBefore: note.afterItemIndex)),
             text: note.text,
             position: note.position,
             actorIds: note.actorIds

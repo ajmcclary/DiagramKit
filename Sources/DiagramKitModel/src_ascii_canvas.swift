@@ -310,6 +310,45 @@ public func flipRoleCanvasVertically(_ roleCanvas: inout RoleCanvas) -> RoleCanv
     return roleCanvas
 }
 
+// Mirror-image characters for flipCanvasHorizontally. Arrowheads and
+// corner glyphs swap to their horizontal counterpart; characters that are
+// horizontally symmetric (│ ─ ┬ ┴ ┼ ═ etc.) map to themselves and are
+// simply absent from the table.
+private let HORIZONTAL_FLIP_MAP: [Character: Character] = [
+    "◀": "▶", "▶": "◀",
+    "◁": "▷", "▷": "◁",
+    "<": ">", ">": "<",
+    "┌": "┐", "┐": "┌",
+    "└": "┘", "┘": "└",
+    "├": "┤", "┤": "├",
+    "╭": "╮", "╮": "╭",
+    "╰": "╯", "╯": "╰",
+    "◤": "◢", "◢": "◤",
+    "◥": "◣", "◣": "◥",
+    "╴": "╶", "╶": "╴",
+]
+
+@discardableResult
+public func flipCanvasHorizontally(_ canvas: inout Canvas) -> Canvas {
+    for i in canvas.indices {
+        canvas[i].reverse()
+        for y in canvas[i].indices {
+            if let mapped = HORIZONTAL_FLIP_MAP[canvas[i][y]] {
+                canvas[i][y] = mapped
+            }
+        }
+    }
+    return canvas
+}
+
+@discardableResult
+public func flipRoleCanvasHorizontally(_ roleCanvas: inout RoleCanvas) -> RoleCanvas {
+    for i in roleCanvas.indices {
+        roleCanvas[i].reverse()
+    }
+    return roleCanvas
+}
+
 public func drawText(_ canvas: inout Canvas, start: DrawingCoord, text: String, forceOverwrite: Bool = false) {
     _ = increaseSize(&canvas, start.x + max(0, text.count), start.y)
     for (i, ch) in text.enumerated() {

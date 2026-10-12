@@ -9,10 +9,26 @@ import Foundation
 // ============================================================================
 
 private func sortSubgraphsByDepth(_ subgraphs: [AsciiSubgraph]) -> [AsciiSubgraph] {
+    // Depth = length of the parent chain (parents are indices into the same
+    // flat array). Bounded walk guards against malformed self-referencing
+    // parent indices.
     func getDepth(_ sg: AsciiSubgraph) -> Int {
-        sg.parent == nil ? 0 : 1
+        var depth = 0
+        var current = sg.parent
+        while let idx = current, idx >= 0, idx < subgraphs.count, depth <= subgraphs.count {
+            depth += 1
+            current = subgraphs[idx].parent
+        }
+        return depth
     }
-    return subgraphs.sorted { getDepth($0) < getDepth($1) }
+    return subgraphs.enumerated()
+        .sorted { a, b in
+            let da = getDepth(a.element)
+            let db = getDepth(b.element)
+            if da != db { return da < db }
+            return a.offset < b.offset
+        }
+        .map(\.element)
 }
 
 // ============================================================================

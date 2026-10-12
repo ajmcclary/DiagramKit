@@ -163,6 +163,46 @@ private func _resolveEdgeStyle(edgeIndex: Int, edgeId: String?, graph: _ParsedGr
     return result
 }
 
+/// Synthesize a center-to-border orthogonal route between two absolutely
+/// positioned nodes, for cross-hierarchy edges the layered engine could not
+/// route at any single level. Geometry mirrors `_routeEdges` in the ELK
+/// adapter: exit/enter on the horizontal borders when the centers differ
+/// more horizontally than vertically, otherwise the vertical borders, with
+/// a single mid-axis junction (4 points total).
+private func _synthesizeOrthogonalEdgeRoute(
+    from s: (x: Double, y: Double, width: Double, height: Double),
+    to t: (x: Double, y: Double, width: Double, height: Double)
+) -> [_PositionedPointPayload] {
+    let sCX = s.x + s.width / 2
+    let sCY = s.y + s.height / 2
+    let tCX = t.x + t.width / 2
+    let tCY = t.y + t.height / 2
+    let dx = tCX - sCX
+    let dy = tCY - sCY
+
+    if abs(dx) >= abs(dy) {
+        let startX = dx >= 0 ? s.x + s.width : s.x
+        let endX = dx >= 0 ? t.x : t.x + t.width
+        let midX = (startX + endX) / 2
+        return [
+            _PositionedPointPayload(x: startX, y: sCY),
+            _PositionedPointPayload(x: midX, y: sCY),
+            _PositionedPointPayload(x: midX, y: tCY),
+            _PositionedPointPayload(x: endX, y: tCY),
+        ]
+    } else {
+        let startY = dy >= 0 ? s.y + s.height : s.y
+        let endY = dy >= 0 ? t.y : t.y + t.height
+        let midY = (startY + endY) / 2
+        return [
+            _PositionedPointPayload(x: sCX, y: startY),
+            _PositionedPointPayload(x: sCX, y: midY),
+            _PositionedPointPayload(x: tCX, y: midY),
+            _PositionedPointPayload(x: tCX, y: endY),
+        ]
+    }
+}
+
 func _extractPositionedGraph(
     _ source: _ParsedGraph,
     _ laidOut: ElkGraphNode,
@@ -206,6 +246,22 @@ func _extractPositionedGraph(
     // Groups segments by original edge index, combining outgoing + external + incoming.
     var segmentsByIndex: [Int: _EdgeSegments] = [:]
     _collectEdgeSegments(laidOut, segments: &segmentsByIndex, offsetX: 0, offsetY: 0)
+
+    // Absolute bounds for every leaf node (already accumulated through the
+    // compound levels above). Cross-hierarchy edges that the layered engine
+    // could not route at any single level come back with no sections; they
+    // get a synthesized center-to-border orthogonal route here instead of
+    // being silently dropped. Edges that already have a route are untouched.
+    var nodeBoundsById: [String: (x: Double, y: Double, width: Double, height: Double)] = [:]
+    for (child, parentOffset) in allChildren {
+        guard nodeBoundsById[child.id] == nil else { continue }
+        nodeBoundsById[child.id] = (
+            child.x + parentOffset.x,
+            child.y + parentOffset.y,
+            child.width,
+            child.height
+        )
+    }
 
     // Extract subgraph groups — needed for margin routing
     var groups = _extractSubgraphGroups(laidOut, source: source, graphHeight: graphHeight, diagnostics: diagnostics)
@@ -251,6 +307,16 @@ func _extractPositionedGraph(
             } else {
                 points.append(contentsOf: incoming)
             }
+        }
+
+        // Cross-hierarchy fallback: no level of the layered engine had both
+        // endpoints among its direct children, so the edge carries no
+        // sections. Synthesize an orthogonal route between the absolute
+        // node bounds rather than dropping the edge.
+        if points.count < 2,
+           let s = nodeBoundsById[edge.source],
+           let t = nodeBoundsById[edge.target] {
+            points = _synthesizeOrthogonalEdgeRoute(from: s, to: t)
         }
 
         // Label position from ELK, or fall back to path midpoint later

@@ -110,11 +110,20 @@ private func _bmToAsciiTypeGraph(_ graph: original_src_ascii_converter.AsciiGrap
 
     let subgraphs: [AsciiSubgraph] = graph.subgraphs.map { sg in
         let sgNodes = sg.nodes.compactMap { node in nodesByKey["\(node.name)#\(node.index)"] }
+        // Preserve the compound hierarchy by index into the flat array so
+        // drawGraph's sortSubgraphsByDepth actually orders outer boxes
+        // before nested ones (M-ASC-6).
+        let parentIndex = sg.parent.flatMap { parent in
+            graph.subgraphs.firstIndex(where: { $0 === parent })
+        }
+        let childIndices = sg.children.compactMap { child in
+            graph.subgraphs.firstIndex(where: { $0 === child })
+        }
         return AsciiSubgraph(
             name: sg.name,
             nodes: sgNodes,
-            parent: nil,
-            children: [],
+            parent: parentIndex,
+            children: childIndices,
             minX: sg.minX,
             minY: sg.minY,
             maxX: sg.maxX,
@@ -388,6 +397,12 @@ public final class original_src_ascii_index {
             if parsed.direction == "BT" {
                 flipCanvasVertically(&graph.drawGraph.canvas)
                 flipRoleCanvasVertically(&graph.drawGraph.roleCanvas)
+            } else if parsed.direction == "RL" {
+                // RL renders through the LR path; mirror horizontally so
+                // flow actually runs right-to-left instead of silently
+                // rendering as LR (M-ASC-6).
+                flipCanvasHorizontally(&graph.drawGraph.canvas)
+                flipRoleCanvasHorizontally(&graph.drawGraph.roleCanvas)
             }
 
             let rendered = try canvasToString(

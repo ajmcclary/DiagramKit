@@ -188,15 +188,19 @@ public func renderXYChartSvg(
     // 4. Dots (native only)
     var dotOverlay: [String] = []
     if native && (interactive || sparse) {
-        var columns: [String: [(x: Double, y: Double, value: Double, label: String?, seriesIndex: Int, colorIndex: Int)]] = [:]
+        var columns: [Double: [(x: Double, y: Double, value: Double, label: String?, seriesIndex: Int, colorIndex: Int)]] = [:]
         for line in chart.lines {
             for p in line.points {
-                let key = _r(p.x)
+                // Group on the same rounded value the output uses, but keep
+                // the key numeric so columns emit in left-to-right order
+                // instead of dictionary hash order (M-SVG-2).
+                let key = Double(_r(p.x)) ?? p.x
                 columns[key, default: []].append((p.x, p.y, p.value, p.label, line.seriesIndex, line.colorIndex))
             }
         }
 
-        for entries in columns.values {
+        for key in columns.keys.sorted() {
+            let entries = columns[key] ?? []
             guard let first = entries.first else { continue }
 
             if !interactive {
