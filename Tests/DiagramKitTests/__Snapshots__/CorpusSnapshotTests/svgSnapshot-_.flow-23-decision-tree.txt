@@ -1,4 +1,4 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 391.604 215.60399999999998" width="391.604" height="215.60399999999998" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 374.47400000000005 684.755" width="374.47400000000005" height="684.755" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
@@ -56,16 +56,62 @@
   to { stroke-dashoffset: -24; }
 }
 </style>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" class="edge" points="107.80199999999999,175.60399999999998 107.80199999999999,199.60399999999998 118.54650000000001,199.60399999999998 118.54650000000001,223.60399999999996" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="A" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" class="edge" points="175.60399999999998,107.80199999999999 200.3485,107.80199999999999 200.3485,242.05399999999997 225.09300000000002,242.05399999999997" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" class="edge" points="118.54650000000001,380.697 118.54650000000001,404.697 107.658,404.697 107.658,428.697" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" class="edge" points="118.54650000000001,380.697 118.54650000000001,404.697 268.895,404.697 268.895,428.697" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="E" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" class="edge" points="203.31599999999997,494.276 174.86649999999997,494.276 174.86649999999997,626.3050000000001 146.41699999999997,626.3050000000001" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="E" data-to="G" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" class="edge" points="268.895,559.855 268.895,583.855 220.58599999999996,583.855 220.58599999999996,607.855" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="A" data-to="B" data-label="Yes">
+  <rect x="94.84525" y="184.45399999999998" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="113.17425" y="199.60399999999998" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="A" data-to="C" data-label="No">
+  <rect x="184.9895" y="159.778" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="200.3485" y="174.928" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
+</g>
+<g class="edge-label" data-from="B" data-to="D" data-label="Yes">
+  <rect x="94.77324999999999" y="389.547" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="113.10225" y="404.697" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="B" data-to="E" data-label="No">
+  <rect x="178.36175" y="389.547" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="193.72075" y="404.697" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
+</g>
+<g class="edge-label" data-from="E" data-to="F" data-label="Yes">
+  <rect x="156.53749999999997" y="545.1405000000001" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="174.86649999999997" y="560.2905000000001" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="E" data-to="G" data-label="No">
+  <rect x="229.38149999999996" y="568.705" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="244.74049999999997" y="583.855" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
+</g>
 <g class="node" data-id="A" data-label="Is it raining?" data-shape="diamond">
   <path d="M 107.80 40 L 175.60 107.80 L 107.80 175.60 L 40 107.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="107.80199999999999" y="107.80199999999999" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Is it raining?</text>
 </g>
-<g class="node" data-id="B" data-label="B" data-shape="rectangle">
-  <path d="M 203.60 40 L 263.60 40 L 263.60 76.90 L 203.60 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="233.60399999999998" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">B</text>
+<g class="node" data-id="B" data-label="Have umbrella?" data-shape="diamond">
+  <path d="M 118.55 223.60 L 197.09 302.15 L 118.55 380.70 L 40 302.15 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="118.54650000000001" y="302.15049999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Have umbrella?</text>
 </g>
-<g class="node" data-id="E" data-label="E" data-shape="rectangle">
-  <path d="M 291.60 40 L 351.60 40 L 351.60 76.90 L 291.60 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="321.604" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">E</text>
+<g class="node" data-id="C" data-label="Go outside" data-shape="stadium">
+  <path d="M 243.54 223.60 L 310.10 223.60 A 18.45 18.45 0 0 1 328.55 242.05 L 328.55 242.05 A 18.45 18.45 0 0 1 310.10 260.50 L 243.54 260.50 A 18.45 18.45 0 0 1 225.09 242.05 L 225.09 242.05 A 18.45 18.45 0 0 1 243.54 223.60 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="276.8195" y="242.05399999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Go outside</text>
+</g>
+<g class="node" data-id="D" data-label="Go with umbrella" data-shape="stadium">
+  <path d="M 58.45 428.70 L 156.87 428.70 A 18.45 18.45 0 0 1 175.32 447.15 L 175.32 447.15 A 18.45 18.45 0 0 1 156.87 465.60 L 58.45 465.60 A 18.45 18.45 0 0 1 40 447.15 L 40 447.15 A 18.45 18.45 0 0 1 58.45 428.70 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="107.658" y="447.147" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Go with umbrella</text>
+</g>
+<g class="node" data-id="E" data-label="Is it heavy?" data-shape="diamond">
+  <path d="M 268.90 428.70 L 334.47 494.28 L 268.90 559.86 L 203.32 494.28 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="268.895" y="494.276" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Is it heavy?</text>
+</g>
+<g class="node" data-id="F" data-label="Stay inside" data-shape="stadium">
+  <path d="M 58.45 607.86 L 127.97 607.86 A 18.45 18.45 0 0 1 146.42 626.31 L 146.42 626.30 A 18.45 18.45 0 0 1 127.97 644.76 L 58.45 644.76 A 18.45 18.45 0 0 1 40 626.30 L 40 626.31 A 18.45 18.45 0 0 1 58.45 607.86 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="93.20849999999999" y="626.3050000000001" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Stay inside</text>
+</g>
+<g class="node" data-id="G" data-label="Run for it" data-shape="stadium">
+  <path d="M 192.87 607.86 L 248.31 607.86 A 18.45 18.45 0 0 1 266.76 626.31 L 266.76 626.30 A 18.45 18.45 0 0 1 248.31 644.76 L 192.87 644.76 A 18.45 18.45 0 0 1 174.42 626.30 L 174.42 626.31 A 18.45 18.45 0 0 1 192.87 607.86 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="220.58599999999996" y="626.3050000000001" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Run for it</text>
 </g>
 </svg>

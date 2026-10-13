@@ -2941,6 +2941,12 @@
       "source": "graph TD\n  A-->B"
     },
     {
+      "id": "flow-34-labeled-edges",
+      "category": "flowchart",
+      "name": "Labeled Edge Forms",
+      "source": "graph TD\n  A[Start] -->|solid| B[Arrow]\n  B --|open| C[Open Link]\n  C ---|related| D[Open Pipe]\n  D -.->|dotted| E[Dotted]\n  E -. dotted .-> F[Embedded Dotted]\n  F ==>|thick| G[Thick]\n  G == thick ==> H[Embedded Thick]\n  H <-->|bidirectional| A\n  B -->|yes| I{Decision}\n  I -->|no| J -->|retry| A"
+    },
+    {
       "id": "gantt-8-apostrophe-task",
       "category": "gantt",
       "name": "Apostrophe in task label",
@@ -2986,7 +2992,7 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 48,
+    "flowchart": 49,
     "gantt": 8,
     "gitGraph": 18,
     "ishikawa": 7,
@@ -3008,6 +3014,6 @@
     "wardleyBeta": 12,
     "xychart": 27,
     "zenuml": 15,
-    "totalDiagrams": 431
+    "totalDiagrams": 432
   }
 }

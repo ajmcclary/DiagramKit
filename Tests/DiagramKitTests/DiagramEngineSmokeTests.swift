@@ -253,11 +253,9 @@ final class DiagramEngineSmokeTests: XCTestCase {
 
     /// Styled fan-out edges (solid / dotted / thick) keep full geometry in
     /// both orientations (graph TD goes through the GraphTransformer
-    /// rotation; graph LR does not). Deliberately unlabeled: labeled
-    /// `-->|text|` flowchart edges are a known pre-existing parser gap
-    /// (the label syntax drops the edge silently — see corpus entry
-    /// `flow-6-edge-styles`, whose baselines contain only the source
-    /// node); fixing that is a parser behavior change outside this phase.
+    /// rotation; graph LR does not). Labeled `-->|text|` variants are covered
+    /// by `LabeledEdgeParsingTests` and the corpus structural sweep; this
+    /// suite pins port-order geometry on the unlabeled forms.
     func testFlow6PortOrder() async throws {
         func assertStyledFanOut(_ source: String, orientation: String) async throws {
             let pos = try await DiagramEngine.layout(source)

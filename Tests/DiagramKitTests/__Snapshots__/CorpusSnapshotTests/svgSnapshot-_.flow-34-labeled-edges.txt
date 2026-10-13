@@ -1,0 +1,154 @@
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 350.514 792.1199999999999" width="350.514" height="792.1199999999999" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
+    --_text-faint:    #666666;
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+  </marker>
+  <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+  </marker>
+  <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<style>
+.edge-animated {
+  animation: edge-dash 1.5s linear infinite;
+  stroke-dasharray: 8 4;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -24; }
+}
+</style>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="solid" class="edge" points="97.777,76.9 97.777,100.9 102.223,100.9 102.223,124.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="false" data-label="open" class="edge" points="102.223,161.8 102.223,185.8 113.7085,185.8 113.7085,209.8" fill="none" stroke="#939394" stroke-width="1.0" />
+<polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="false" data-label="related" class="edge" points="113.7085,246.70000000000002 113.7085,311.16 113.7085,311.16 113.7085,375.62" fill="none" stroke="#939394" stroke-width="1.0" />
+<polyline data-from="D" data-to="E" data-style="dotted" data-arrow-start="false" data-arrow-end="true" data-label="dotted" class="edge" points="113.7085,412.52 113.7085,436.52 102.223,436.52 102.223,460.52" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" marker-end="url(#arrowhead)" />
+<polyline data-from="E" data-to="F" data-style="dotted" data-arrow-start="false" data-arrow-end="true" data-label="dotted" class="edge" points="102.223,497.41999999999996 102.223,521.42 134.4565,521.42 134.4565,545.42" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" marker-end="url(#arrowhead)" />
+<polyline data-from="F" data-to="G" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-label="thick" class="edge" points="134.4565,582.3199999999999 134.4565,606.3199999999999 100.741,606.3199999999999 100.741,630.3199999999999" fill="none" stroke="#939394" stroke-width="2.0" marker-end="url(#arrowhead)" />
+<polyline data-from="G" data-to="H" data-style="thick" data-arrow-start="false" data-arrow-end="true" data-label="thick" class="edge" points="100.741,667.2199999999999 100.741,691.2199999999999 132.97449999999998,691.2199999999999 132.97449999999998,715.2199999999999" fill="none" stroke="#939394" stroke-width="2.0" marker-end="url(#arrowhead)" />
+<polyline data-from="H" data-to="A" data-style="solid" data-arrow-start="true" data-arrow-end="true" data-label="bidirectional" class="edge" points="132.97449999999998,715.2199999999999 132.97449999999998,396.05999999999995 97.777,396.05999999999995 97.777,76.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-start)" />
+<polyline data-from="B" data-to="I" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="yes" class="edge" points="141.723,143.35000000000002 167.20850000000002,143.35000000000002 167.20850000000002,268.71000000000004 192.69400000000002,268.71000000000004" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="I" data-to="J" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="no" class="edge" points="251.60399999999998,327.62 251.60399999999998,351.62 222.69400000000002,351.62 222.69400000000002,375.62" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="J" data-to="A" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="retry" class="edge" points="222.69400000000002,375.62 222.69400000000002,226.26 97.777,226.26 97.777,76.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="A" data-to="B" data-label="solid">
+  <rect x="79.88900000000001" y="85.75" width="40.221999999999994" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="100.0" y="100.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">solid</text>
+</g>
+<g class="edge-label" data-from="B" data-to="C" data-label="open">
+  <rect x="87.26075" y="170.65" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="107.96575" y="185.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">open</text>
+</g>
+<g class="edge-label" data-from="C" data-to="D" data-label="related">
+  <rect x="88.25150000000001" y="296.01000000000005" width="50.913999999999994" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="113.7085" y="311.16" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">related</text>
+</g>
+<g class="edge-label" data-from="D" data-to="E" data-label="dotted">
+  <rect x="84.88475" y="421.37" width="46.162" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="107.96575" y="436.52" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">dotted</text>
+</g>
+<g class="edge-label" data-from="E" data-to="F" data-label="dotted">
+  <rect x="95.25874999999999" y="506.27" width="46.162" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="118.33975" y="521.42" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">dotted</text>
+</g>
+<g class="edge-label" data-from="F" data-to="G" data-label="thick">
+  <rect x="97.48775" y="591.17" width="40.221999999999994" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="117.59875000000001" y="606.3199999999999" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">thick</text>
+</g>
+<g class="edge-label" data-from="G" data-to="H" data-label="thick">
+  <rect x="96.74674999999999" y="676.0699999999999" width="40.221999999999994" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="116.85775" y="691.2199999999999" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">thick</text>
+</g>
+<g class="edge-label" data-from="H" data-to="A" data-label="bidirectional">
+  <rect x="77.44475" y="380.90999999999997" width="75.86200000000001" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="115.37575" y="396.05999999999995" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">bidirectional</text>
+</g>
+<g class="edge-label" data-from="B" data-to="I" data-label="yes">
+  <rect x="149.4735" y="190.88000000000002" width="35.47" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="167.20850000000002" y="206.03000000000003" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">yes</text>
+</g>
+<g class="edge-label" data-from="I" data-to="J" data-label="no">
+  <rect x="222.38400000000001" y="336.47" width="29.53" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="237.149" y="351.62" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">no</text>
+</g>
+<g class="edge-label" data-from="J" data-to="A" data-label="retry">
+  <rect x="139.53050000000002" y="211.10999999999999" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="160.2355" y="226.26" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">retry</text>
+</g>
+<g class="node" data-id="A" data-label="Start" data-shape="rectangle">
+  <path d="M 62.72 40 L 132.83 40 L 132.83 76.90 L 62.72 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="97.777" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Start</text>
+</g>
+<g class="node" data-id="B" data-label="Arrow" data-shape="rectangle">
+  <path d="M 62.72 124.90 L 141.72 124.90 L 141.72 161.80 L 62.72 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="102.223" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Arrow</text>
+</g>
+<g class="node" data-id="C" data-label="Open Link" data-shape="rectangle">
+  <path d="M 62.72 209.80 L 164.69 209.80 L 164.69 246.70 L 62.72 246.70 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="113.7085" y="228.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Open Link</text>
+</g>
+<g class="node" data-id="D" data-label="Open Pipe" data-shape="rectangle">
+  <path d="M 62.72 375.62 L 164.69 375.62 L 164.69 412.52 L 62.72 412.52 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="113.7085" y="394.07" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Open Pipe</text>
+</g>
+<g class="node" data-id="E" data-label="Dotted" data-shape="rectangle">
+  <path d="M 62.72 460.52 L 141.72 460.52 L 141.72 497.42 L 62.72 497.42 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="102.223" y="478.96999999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Dotted</text>
+</g>
+<g class="node" data-id="F" data-label="Embedded Dotted" data-shape="rectangle">
+  <path d="M 62.72 545.42 L 206.19 545.42 L 206.19 582.32 L 62.72 582.32 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="134.4565" y="563.87" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Embedded Dotted</text>
+</g>
+<g class="node" data-id="G" data-label="Thick" data-shape="rectangle">
+  <path d="M 62.72 630.32 L 138.76 630.32 L 138.76 667.22 L 62.72 667.22 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="100.741" y="648.77" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Thick</text>
+</g>
+<g class="node" data-id="H" data-label="Embedded Thick" data-shape="rectangle">
+  <path d="M 62.72 715.22 L 203.23 715.22 L 203.23 752.12 L 62.72 752.12 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="132.97449999999998" y="733.67" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Embedded Thick</text>
+</g>
+<g class="node" data-id="I" data-label="Decision" data-shape="diamond">
+  <path d="M 251.60 209.80 L 310.51 268.71 L 251.60 327.62 L 192.69 268.71 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="251.604" y="268.71000000000004" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Decision</text>
+</g>
+<g class="node" data-id="J" data-label="J" data-shape="rectangle">
+  <path d="M 192.69 375.62 L 252.69 375.62 L 252.69 412.52 L 192.69 412.52 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="222.69400000000002" y="394.07" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">J</text>
+</g>
+</svg>

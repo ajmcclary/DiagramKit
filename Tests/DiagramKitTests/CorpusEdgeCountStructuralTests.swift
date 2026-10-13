@@ -43,6 +43,49 @@ final class CorpusEdgeCountStructuralTests: XCTestCase {
         XCTAssertEqual(Self.renderedEdgeCount(in: svg), 3, "flow-16-subgraphs must render A-->B, C-->D, and the cross-subgraph B-->C")
     }
 
+    /// Labeled-edge forms (pipe labels, split operators, text-embedded
+    /// labels, chained labels) must reach the SVG at full count — the
+    /// labeled `-->|text|` forms used to be dropped by the parser entirely
+    /// (REVIEW C1's sibling defect; `flow-6-edge-styles` baselined only the
+    /// source node). Structural, not pixel: parsed edge count == rendered
+    /// edge count, and every label string survives.
+    func testLabeledEdgeFormsRenderAtFullCount() async throws {
+        let source = """
+        graph TD
+          A -->|solid| B
+          B --|open| C
+          C ---|related| D
+          D -.->|dotted| E
+          E -. embedded .-> F
+          F ==>|thick| G
+          G == embedded ==> H
+          H <-->|both| A
+          B -->|yes| I{Decision}
+          I -->|no| J -->|retry| A
+        """
+        let document = try await DiagramEngine.parse(source)
+        guard case .flowchart(let graph) = document.payload else {
+            return XCTFail("Expected flowchart payload")
+        }
+        XCTAssertEqual(graph.edges.count, 11, "all ten labeled statements plus the chained hop must parse")
+        XCTAssertEqual(
+            Set(graph.nodesInOrder.map { $0.id }),
+            Set(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]),
+            "targets referenced only by labeled edges must exist")
+
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertEqual(Self.renderedEdgeCount(in: svg), 11,
+                       "every labeled edge must reach the SVG")
+        for edge in graph.edges {
+            guard let label = edge.label, !label.isEmpty else {
+                XCTFail("edge \(edge.source)->\(edge.target) lost its label")
+                continue
+            }
+            XCTAssertTrue(svg.contains(label) || svg.contains(SVG.escapeAttribute(label)),
+                          "edge label \"\(label)\" missing from SVG")
+        }
+    }
+
     func testFlow18SubgraphDirectionRendersAllFiveEdges() async throws {
         let entry = try Self.loadCorpus().first(where: { $0.id == "flow-18-subgraph-direction" })
         let svg = try await DiagramEngine.renderSVG(source: XCTUnwrap(entry?.source))

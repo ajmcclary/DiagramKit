@@ -61,8 +61,23 @@
 <polyline data-from="B" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="246.0,58.45 270.0,58.45 270.0,123.35000000000001 294.0,123.35000000000001" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="406.345,58.45 430.345,58.45 430.345,104.4675 454.345,104.4675" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="D" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="391.525,123.35000000000001 430.345,123.35000000000001 430.345,104.4675 454.345,104.4675" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="E" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="approved" class="edge" points="454.345,104.4675 350.1725,104.4675 350.1725,58.45 246.0,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="B" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="246.0,58.45 270.0,58.45 270.0,188.25 294.0,188.25" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="F" data-to="G" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="398.935,188.25 426.64,188.25 426.64,250.65800000000002 454.345,250.65800000000002" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="G" data-to="A" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="pass" class="edge" points="454.345,250.65800000000002 281.4855,250.65800000000002 281.4855,58.45 108.626,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="G" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="fail" class="edge" points="454.345,250.65800000000002 426.64,250.65800000000002 426.64,188.25 398.935,188.25" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="E" data-to="B" data-label="approved">
+  <rect x="318.1815" y="66.30875" width="63.982" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="350.1725" y="81.45875000000001" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">approved</text>
+</g>
+<g class="edge-label" data-from="G" data-to="A" data-label="pass">
+  <rect x="260.7805" y="139.404" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="281.4855" y="154.554" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">pass</text>
+</g>
+<g class="edge-label" data-from="G" data-to="F" data-label="fail">
+  <rect x="411.281" y="204.304" width="30.717999999999996" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="426.64" y="219.454" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">fail</text>
+</g>
 <g class="node" data-id="A" data-label="main" data-shape="rectangle">
   <path d="M 40 40 L 108.63 40 L 108.63 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="74.313" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">main</text>

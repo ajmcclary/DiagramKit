@@ -1,5 +1,6 @@
 // Edge syntax tokenizer for flowchart links.
 import Foundation
+import DiagramKitCommon
 
 struct _ParsedEdgeOp {
     var edgeId: String?
@@ -23,9 +24,16 @@ struct _ParsedEdgeOp {
 
 /// Scan the text for an edge operator and return parsed tokens.
 /// Matches Mermaid edge syntax including edge IDs, bidirectional markers,
-/// circle/cross arrowheads, text-embedded labels, minimum-length links,
-/// and invisible links.
+/// circle/cross arrowheads, text-embedded labels, pipe-delimited labels
+/// (`-->|text|`, `--|text|-->`), minimum-length links, and invisible links.
 func _scanEdgeOp(_ text: String) -> _ParsedEdgeOp? {
+    guard var op = _scanEdgeOpBody(text) else { return nil }
+    _scanPipeDelimitedLabel(text, into: &op)
+    return op
+}
+
+/// Core operator scan (everything before the `|label|` suffix handling).
+private func _scanEdgeOpBody(_ text: String) -> _ParsedEdgeOp? {
     let chars = Array(text)
     guard !chars.isEmpty else { return nil }
     var i = 0
@@ -192,6 +200,69 @@ func _scanEdgeOp(_ text: String) -> _ParsedEdgeOp? {
         return nil
     }
 
+    return nil
+}
+
+/// Scan a pipe-delimited edge label (`|text|`) that directly follows an edge
+/// operator, e.g. `A -->|label| B`, `A ---|label| B`, `A <-->|label| B`, plus
+/// the split-operator form `A --|label|--> B` where the closing arrow comes
+/// after the label. The structurally-similar dotted/thick splits
+/// (`-.|label|.->`, `==|label|==>`) are handled by the same closing-operator
+/// scan. Runs after `_scanEdgeOpBody`, which stops with `consumedLength` at
+/// the opening `|` for these forms.
+///
+/// When the operator body stopped at the pipe mid-operator (e.g. `---` in
+/// `A ---|label| B`) and no closing arrow follows the label, the edge is the
+/// Mermaid open-link form, so `arrowHeadEnd` is cleared to `.none` — the
+/// default `.arrow` fallback only applies to the unlabeled operator paths,
+/// whose behavior this function deliberately leaves untouched. Operators that
+/// already consumed an explicit end arrowhead (`-->|label|`, `-.->|label|`,
+/// `==>|label|`, `--o|label|`, `--x|label|`) are returned unmodified.
+private func _scanPipeDelimitedLabel(_ text: String, into op: inout _ParsedEdgeOp) {
+    let chars = Array(text)
+    var i = op.consumedLength
+    guard i < chars.count, chars[i] == "|" else { return }
+    let endWasExplicit = i > 0 && (chars[i - 1] == ">" || chars[i - 1] == "o" || chars[i - 1] == "x")
+
+    var close = i + 1
+    while close < chars.count, chars[close] != "|" { close += 1 }
+    guard close < chars.count else { return }
+
+    let rawLabel = String(chars[(i + 1)..<close]).trimmingCharacters(in: .whitespacesAndNewlines)
+    let normalized = original_src_multiline_utils.normalizeBrTags(rawLabel)
+    if !normalized.isEmpty {
+        op.label = normalized
+    }
+    i = close + 1
+
+    if !endWasExplicit {
+        if let (arrowEnd, closeLength) = _scanClosingArrow(chars, i) {
+            op.arrowHeadEnd = arrowEnd
+            i += closeLength
+        } else {
+            op.arrowHeadEnd = .none
+        }
+    }
+    op.consumedLength = i
+}
+
+/// Match a closing arrow operator after a pipe label: the `-->` in
+/// `--|label|-->`, the `.->` in `-.|label|.->`, the `==>` in `==|label|==>`,
+/// or their open-link (`---`, `.-`, `===`) and circle/cross variants.
+private func _scanClosingArrow(_ chars: [Character], _ start: Int) -> (arrowEnd: original_src_types.ArrowHeadType, length: Int)? {
+    let candidates: [(String, original_src_types.ArrowHeadType)] = [
+        ("-->", .arrow),
+        ("--o", .circle),
+        ("--x", .cross),
+        (".->", .arrow),
+        ("==>", .arrow),
+        ("---", .none),
+        (".-", .none),
+        ("===", .none),
+    ]
+    for (pattern, arrowEnd) in candidates where _matchSeq(chars, start, pattern) {
+        return (arrowEnd, pattern.count)
+    }
     return nil
 }
 

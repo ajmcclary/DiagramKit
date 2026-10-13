@@ -302,7 +302,7 @@ outside the defining module.
 
 Last updated: 2026-10-13. All counts below are measured on this tree.
 
-- Current test source count: 387 Swift files (383 under `Tests/DiagramKitTests`,
+- Current test source count: 388 Swift files (384 under `Tests/DiagramKitTests`,
   4 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle
   was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side
   accessibility audit is no longer gated.
@@ -430,7 +430,7 @@ Per-family text measurement on the SVG/layout path (M-SVG-8 inventory):
 
 Feature-complete. Importers and exporters ship for Mermaid,
 D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
-state/activity + mindmap + gantt + C4). The corpus carries 435
+state/activity + mindmap + gantt + C4). The corpus carries 436
 entries across 28 diagram families. The active backlog is empty;
 [COVERAGE.md](COVERAGE.md) tracks the remaining deliberate
 non-coverage (`—`) cells, and the historical specs/plans live in the

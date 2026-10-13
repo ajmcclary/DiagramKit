@@ -1,4 +1,4 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 173.82 201.8" width="173.82" height="201.8" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 201.8" width="200" height="201.8" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
@@ -56,13 +56,18 @@
   to { stroke-dashoffset: -24; }
 }
 </style>
-<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="86.91,76.9 86.91,100.9 76.536,100.9 76.536,124.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="A" data-to="A" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="retry" class="edge" points="146.91,58.45 100.0,58.45 100.0,58.45 53.09,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="100.0,76.9 100.0,100.9 89.626,100.9 89.626,124.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="A" data-to="A" data-label="retry">
+  <rect x="79.295" y="43.300000000000004" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="100.0" y="58.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">retry</text>
+</g>
 <g class="node" data-id="A" data-label="Process" data-shape="rectangle">
-  <path d="M 40 40 L 133.82 40 L 133.82 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="86.91" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Process</text>
+  <path d="M 53.09 40 L 146.91 40 L 146.91 76.90 L 53.09 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="100.0" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Process</text>
 </g>
 <g class="node" data-id="B" data-label="Done" data-shape="rectangle">
-  <path d="M 40 124.90 L 113.07 124.90 L 113.07 161.80 L 40 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="76.536" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Done</text>
+  <path d="M 53.09 124.90 L 126.16 124.90 L 126.16 161.80 L 53.09 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="89.626" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Done</text>
 </g>
 </svg>

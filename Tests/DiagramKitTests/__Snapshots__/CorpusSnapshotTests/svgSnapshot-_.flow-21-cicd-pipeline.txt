@@ -1,4 +1,4 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 340.791 736.1379999999999" width="340.791" height="736.1379999999999" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 511.704 821.238" width="511.704" height="821.238" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
@@ -57,36 +57,60 @@
 }
 </style>
 <g class="subgraph" data-id="ci" data-label="CI Pipeline">
-  <rect x="128.0" y="40.0" width="172.791" height="370.591" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.0" />
-  <rect x="128.0" y="40.0" width="172.791" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4" stroke-width="1.0" />
-  <text x="140.0" y="54.0" font-size="12.0" font-weight="600" fill="#A9A9AA" dy="4.199999999999999">CI Pipeline</text>
+  <rect x="198.12900000000002" y="40.0" width="273.575" height="370.591" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.0" />
+  <rect x="198.12900000000002" y="40.0" width="273.575" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4" stroke-width="1.0" />
+  <text x="210.12900000000002" y="54.0" font-size="12.0" font-weight="600" fill="#A9A9AA" dy="4.199999999999999">CI Pipeline</text>
 </g>
-<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="197.2085,205.8 197.2085,229.8 214.3955,229.8 214.3955,253.80000000000004" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="D" data-to="A" data-style="dotted" data-arrow-start="false" data-arrow-end="true" class="edge" points="174.0,120.9 174.0,144.9 197.2085,144.9 197.2085,168.9" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" marker-end="url(#arrowhead)" />
-<polyline data-from="C" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="70.0,76.9 70.0,267.7455 105.06450000000001,267.7455 105.06450000000001,458.591" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="E" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="105.06450000000001,495.491 105.06450000000001,519.491 116.3235,519.491 116.3235,543.491" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<g class="node" data-id="C" data-label="C" data-shape="rectangle">
-  <path d="M 40 40 L 100 40 L 100 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="70.0" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">C</text>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="267.3375,120.9 267.3375,144.9 284.5245,144.9 284.5245,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" class="edge" points="284.5245,309.69100000000003 284.5245,333.69100000000003 268.0785,333.69100000000003 268.0785,357.69100000000003" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" class="edge" points="284.5245,309.69100000000003 284.5245,333.69100000000003 402.866,333.69100000000003 402.866,357.69100000000003" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="D" data-to="A" data-style="dotted" data-arrow-start="false" data-arrow-end="true" class="edge" points="402.866,357.69100000000003 402.866,239.2955 267.3375,239.2955 267.3375,120.9" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" marker-end="url(#arrowhead)" />
+<polyline data-from="C" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="268.0785,357.69100000000003 268.0785,217.2955 105.06450000000001,217.2955 105.06450000000001,76.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="E" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="105.06450000000001,76.9 105.06450000000001,267.7455 116.3235,267.7455 116.3235,458.591" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="F" data-to="G" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" class="edge" points="116.3235,611.2379999999999 116.3235,635.238 101.0,635.238 101.0,659.238" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="F" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" class="edge" points="192.647,534.9145 271.3375,534.9145 271.3375,376.141 350.028,376.141" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="B" data-to="C" data-label="Yes">
+  <rect x="257.9725" y="318.54100000000005" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="276.30150000000003" y="333.69100000000003" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="B" data-to="D" data-label="No">
+  <rect x="328.33625" y="318.54100000000005" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="343.69525" y="333.69100000000003" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
+</g>
+<g class="edge-label" data-from="F" data-to="G" data-label="Yes">
+  <rect x="90.33275" y="620.0880000000001" width="36.658" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="108.66175000000001" y="635.238" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="F" data-to="D" data-label="No">
+  <rect x="255.97849999999997" y="440.37775" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="271.3375" y="455.52774999999997" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
 </g>
 <g class="node" data-id="E" data-label="Deploy Staging" data-shape="stadium">
-  <path d="M 58.45 458.59 L 151.68 458.59 A 18.45 18.45 0 0 1 170.13 477.04 L 170.13 477.04 A 18.45 18.45 0 0 1 151.68 495.49 L 58.45 495.49 A 18.45 18.45 0 0 1 40 477.04 L 40 477.04 A 18.45 18.45 0 0 1 58.45 458.59 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="105.06450000000001" y="477.041" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Deploy Staging</text>
+  <path d="M 58.45 40 L 151.68 40 A 18.45 18.45 0 0 1 170.13 58.45 L 170.13 58.45 A 18.45 18.45 0 0 1 151.68 76.90 L 58.45 76.90 A 18.45 18.45 0 0 1 40 58.45 L 40 58.45 A 18.45 18.45 0 0 1 58.45 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="105.06450000000001" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Deploy Staging</text>
 </g>
 <g class="node" data-id="F" data-label="QA Approved?" data-shape="diamond">
-  <path d="M 116.32 543.49 L 192.65 619.81 L 116.32 696.14 L 40 619.81 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="116.3235" y="619.8145" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">QA Approved?</text>
+  <path d="M 116.32 458.59 L 192.65 534.91 L 116.32 611.24 L 40 534.91 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="116.3235" y="534.9145" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">QA Approved?</text>
+</g>
+<g class="node" data-id="G" data-label="Production" data-shape="circle">
+  <path d="M 40 720.24 A 61 61 0 1 1 162 720.24 A 61 61 0 1 1 40 720.24 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="101.0" y="720.238" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Production</text>
 </g>
 <g class="node" data-id="A" data-label="Push Code" data-shape="rectangle">
-  <path d="M 144 168.90 L 250.42 168.90 L 250.42 205.80 L 144 205.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="197.2085" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Push Code</text>
+  <path d="M 214.13 84 L 320.55 84 L 320.55 120.90 L 214.13 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="267.33750000000003" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Push Code</text>
 </g>
 <g class="node" data-id="B" data-label="Tests Pass?" data-shape="diamond">
-  <path d="M 214.40 253.80 L 284.79 324.20 L 214.40 394.59 L 144 324.20 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="214.3955" y="324.19550000000004" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Tests Pass?</text>
+  <path d="M 284.52 168.90 L 354.92 239.30 L 284.52 309.69 L 214.13 239.30 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="284.5245" y="239.2955" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Tests Pass?</text>
 </g>
-<g class="node" data-id="D" data-label="D" data-shape="rectangle">
-  <path d="M 144 84 L 204 84 L 204 120.90 L 144 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="174.0" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">D</text>
+<g class="node" data-id="C" data-label="Build Image" data-shape="rectangle">
+  <path d="M 214.13 357.69 L 322.03 357.69 L 322.03 394.59 L 214.13 394.59 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="268.0785" y="376.141" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Build Image</text>
+</g>
+<g class="node" data-id="D" data-label="Fix &amp; Retry" data-shape="rectangle">
+  <path d="M 350.03 357.69 L 455.70 357.69 L 455.70 394.59 L 350.03 394.59 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="402.86600000000004" y="376.141" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Fix &amp; Retry</text>
 </g>
 </svg>

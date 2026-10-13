@@ -120,17 +120,17 @@ non-coverage (`—`) cells.
 
 ## Testing
 
-- Test sources: 387 Swift files under `Tests/` (383 in
+- Test sources: 388 Swift files under `Tests/` (384 in
   `Tests/DiagramKitTests`, 4 in `Tests/DiagramKitLinuxTests`). The XCUI
   bundle was removed alongside the 2026-05-18 sample-app relocation.
 - Corpus: `Sources/DiagramKitCorpus/Resources/test-diagrams.json`
-  (435 entries: 406 Mermaid-only + 29 multi-format with D2, DOT,
+  (436 entries: 407 Mermaid-only + 29 multi-format with D2, DOT,
   Structurizr, PlantUML sources).
 - Snapshot baselines (measured 2026-10-13):
-  - SVG: 435 (one per corpus entry) + 15 multi-format
-  - Image: 435 (one per corpus entry) + 15 multi-format
-  - ASCII: 435 (one per corpus entry)
-- Total tracked: **1,335 files** (450 PNG + 885 `.txt`;
+  - SVG: 436 (one per corpus entry) + 15 multi-format
+  - Image: 436 (one per corpus entry) + 15 multi-format
+  - ASCII: 436 (one per corpus entry)
+- Total tracked: **1,338 files** (451 PNG + 887 `.txt`;
   `swift-snapshot-testing` writes SVG and ASCII as `.txt`).
 - `CorpusMultiFormatSnapshotTests` renders every `(entry, format)` pair with
   format-suffixed snapshot names (`entry-id-format`), honoring `skipSnapshots`.
