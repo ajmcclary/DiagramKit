@@ -139,8 +139,33 @@ public struct PlantUMLSequenceParser {
                 items.append(.groupStart(label, kind: .group))
                 continue
             }
+            // par / critical / break — PlantUML block keywords this parser
+            // previously rejected (the exporter emitted them, so same-format
+            // round-trips dropped the block). Bare or label forms both parse;
+            // dividers inside `par` are `and`/`else`-style `else` lines.
+            if lower == "par" || lower.hasPrefix("par ") {
+                let label = lower == "par" ? "" : String(trimmed.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+                items.append(.groupStart(label, kind: .par))
+                continue
+            }
+            if lower == "critical" || lower.hasPrefix("critical ") {
+                let label = lower == "critical" ? "" : String(trimmed.dropFirst(9)).trimmingCharacters(in: .whitespaces)
+                items.append(.groupStart(label, kind: .critical))
+                continue
+            }
+            if lower == "break" || lower.hasPrefix("break ") {
+                let label = lower == "break" ? "" : String(trimmed.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+                items.append(.groupStart(label, kind: .break))
+                continue
+            }
 
             // Else
+            // `and` — the par-block divider (PlantUML spelling of else).
+            if lower.hasPrefix("and ") {
+                let label = String(trimmed.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+                items.append(.divergent(label))
+                continue
+            }
             if lower.hasPrefix("else ") {
                 let label = String(trimmed.dropFirst(5)).trimmingCharacters(in: .whitespaces)
                 items.append(.divergent(label))

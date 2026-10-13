@@ -27,7 +27,7 @@ enum DOTMindmapExport {
                 diagnostics: diagnostics
             )
         }
-        lines.append("  \(DOTRecoveryMarker.emitTreeRoot(root.nodeId))")
+        lines.append("  \(DOTRecoveryMarker.emitTreeRoot(sanitize(root.nodeId)))")
 
         emitNode(root, indent: "  ", lines: &lines, diagnostics: &diagnostics)
         emitEdges(parent: root, indent: "  ", lines: &lines)
@@ -54,7 +54,7 @@ enum DOTMindmapExport {
         lines.append("\(indent)\(id) [\(attrs.joined(separator: ", "))];")
 
         if mapped.needsMarker {
-            lines.append("\(indent)\(DOTRecoveryMarker.emitMindmapIcon(nodeID: node.nodeId, iconKey: node.type.type2Str))")
+            lines.append("\(indent)\(DOTRecoveryMarker.emitMindmapIcon(nodeID: id, iconKey: node.type.type2Str))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
                 message: "Mindmap node '\(node.nodeId)' shape '\(node.type.type2Str)' approximated; marker preserves shape"
@@ -85,32 +85,14 @@ enum DOTMindmapExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default:
-                break
-            }
-        }
-        return out.isEmpty ? "node" : out
+        DOTHygiene.mangleID(raw)
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        DOTHygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        DOTHygiene.singleLine(s)
     }
 }

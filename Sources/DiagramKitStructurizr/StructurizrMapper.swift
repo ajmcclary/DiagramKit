@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 
@@ -41,31 +42,24 @@ public struct StructurizrMapper: Sendable {
         for marker in scan.markers {
             switch marker.kind {
             case .elementTag(let value):
-                var bestDecl: StructurizrPreLexerScanResult.ElementDeclaration?
-                for decl in scan.elementDeclarations where decl.line < marker.lineNumber {
-                    if bestDecl == nil || decl.line > bestDecl!.line {
-                        bestDecl = decl
-                    }
+                if let bestDecl = latestDeclaration(before: marker.lineNumber, in: scan.elementDeclarations) {
+                    recoveredTagsByAlias[bestDecl.alias, default: []].append(value)
                 }
-                guard let decl = bestDecl else { continue }
-                recoveredTagsByAlias[decl.alias, default: []].append(value)
             case .boundaryParent(let parentId):
-                var bestGroup: StructurizrPreLexerScanResult.GroupDeclaration?
-                for decl in scan.groupDeclarations where decl.line < marker.lineNumber {
-                    if bestGroup == nil || decl.line > bestGroup!.line {
-                        bestGroup = decl
-                    }
+                if let bestGroup = latestDeclaration(before: marker.lineNumber, in: scan.groupDeclarations) {
+                    recoveredParentByGroupLabel[bestGroup.label] = parentId
                 }
-                guard let group = bestGroup else { continue }
-                recoveredParentByGroupLabel[group.label] = parentId
             }
         }
 
         // Build a stable alias for each unique group label encountered in the model.
+        // Sorted key iteration keeps the `_2` suffix allocation deterministic
+        // (Dictionary.values order is unspecified).
         var groupAliasMap: [String: String] = [:]
         var usedGroupAliases: Set<String> = []
-        for element in registry.elementsByAlias.values {
-            guard let label = element.group, groupAliasMap[label] == nil else { continue }
+        for alias in registry.elementsByAlias.keys.sorted() {
+            guard let element = registry.elementsByAlias[alias],
+                  let label = element.group, groupAliasMap[label] == nil else { continue }
             let alias = uniqueSanitizedGroupAlias(label, used: &usedGroupAliases)
             groupAliasMap[label] = alias
         }

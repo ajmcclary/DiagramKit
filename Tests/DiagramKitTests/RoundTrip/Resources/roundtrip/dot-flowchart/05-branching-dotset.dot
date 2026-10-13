@@ -1,0 +1,5 @@
+digraph G {
+    a -> { b c } [label="fan-out"];
+    b -> d;
+    c -> d;
+}

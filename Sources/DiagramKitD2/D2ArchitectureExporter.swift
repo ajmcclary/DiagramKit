@@ -114,7 +114,7 @@ enum D2ArchitectureExport {
             lines.append("\(indent)\(id).shape: \(shape)")
         } else if needsMarker {
             lines.append("\(indent)\(id): \"\(escape(service.id))\"")
-            lines.append("\(indent)\(D2RecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: effectiveKind.rawValue))")
+            lines.append("\(indent)\(D2RecoveryMarker.emitArchIcon(serviceID: id, kindRawValue: effectiveKind.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
                 message: "Service '\(service.id)' kind '\(effectiveKind.rawValue)' has no native D2 shape; recovery marker carries kind for round-trip"
@@ -140,32 +140,14 @@ enum D2ArchitectureExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default:
-                break
-            }
-        }
-        return out.isEmpty ? "node" : out
+        D2Hygiene.mangleID(raw)
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        D2Hygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        D2Hygiene.singleLine(s)
     }
 }

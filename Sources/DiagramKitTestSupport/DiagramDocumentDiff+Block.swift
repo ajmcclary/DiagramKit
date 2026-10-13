@@ -23,11 +23,33 @@ func diffBlockDiagram(_ a: BlockDiagram, _ b: BlockDiagram) -> [RoundTripDelta] 
     }
 
     // Root children must appear in the same order — `rootChildren` is
-    // the parser-visible declaration order.
-    if a.rootChildren != b.rootChildren {
+    // the parser-visible declaration order. Auto-generated ids (spaces,
+    // block arrows) are normalized: the parser renumbers them on re-parse.
+    func normalizeRootIDs(_ ids: [String], _ db: [String: BlockNode]) -> [String] {
+        ids.map { cid in
+            if cid.hasPrefix("id-"), let n = db[cid], n.type == .space { return "<space>" }
+            if cid.hasPrefix("id-"), let n = db[cid], n.type == .blockArrow { return "<blockArrow>" }
+            return cid
+        }
+    }
+    if normalizeRootIDs(a.rootChildren, a.blockDatabase) != normalizeRootIDs(b.rootChildren, b.blockDatabase) {
         deltas.append(.unexpected(
             path: "block.rootChildren",
             detail: "lhs=\(a.rootChildren) rhs=\(b.rootChildren)"
+        ))
+    }
+
+    // Block arrows — the parser synthesizes their ids, so compare the
+    // label/directions/span tuples as a multiset instead of by id.
+    func arrowKey(_ n: BlockNode) -> String {
+        "\(n.label)|\((n.directions ?? []).map(\.rawValue).joined(separator: ","))|\(n.widthInColumns.map(String.init) ?? "-")"
+    }
+    let aArrows = a.blockDatabase.values.filter { $0.type == .blockArrow }.map(arrowKey).sorted()
+    let bArrows = b.blockDatabase.values.filter { $0.type == .blockArrow }.map(arrowKey).sorted()
+    if aArrows != bArrows {
+        deltas.append(.unexpected(
+            path: "block.blockArrows",
+            detail: "lhs=\(aArrows) rhs=\(bArrows)"
         ))
     }
 
@@ -68,12 +90,13 @@ func diffBlockDiagram(_ a: BlockDiagram, _ b: BlockDiagram) -> [RoundTripDelta] 
                 detail: "lhs=\(String(describing: l.widthInColumns)) rhs=\(String(describing: r.widthInColumns))"
             ))
         }
-        // Children — strip auto-generated space ids to a placeholder
-        // so positional comparison stays meaningful when the parser
-        // re-numbers space ids on re-parse.
+        // Children — strip auto-generated ids (space nodes AND block
+        // arrows; the parser renumbers both on re-parse) to placeholders
+        // so positional comparison stays meaningful.
         func normalizeChildren(_ ids: [String], _ db: [String: BlockNode]) -> [String] {
             ids.map { cid in
-                if cid.hasPrefix("id-"), db[cid]?.type == .space { return "<space>" }
+                if cid.hasPrefix("id-"), let n = db[cid], n.type == .space { return "<space>" }
+                if cid.hasPrefix("id-"), let n = db[cid], n.type == .blockArrow { return "<blockArrow>" }
                 return cid
             }
         }

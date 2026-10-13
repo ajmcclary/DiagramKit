@@ -16,30 +16,15 @@ enum DOTFlowchartExport {
     }
 
     fileprivate static func quoted(_ s: String) -> String {
-        let escaped = s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-        return "\"\(escaped)\""
+        DOTHygiene.quoted(s)
     }
 
     fileprivate static func sanitizeDOTID(_ id: String) -> String {
-        // DOT bareword IDs match [A-Za-z\200-\377_][0-9A-Za-z\200-\377_]*.
-        // Anything else gets quoted.
-        let allowedFirst = CharacterSet.letters.union(CharacterSet(charactersIn: "_"))
-        let allowedTail = allowedFirst.union(.decimalDigits)
-        guard let first = id.unicodeScalars.first,
-              allowedFirst.contains(first),
-              id.unicodeScalars.dropFirst().allSatisfy({ allowedTail.contains($0) }) else {
-            return quoted(id)
-        }
-        return id
+        DOTHygiene.quoteBarewordID(id)
     }
 
     fileprivate static func singleLineTitle(_ title: String) -> String {
-        title.replacingOccurrences(of: "\n", with: " ")
-             .replacingOccurrences(of: "\r", with: " ")
+        DOTHygiene.singleLine(title)
     }
 
     /// Map a Mermaid `NodeShape` to a DOT shape name. `lossy == true`
@@ -78,6 +63,7 @@ enum DOTFlowchartExport {
 private struct DOTFlowchartExportSink: FlowchartExportSink {
     var lines: [String] = []
     var diagnostics: [DiagramDiagnostic] = []
+    var formatName: String { "Graphviz DOT" }
 
     mutating func begin(title: String?) {
         lines.append("digraph G {")
@@ -112,10 +98,43 @@ private struct DOTFlowchartExportSink: FlowchartExportSink {
     mutating func edge(_ edge: original_src_types.MermaidEdge) {
         let src = DOTFlowchartExport.sanitizeDOTID(edge.source)
         let tgt = DOTFlowchartExport.sanitizeDOTID(edge.target)
+        var attrs: [String] = []
         if let label = edge.label, !label.isEmpty {
-            lines.append("  \(src) -> \(tgt) [label=\(DOTFlowchartExport.quoted(label))];")
-        } else {
+            attrs.append("label=\(DOTFlowchartExport.quoted(label))")
+        }
+        // Edge styles map onto native DOT attributes. The residual loss is
+        // DiagramKit's own DOT importer (which reads only the label
+        // attribute today), so pair the emission with a styleDrop
+        // diagnostic for the round-trip harness.
+        switch edge.style {
+        case .solid: break
+        case .dotted: attrs.append("style=dotted")
+        case .thick: attrs.append("style=bold")
+        case .invisible: attrs.append("style=invis")
+        }
+        if edge.style != .solid {
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "Edge '\(edge.source)' -> '\(edge.target)' style '\(edge.style.rawValue)' emitted as a DOT style attribute but not restored by DiagramKit's DOT import"
+            ))
+        }
+        if edge.arrowHeadStart != .none {
+            attrs.append("dir=both")
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "Edge '\(edge.source)' -> '\(edge.target)' start arrowhead emitted as dir=both but not restored by DiagramKit's DOT import"
+            ))
+        }
+        if edge.arrowHeadEnd != .arrow && edge.arrowHeadEnd != .none {
+            diagnostics.append(.featureDropped(
+                .slotUnsupported,
+                message: "Edge '\(edge.source)' -> '\(edge.target)' end arrowhead type '\(edge.arrowHeadEnd.rawValue)' has no faithful DOT attribute mapping in this exporter"
+            ))
+        }
+        if attrs.isEmpty {
             lines.append("  \(src) -> \(tgt);")
+        } else {
+            lines.append("  \(src) -> \(tgt) [\(attrs.joined(separator: ", "))];")
         }
     }
 

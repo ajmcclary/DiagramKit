@@ -226,16 +226,10 @@ enum D2SequenceExport {
     }
 
     static func escape(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "")
+        D2Hygiene.escapeString(text)
     }
 
     static func singleLine(_ text: String) -> String {
-        text.replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .joined(separator: " ")
+        D2Hygiene.singleLine(text)
     }
 }

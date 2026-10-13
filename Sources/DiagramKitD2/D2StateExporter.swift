@@ -48,7 +48,7 @@ struct D2StateMapper {
         // this container so the subgraph's nodeIds end up populated.
         var subgraphStack: [(subgraph: original_src_types.MermaidSubgraph, nodeIds: [String])] = []
 
-        func ensureNode(_ id: String) {
+        func ensureNode(_ id: String, label: String? = nil) {
             guard nodesById[id] == nil else { return }
             let shape: original_src_types.NodeShape
             if id == "_start" {
@@ -58,7 +58,8 @@ struct D2StateMapper {
             } else {
                 shape = .state
             }
-            nodesById[id] = original_src_types.MermaidNode(id: id, label: id, shape: shape)
+            let displayLabel = (label?.isEmpty == false) ? label! : id
+            nodesById[id] = original_src_types.MermaidNode(id: id, label: displayLabel, shape: shape)
             nodeOrder.append(id)
         }
 
@@ -129,7 +130,7 @@ struct D2StateMapper {
                 if def.id.lowercased() == "shape" && !subgraphStack.isEmpty {
                     continue
                 }
-                ensureNode(def.id)
+                ensureNode(def.id, label: def.label)
                 recordInCurrentSubgraph(def.id)
             case .edgeDefinition(let edge):
                 ensureNode(edge.source)
@@ -182,7 +183,7 @@ enum D2StateExport {
         }
 
         var nameRewrite: [String: String] = [:]
-
+        var displayLabels: [String: String] = [:]
         for entry in graph.nodesInOrder {
             let id = entry.id
             let canonicalName: String
@@ -201,6 +202,10 @@ enum D2StateExport {
                 canonicalName = sanitizeID(id)
             }
             nameRewrite[id] = canonicalName
+            let label = entry.node.label
+            if !label.isEmpty && label != id {
+                displayLabels[id] = label
+            }
         }
 
         if !lines.isEmpty {
@@ -208,14 +213,14 @@ enum D2StateExport {
         }
 
         // Composite states surface as `Container: { … }` blocks built
-        // from MermaidSubgraph.nodeIds. D2 doesn't accept bare identifier
-        // declarations inside containers; instead we emit the inner edges
-        // (where both endpoints are container members) inside the block so
-        // D2's lexical-scope rules implicitly declare the contained nodes.
-        // Edges that cross the container boundary (one endpoint outside)
-        // emit at the outer scope. The container's own node is implicit
-        // in D2 — the block header declares it.
+        // from MermaidSubgraph.nodeIds — nested composites as nested D2
+        // containers, which the parser and mapper round-trip natively.
+        // Members declare as `id: "Label"` (D2 rejects bare identifier
+        // declarations inside containers; the string form declares the node
+        // AND carries its display label). Edges that cross the container
+        // boundary (one endpoint outside) emit at the outer scope.
         var edgesEmittedInsideSubgraph: Set<Int> = []
+        var declaredNodes: Set<String> = []
         let edgeIndices = graph.edges.enumerated().map { (idx: $0.offset, edge: $0.element) }
 
         func emitEdge(_ edge: original_src_types.MermaidEdge, indent: String) {
@@ -228,18 +233,60 @@ enum D2StateExport {
             }
         }
 
+        func emitMemberDeclaration(_ nid: String, indent: String) {
+            let canonical = nameRewrite[nid] ?? sanitizeID(nid)
+            if let label = displayLabels[nid] {
+                lines.append("\(indent)\(canonical): \"\(escapeLabel(label))\"")
+            } else {
+                lines.append("\(indent)\(canonical): \"\(canonical)\"")
+            }
+        }
+
+        func containerHeader(_ sub: original_src_types.MermaidSubgraph) -> String {
+            let canonical = sanitizeID(sub.id)
+            if !sub.label.isEmpty && sub.label != sub.id {
+                return "\(canonical): \"\(escapeLabel(sub.label))\""
+            }
+            return canonical
+        }
+
+        func emitContainer(_ sub: original_src_types.MermaidSubgraph, indent: String) {
+            lines.append("\(indent)\(containerHeader(sub)) {")
+            let inner = indent + "  "
+            for nid in sub.nodeIds {
+                emitMemberDeclaration(nid, indent: inner)
+                declaredNodes.insert(nid)
+            }
+            for child in sub.children {
+                emitContainer(child, indent: inner)
+            }
+            lines.append("\(indent)}")
+        }
+
         for sub in graph.subgraphs {
             let memberSet = Set(sub.nodeIds)
             // Edges fully inside the subgraph go inside the block.
             let insideEdges = edgeIndices.filter { idx, edge in
                 memberSet.contains(edge.source) && memberSet.contains(edge.target)
             }
-            // Members that have no edges (isolated) would emit as bare
-            // identifiers, which D2 rejects. Skip subgraphs that would
-            // collapse to nothing — the recovery marker still preserves
-            // the relationship for round-trip identity.
-            guard !insideEdges.isEmpty else { continue }
-            lines.append("\(sanitizeID(sub.id)): {")
+            // A container with no inside edges still emits — member
+            // declarations (and nested containers) keep isolated members and
+            // nested composites from dropping.
+            if insideEdges.isEmpty {
+                emitContainer(sub, indent: "")
+                continue
+            }
+            lines.append("\(containerHeader(sub)) {")
+            for nid in sub.nodeIds {
+                let canonical = nameRewrite[nid] ?? sanitizeID(nid)
+                if let label = displayLabels[nid] {
+                    lines.append("  \(canonical): \"\(escapeLabel(label))\"")
+                }
+                declaredNodes.insert(nid)
+            }
+            for child in sub.children {
+                emitContainer(child, indent: "  ")
+            }
             for (idx, edge) in insideEdges {
                 emitEdge(edge, indent: "  ")
                 edgesEmittedInsideSubgraph.insert(idx)
@@ -251,24 +298,34 @@ enum D2StateExport {
             emitEdge(edge, indent: "")
         }
 
+        // Isolated states — no edges, no container — still need a
+        // declaration or they drop silently.
+        var edgeReferenced: Set<String> = []
+        for edge in graph.edges {
+            edgeReferenced.insert(edge.source)
+            edgeReferenced.insert(edge.target)
+        }
+        var emittedIsolated = false
+        for entry in graph.nodesInOrder {
+            let id = entry.id
+            guard !declaredNodes.contains(id), !edgeReferenced.contains(id),
+                  entry.node.shape != .stateStart, entry.node.shape != .stateEnd else { continue }
+            emitMemberDeclaration(id, indent: "")
+            emittedIsolated = true
+        }
+        _ = emittedIsolated
+
         return DiagramExportResult(
             source: lines.joined(separator: "\n") + "\n",
             diagnostics: diagnostics
         )
     }
 
+    private static func escapeLabel(_ text: String) -> String {
+        D2Hygiene.escapeString(text)
+    }
+
     static func sanitizeID(_ raw: String) -> String {
-        var result = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { result.append("_") }
-                result.append(ch)
-            case " ", "-", ".":
-                result.append("_")
-            default: break
-            }
-        }
-        return result.isEmpty ? "node" : result
+        D2Hygiene.mangleID(raw)
     }
 }

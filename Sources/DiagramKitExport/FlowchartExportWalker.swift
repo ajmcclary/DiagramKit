@@ -9,7 +9,9 @@ import DiagramKitModel
 /// their own storage; the walker only invokes the lifecycle methods in
 /// order.
 public protocol FlowchartExportSink {
-    /// Called once before any node or edge. `title` is the document
+    /// Human-readable format name used in drop diagnostics
+    /// ("D2", "Graphviz DOT", …).
+    var formatName: String { get }    /// Called once before any node or edge. `title` is the document
     /// title, if any. Format-specific preamble (e.g. `digraph G {`)
     /// goes here.
     mutating func begin(title: String?)
@@ -72,13 +74,48 @@ public enum FlowchartExportWalker {
     ) -> [DiagramDiagnostic] {
         sink.begin(title: title)
         sink.direction(model.direction)
+        var diagnostics: [DiagramDiagnostic] = []
+
+        // Structural metadata the D2/DOT targets cannot represent. Emit
+        // typed diagnostics here so every sink that uses the walker reports
+        // these drops consistently instead of silently.
+        if let accTitle = model.accTitle, !accTitle.isEmpty {
+            diagnostics.append(.lossyTransform(
+                .accessibilityDrop,
+                message: "accTitle '\(singleLine(accTitle))' dropped — \(sink.formatName) has no accessibility title slot"
+            ))
+        }
+        if let accDescr = model.accDescr, !accDescr.isEmpty {
+            diagnostics.append(.lossyTransform(
+                .accessibilityDrop,
+                message: "accDescr '\(singleLine(accDescr))' dropped — \(sink.formatName) has no accessibility description slot"
+            ))
+        }
+        for classDefID in model.classDefs.keys.sorted() {
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "classDef '\(classDefID)' dropped — \(sink.formatName) has no classDef equivalent"
+            ))
+        }
+        for linkStyleIndex in model.linkStyles.keys.sorted() {
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "linkStyle \(linkStyleIndex) dropped — \(sink.formatName) has no linkStyle equivalent"
+            ))
+        }
+        for nodeID in model.nodeInteractions.keys.sorted() {
+            diagnostics.append(.featureDropped(
+                .slotUnsupported,
+                message: "node interaction on '\(nodeID)' dropped — \(sink.formatName) has no interaction equivalent"
+            ))
+        }
+
         for (id, node) in model.nodesInOrder {
             sink.node(id: id, node: node)
         }
         for edge in model.edges {
             sink.edge(edge)
         }
-        var diagnostics: [DiagramDiagnostic] = []
         walkSubgraphs(
             model.subgraphs,
             depth: 0,
@@ -88,6 +125,11 @@ public enum FlowchartExportWalker {
         )
         sink.end()
         return sink.diagnostics + diagnostics
+    }
+
+    private static func singleLine(_ s: String) -> String {
+        s.replacingOccurrences(of: "\n", with: " ")
+         .replacingOccurrences(of: "\r", with: " ")
     }
 
     private static func walkSubgraphs<Sink: FlowchartExportSink>(

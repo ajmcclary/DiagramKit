@@ -241,6 +241,15 @@ public struct StructurizrParser: Sendable {
                     if let word = s.consumeIdentifier() { s.diagnostic("unexpected statement in element block: \(word)") }
                     continue
                 }
+                if token == .arrow {
+                    // Implicit-source relationship — `-> b "Uses"` inside an
+                    // element block targets the enclosing element (the
+                    // standard Structurizr idiom).
+                    if let rel = try parseRelationshipDef(&s, implicitSource: alias) {
+                        scopedRelationships.append(rel)
+                    }
+                    continue
+                }
                 _ = s.advance()
             }
             guard s.peek() == .closeBrace else {
@@ -258,8 +267,20 @@ public struct StructurizrParser: Sendable {
 
     // MARK: - relationship_def
 
-    private func parseRelationshipDef(_ s: inout StructurizrParserState) throws -> StructurizrRelationshipDef? {
-        guard let source = s.consumeIdentifier(), s.peek() == .arrow else { return nil }
+    private func parseRelationshipDef(
+        _ s: inout StructurizrParserState,
+        implicitSource: String? = nil
+    ) throws -> StructurizrRelationshipDef? {
+        let source: String
+        if let implicit = implicitSource {
+            source = implicit
+        } else {
+            guard let src = s.consumeIdentifier(), s.peek() == .arrow else { return nil }
+            source = src
+        }
+        guard s.peek() == .arrow else {
+            throw DiagramError.malformedSource(message: "Expected '->' in relationship definition")
+        }
         _ = s.advance()
         guard let target = s.consumeIdentifier() else {
             throw DiagramError.malformedSource(message: "Expected target identifier after '->'")

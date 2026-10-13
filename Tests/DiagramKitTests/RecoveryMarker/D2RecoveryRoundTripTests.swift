@@ -22,8 +22,12 @@ struct D2RecoveryRoundTripTests {
         )
 
         let exportResult = try D2ClassExport.emit(payload)
-        #expect(exportResult.diagnostics.isEmpty,
-                "expected zero diagnostics after marker emission; got: \(exportResult.diagnostics)")
+        // The stereotype travels in a recovery marker (D2 has no native
+        // slot), which pairs with a `.classStereotypeDrop` warning so
+        // outside consumers know the D2 source alone doesn't carry it.
+        #expect(exportResult.diagnostics.count == 1
+                && exportResult.diagnostics[0].category == .classStereotypeDrop,
+                "expected one classStereotypeDrop diagnostic; got: \(exportResult.diagnostics)")
         #expect(exportResult.source.contains("# diagramkit:class-stereotype=Order,<<entity>>"))
 
         let parsed = try D2Importer().parse(exportResult.source)

@@ -51,9 +51,10 @@ enum DOTClassProbe {
     }
 
     private static func splitRecordSection(_ s: String) -> [String] {
-        s.replacingOccurrences(of: "\\n", with: "\n")
-         .replacingOccurrences(of: "\\n", with: "\n")
-         .split(separator: "\n")
+        // The lexer already converted `\n` escapes in the quoted label to
+        // real newlines (and `\\n` doubled escapes to literal `\n` text, per
+        // real Graphviz). Split on actual newlines only — no un-doubling.
+        s.split(separator: "\n")
          .map { $0.trimmingCharacters(in: .whitespaces) }
          .filter { !$0.isEmpty }
     }
@@ -234,10 +235,10 @@ enum DOTClassExport {
             let attrLines = c.attributes.map { renderMember($0, isMethod: false) }
             let methodLines = c.methods.map { renderMember($0, isMethod: true) }
             let header = c.label.isEmpty ? c.id : c.label
-            let attrsSection = attrLines.joined(separator: "\\n") + (attrLines.isEmpty ? "" : "\\n")
-            let methodsSection = methodLines.joined(separator: "\\n") + (methodLines.isEmpty ? "" : "\\n")
+            let attrsSection = attrLines.joined(separator: "\n") + (attrLines.isEmpty ? "" : "\n")
+            let methodsSection = methodLines.joined(separator: "\n") + (methodLines.isEmpty ? "" : "\n")
             let labelBody = "{\(header)|\(attrsSection)|\(methodsSection)}"
-            lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quoted(labelBody))];")
+            lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quotedRecordLabel(labelBody))];")
             for stereotype in c.annotations where !stereotype.isEmpty {
                 lines.append("  " + DOTRecoveryMarker.emitClassStereotype(className: c.id, stereotype: stereotype))
             }
@@ -272,25 +273,20 @@ enum DOTClassExport {
     }
 
     static func sanitizeDOTID(_ id: String) -> String {
-        let allowedFirst = CharacterSet.letters.union(CharacterSet(charactersIn: "_"))
-        let allowedTail = allowedFirst.union(.decimalDigits)
-        guard let first = id.unicodeScalars.first,
-              allowedFirst.contains(first),
-              id.unicodeScalars.dropFirst().allSatisfy({ allowedTail.contains($0) }) else {
-            return quoted(id)
-        }
-        return id
+        DOTHygiene.quoteBarewordID(id)
     }
 
     static func quoted(_ s: String) -> String {
-        let escaped = s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-        return "\"\(escaped)\""
+        DOTHygiene.quoted(s)
+    }
+
+    /// Quotes a DOT record-shape label (line breaks emitted as real `\n`
+    /// escapes — see `DOTHygiene.quotedRecordLabel`).
+    static func quotedRecordLabel(_ s: String) -> String {
+        DOTHygiene.quotedRecordLabel(s)
     }
 
     static func singleLineTitle(_ title: String) -> String {
-        title.replacingOccurrences(of: "\n", with: " ")
-             .replacingOccurrences(of: "\r", with: " ")
+        DOTHygiene.singleLine(title)
     }
 }

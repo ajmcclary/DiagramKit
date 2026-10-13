@@ -285,15 +285,22 @@ public struct DOTParser {
     // MARK: - edge_stmt
 
     private func parseEdgeStatement(_ s: inout State) throws -> DOTStatement {
-        // First endpoint
-        let firstEndpoint = try parseEndpoint(&s, role: "edge source")
+        // First endpoint (a single id or a bare braced node set `{ B C }`)
+        var sources = try parseEndpointList(&s, role: "edge source")
+        let firstSourceID = sources.first?.id ?? ""
 
         // Edge operator
         guard let edgeOp = s.advance() else {
             throw DiagramError.malformedSource(message:"Expected edge operator '->' or '--'")
         }
 
-        let directed: Bool
+        // Chain of (sources, directed, targets) segments. Graphviz semantics:
+        // `A -> { B C } -> D` declares the cross product of each adjacent
+        // endpoint-list pair, and a trailing attribute list applies to ALL
+        // segments of the statement.
+        var segments: [(sources: [Endpoint], directed: Bool, targets: [Endpoint])] = []
+
+        var directed: Bool
         switch edgeOp {
         case .directedEdge: directed = true
         case .undirectedEdge: directed = false
@@ -301,77 +308,126 @@ public struct DOTParser {
             throw DiagramError.malformedSource(message:"Expected '->' or '--'")
         }
 
-        if s.peekIdentifier()?.lowercased() == "subgraph" {
-            emitPortDiagnosticIfNeeded(firstEndpoint, state: &s)
-            s.diagnostics.append(.featureDropped(
-                .slotUnsupported,
-                message: "edges to subgraphs not yet supported; preserving subgraph contents without the edge",
-                location: nil
-            ))
-            let subgraphStatement = try parseSubgraph(&s)
-            s.pendingStatements.append(subgraphStatement)
-            return .nodeStatement(DOTNodeStatement(id: firstEndpoint.id))
-        }
-
-        // Second endpoint
-        let secondEndpoint = try parseEndpoint(&s, role: "edge target")
-        emitPortDiagnosticIfNeeded(firstEndpoint, state: &s)
-        emitPortDiagnosticIfNeeded(secondEndpoint, state: &s)
-
-        // Check for chained edges: `A -> B -> C`
-        // If the next token is an edge operator, this is a chain.
-        // Consume the full chain, emit the first edge now, and buffer
-        // subsequent edges in pendingStatements for later flush.
-        if let nextToken = s.peek(), nextToken == .directedEdge || nextToken == .undirectedEdge {
-            var prevID = secondEndpoint.id
-            while let nextToken = s.peek(), nextToken == .directedEdge || nextToken == .undirectedEdge {
-                let chainedDirected = (s.advance()! == .directedEdge)
-                let nextEndpoint = try parseEndpoint(&s, role: "chained edge target")
-                emitPortDiagnosticIfNeeded(nextEndpoint, state: &s)
-                // Buffer this edge segment (prevID -> nextId)
-                s.pendingStatements.append(
-                    .edgeStatement(DOTEdgeStatement(
-                        source: prevID,
-                        target: nextEndpoint.id,
-                        directed: chainedDirected,
-                        attributes: []
-                    ))
-                )
-                prevID = nextEndpoint.id
+        while true {
+            if s.peekIdentifier()?.lowercased() == "subgraph" {
+                emitPortDiagnosticsIfNeeded(sources, state: &s)
+                s.diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "edges to subgraphs not yet supported; preserving subgraph contents without the edge",
+                    location: nil
+                ))
+                let subgraphStatement = try parseSubgraph(&s)
+                s.pendingStatements.append(subgraphStatement)
+                // The subgraph target produces no edges; keep the source
+                // visible as a bare node so it still lands in the document.
+                if segments.isEmpty {
+                    return .nodeStatement(DOTNodeStatement(id: firstSourceID))
+                }
+                break
             }
 
-            // Optional attribute list at end of chain — applies to the LAST buffered edge
-            if s.peek() == .openBracket {
-                let attrs = try parseAttrList(&s)
-                if let lastIdx = s.pendingStatements.indices.last,
-                   case .edgeStatement(var lastEdge) = s.pendingStatements[lastIdx] {
-                    lastEdge.attributes = attrs
-                    s.pendingStatements[lastIdx] = .edgeStatement(lastEdge)
+            let targets = try parseEndpointList(&s, role: "edge target")
+            segments.append((sources: sources, directed: directed, targets: targets))
+
+            if let nextToken = s.peek(), nextToken == .directedEdge || nextToken == .undirectedEdge {
+                sources = targets
+                directed = (s.advance() == .directedEdge)
+                continue
+            }
+            break
+        }
+
+        // Optional trailing attribute list — Graphviz applies it to every
+        // edge in the statement.
+        var attrs: [DOTAttribute] = []
+        if s.peek() == .openBracket {
+            attrs = try parseAttrList(&s)
+        }
+
+        emitPortDiagnosticsIfNeeded(sources, state: &s)
+
+        // Expand each segment into its cross product of edges.
+        var edges: [DOTEdgeStatement] = []
+        for segment in segments {
+            for src in segment.sources {
+                for tgt in segment.targets {
+                    edges.append(DOTEdgeStatement(
+                        source: src.id,
+                        target: tgt.id,
+                        directed: segment.directed,
+                        attributes: attrs
+                    ))
                 }
             }
-        } else {
-            // Single edge — optional attribute list
-            var attrs: [DOTAttribute] = []
-            if s.peek() == .openBracket {
-                attrs = try parseAttrList(&s)
-            }
-            let edgeStmt = DOTEdgeStatement(
-                source: firstEndpoint.id,
-                target: secondEndpoint.id,
-                directed: directed,
-                attributes: attrs
-            )
-            return .edgeStatement(edgeStmt)
         }
 
-        // Return the first edge segment
-        let firstEdge = DOTEdgeStatement(
-            source: firstEndpoint.id,
-            target: secondEndpoint.id,
-            directed: directed,
-            attributes: []
-        )
-        return .edgeStatement(firstEdge)
+        guard !edges.isEmpty else {
+            return .nodeStatement(DOTNodeStatement(id: firstSourceID))
+        }
+
+        // Emit the first edge now; buffer the rest for the statement loop to
+        // flush into the current scope.
+        for extra in edges.dropFirst() {
+            s.pendingStatements.append(.edgeStatement(extra))
+        }
+        return .edgeStatement(edges[0])
+    }
+
+    /// Parses one endpoint position: a single ID (with optional port syntax)
+    /// or a bare braced node set `{ B C }` (Graphviz: one edge per contained
+    /// node id). Returns the endpoints the position stands for.
+    private func parseEndpointList(_ s: inout State, role: String) throws -> [Endpoint] {
+        if s.peek() == .openBrace {
+            _ = s.advance() // consume '{'
+            var ids: [Endpoint] = []
+            while let token = s.peek(), token != .closeBrace {
+                if token == .semicolon || token == .comma {
+                    _ = s.advance()
+                    continue
+                }
+                if token == .openBrace {
+                    // Nested brace set — parse so the braces stay balanced,
+                    // but bare node sets don't nest in Graphviz.
+                    s.diagnostics.append(.featureDropped(
+                        .slotUnsupported,
+                        message: "Nested braces inside an edge endpoint set are not supported",
+                        location: nil
+                    ))
+                    _ = s.advance()
+                    continue
+                }
+                guard let id = s.consumeIdentifier() else {
+                    s.diagnostics.append(.featureDropped(
+                        .slotUnsupported,
+                        message: "Skipping unsupported token inside braced edge endpoint set",
+                        location: nil
+                    ))
+                    _ = s.advance()
+                    continue
+                }
+                ids.append(Endpoint(id: id, usedPortSyntax: false))
+            }
+            guard s.peek() == .closeBrace else {
+                throw DiagramError.malformedSource(message: "Unbalanced braces in edge endpoint set")
+            }
+            _ = s.advance() // consume '}'
+            if ids.isEmpty {
+                s.diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "Braced edge endpoint set contains no node ids; no edges produced",
+                    location: nil
+                ))
+            }
+            return ids
+        }
+
+        return [try parseEndpoint(&s, role: role)]
+    }
+
+    private func emitPortDiagnosticsIfNeeded(_ endpoints: [Endpoint], state: inout State) {
+        for endpoint in endpoints {
+            emitPortDiagnosticIfNeeded(endpoint, state: &state)
+        }
     }
 
     // MARK: - attr_stmt

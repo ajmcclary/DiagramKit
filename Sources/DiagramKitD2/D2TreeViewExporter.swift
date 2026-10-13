@@ -30,7 +30,7 @@ enum D2TreeViewExport {
         let topLevelRoots: [TreeViewNode] = isSyntheticRoot ? tree.root.children : [tree.root]
 
         if let first = topLevelRoots.first {
-            lines.append(D2RecoveryMarker.emitTreeRoot(first.name))
+            lines.append(D2RecoveryMarker.emitTreeRoot(sanitize(first.name)))
         }
         for root in topLevelRoots {
             emitNode(root, lines: &lines, diagnostics: &diagnostics)
@@ -67,31 +67,14 @@ enum D2TreeViewExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default: break
-            }
-        }
-        return out.isEmpty ? "node" : out
+        D2Hygiene.mangleID(raw)
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        D2Hygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        D2Hygiene.singleLine(s)
     }
 }

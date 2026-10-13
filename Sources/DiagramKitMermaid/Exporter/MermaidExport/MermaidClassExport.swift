@@ -44,72 +44,41 @@ enum MermaidClassExport {
             lines.append("  }")
         }
 
-        // Namespaces
+        // Namespaces. Classes whose (qualified) id appears in a namespace's
+        // classIds emit INSIDE that namespace block under their local id —
+        // Mermaid resolves `namespace NS { class Foo {} }` to the qualified
+        // id `NS.Foo`, which is what the parser stores.
+        var namespacedClassIDs: Set<String> = []
+        func collectNamespacedIDs(_ ns: ClassNamespace) {
+            for cid in ns.classIds { namespacedClassIDs.insert(cid) }
+            for child in ns.children { collectNamespacedIDs(child) }
+        }
+        for ns in model.namespaces { collectNamespacedIDs(ns) }
+
         for ns in model.namespaces.sorted(by: { $0.id < $1.id }) {
-            emitNamespace(ns, indent: 1, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics)
+            emitNamespace(
+                ns,
+                indent: 1,
+                qualifiedPath: ns.id,
+                classesByID: model.classMap,
+                usedAliases: &usedAliases,
+                aliasMap: &aliasMap,
+                lines: &lines,
+                diagnostics: &diagnostics
+            )
         }
 
         // Classes
-        for cls in model.classes {
-            let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
-                cls.id,
-                usedAliases: &usedAliases
+        for cls in model.classes where !namespacedClassIDs.contains(cls.id) {
+            emitClassBody(
+                cls,
+                indent: 1,
+                emitID: cls.id,
+                usedAliases: &usedAliases,
+                aliasMap: &aliasMap,
+                lines: &lines,
+                diagnostics: &diagnostics
             )
-            diagnostics.append(contentsOf: idDiags)
-            aliasMap[cls.id] = sanitizedId
-
-            // Annotations are emitted bare: Mermaid expects
-            // `<<interface>> Foo`, not `<<"interface">> Foo`. The
-            // previous code interpolated the quoted form straight into
-            // the angle brackets.
-            for annotation in cls.annotations {
-                lines.append("  <<\(annotation)>> \(sanitizedId)")
-            }
-
-            // Class declaration
-            var classLine = ""
-            if cls.type != nil {
-                classLine = "  class \(sanitizedId)~\(cls.type!)~"
-            } else if cls.label != cls.id && !cls.label.isEmpty {
-                let (escapedLabel, ld) = MermaidExportHelpers.escapeBracketLabel(cls.label)
-                diagnostics.append(contentsOf: ld)
-                classLine = "  class \(sanitizedId)[\(escapedLabel)]"
-            } else {
-                classLine = "  class \(sanitizedId)"
-            }
-
-            // Style class
-            let cssClasses = cls.cssClasses.trimmingCharacters(in: .whitespaces)
-            if cssClasses != "default" && !cssClasses.isEmpty {
-                let uniqueClasses = Set(cssClasses.split(separator: " ").map(String.init))
-                    .filter { !$0.isEmpty }
-                    .sorted()
-                if !uniqueClasses.isEmpty {
-                    // Mermaid syntax is `class Foo:::cssClass` (no
-                    // whitespace between `:::` and the class name).
-                    classLine += ":::\(uniqueClasses.joined(separator: ","))"
-                }
-            }
-
-            let hasMembers = !cls.attributes.isEmpty || !cls.methods.isEmpty
-            if hasMembers {
-                classLine += " {"
-            }
-            lines.append(classLine)
-
-            // Members
-            for attr in cls.attributes {
-                let memberStr = formatMember(attr)
-                lines.append("    \(memberStr)")
-            }
-            for method in cls.methods {
-                let memberStr = formatMember(method)
-                lines.append("    \(memberStr)")
-            }
-
-            if hasMembers {
-                lines.append("  }")
-            }
         }
 
         // Notes
@@ -169,6 +138,8 @@ enum MermaidClassExport {
     private static func emitNamespace(
         _ ns: ClassNamespace,
         indent: Int,
+        qualifiedPath: String,
+        classesByID: [String: ClassNode],
         usedAliases: inout Set<String>,
         aliasMap: inout [String: String],
         lines: inout [String],
@@ -189,11 +160,112 @@ enum MermaidClassExport {
             lines.append("\(pad)namespace \(sanitizedId)[\(ql)] {")
         }
 
+        // Member classes — classIds hold the class's LOCAL id (the class
+        // map keys by local id); emit the local id so the parser re-derives
+        // the same membership.
+        for classID in ns.classIds {
+            guard let cls = classesByID[classID] else { continue }
+            emitClassBody(
+                cls,
+                indent: indent + 1,
+                emitID: classID,
+                usedAliases: &usedAliases,
+                aliasMap: &aliasMap,
+                lines: &lines,
+                diagnostics: &diagnostics
+            )
+        }
+
         for child in ns.children {
-            emitNamespace(child, indent: indent + 1, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics)
+            emitNamespace(
+                child,
+                indent: indent + 1,
+                qualifiedPath: "\(qualifiedPath).\(child.id)",
+                classesByID: classesByID,
+                usedAliases: &usedAliases,
+                aliasMap: &aliasMap,
+                lines: &lines,
+                diagnostics: &diagnostics
+            )
         }
 
         lines.append("\(pad)}")
+    }
+
+    // MARK: - Class body emission
+
+    /// Emits one class body at `indent`. `emitID` is the id to declare —
+    /// the qualified id at top level, the local id inside a namespace
+    /// block (the `usedAliases`/`aliasMap` books stay keyed by the
+    /// model-level id).
+    private static func emitClassBody(
+        _ cls: ClassNode,
+        indent: Int,
+        emitID: String,
+        usedAliases: inout Set<String>,
+        aliasMap: inout [String: String],
+        lines: inout [String],
+        diagnostics: inout [DiagramDiagnostic]
+    ) {
+        let pad = String(repeating: "  ", count: indent)
+        let memberPad = String(repeating: "  ", count: indent + 1)
+        let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+            emitID,
+            usedAliases: &usedAliases
+        )
+        diagnostics.append(contentsOf: idDiags)
+        aliasMap[cls.id] = sanitizedId
+
+        // Annotations are emitted bare: Mermaid expects
+        // `<<interface>> Foo`, not `<<"interface">> Foo`.
+        for annotation in cls.annotations {
+            lines.append("\(pad)<<\(annotation)>> \(sanitizedId)")
+        }
+
+        // Class declaration. `cls.label == emitID` (the local id inside a
+        // namespace) means "no authored label" — the parser stores the local
+        // id as label while cls.id stays qualified.
+        var classLine = ""
+        if cls.type != nil {
+            classLine = "\(pad)class \(sanitizedId)~\(cls.type!)~"
+        } else if cls.label != cls.id && cls.label != emitID && !cls.label.isEmpty {
+            let (escapedLabel, ld) = MermaidExportHelpers.escapeBracketLabel(cls.label)
+            diagnostics.append(contentsOf: ld)
+            classLine = "\(pad)class \(sanitizedId)[\(escapedLabel)]"
+        } else {
+            classLine = "\(pad)class \(sanitizedId)"
+        }
+
+        // Style class
+        let cssClasses = cls.cssClasses.trimmingCharacters(in: .whitespaces)
+        if cssClasses != "default" && !cssClasses.isEmpty {
+            let uniqueClasses = Set(cssClasses.split(separator: " ").map(String.init))
+                .filter { !$0.isEmpty }
+                .sorted()
+            if !uniqueClasses.isEmpty {
+                // Mermaid syntax is `class Foo:::cssClass` (no
+                // whitespace between `:::` and the class name).
+                classLine += ":::\(uniqueClasses.joined(separator: ","))"
+            }
+        }
+
+        let hasMembers = !cls.attributes.isEmpty || !cls.methods.isEmpty
+        if hasMembers {
+            classLine += " {"
+        }
+        lines.append(classLine)
+
+        // Members
+        for attr in cls.attributes {
+            lines.append("\(memberPad)\(formatMember(attr))")
+        }
+        for method in cls.methods {
+            lines.append("\(memberPad)\(formatMember(method))")
+        }
+
+        if hasMembers {
+            lines.append("\(pad)}")
+        }
     }
 
     // MARK: - Member formatting

@@ -143,13 +143,17 @@ enum DOTERExport {
                 }
                 return "\(attr.name): \(attr.type)"
             }
-            let attrsSection = attrRows.joined(separator: "\\n") + (attrRows.isEmpty ? "" : "\\n")
+            let attrsSection = attrRows.joined(separator: "\n") + (attrRows.isEmpty ? "" : "\n")
             let labelBody = "{\(header)|\(attrsSection)}"
-            lines.append("  \(DOTClassExport.sanitizeDOTID(entity.key)) [shape=record, label=\(DOTClassExport.quoted(labelBody))];")
+            lines.append("  \(DOTClassExport.sanitizeDOTID(entity.key)) [shape=record, label=\(DOTClassExport.quotedRecordLabel(labelBody))];")
         }
 
+        var relIDOccurrences: [String: Int] = [:]
         for rel in diagram.relationships {
-            let relID = "\(rel.entity1)_\(rel.entity2)"
+            let pairKey = "\(rel.entity1)_\(rel.entity2)"
+            let occurrence = (relIDOccurrences[pairKey] ?? 0) + 1
+            relIDOccurrences[pairKey] = occurrence
+            let relID = occurrence == 1 ? pairKey : "\(pairKey)_\(occurrence)"
             let src = DOTClassExport.sanitizeDOTID(rel.entity1)
             let tgt = DOTClassExport.sanitizeDOTID(rel.entity2)
             if !rel.label.isEmpty {

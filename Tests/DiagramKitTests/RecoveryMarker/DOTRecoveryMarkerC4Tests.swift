@@ -42,7 +42,9 @@ struct DOTRecoveryMarkerC4Tests {
 
     @Test func emitAndParseTag() {
         let line = DOTRecoveryMarker.emitC4Tag(targetID: "svc", value: "internal,v2")
-        #expect(line == "# diagramkit:c4-tag=svc,internal,v2")
+        // Values containing the field separator travel base64-encoded so
+        // the marker field grammar stays parseable (M-IE-4).
+        #expect(line == "# diagramkit:c4-tag=svc,b64:aW50ZXJuYWwsdjI=")
         #expect(parsed(line) == .c4Tag(targetID: "svc", value: "internal,v2"))
     }
 

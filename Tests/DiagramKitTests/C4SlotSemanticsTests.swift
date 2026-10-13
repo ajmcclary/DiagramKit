@@ -117,7 +117,7 @@ import DiagramKitImport
         #expect(result.source.contains("Container(web, \"Web\", \"Nginx\", \"Public UI\")"))
     }
 
-    @Test("PlantUML emit drops technology silently for Person")
+    @Test("PlantUML emit pairs Person technology drop with a .c4SlotDrop diagnostic")
     func plantUMLEmitPersonDropsTechnology() throws {
         let model = C4Diagram(
             kind: .context,
@@ -126,7 +126,9 @@ import DiagramKitImport
             ]
         )
         let result = try PlantUMLC4Export.emit(model)
-        // descr at slot 3; technology has no slot.
+        // descr at slot 3; technology has no slot — but the drop is no
+        // longer silent: it pairs with a typed .c4SlotDrop diagnostic.
         #expect(result.source.contains("Person(u, \"User\", \"End user\")"))
+        #expect(result.diagnostics.contains { $0.category == .c4SlotDrop })
     }
 }

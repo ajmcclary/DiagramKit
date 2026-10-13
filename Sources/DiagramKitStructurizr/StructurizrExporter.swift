@@ -98,12 +98,32 @@ enum StructurizrC4Export {
         for rel in model.relationships {
             let from = aliasMap[rel.from] ?? rel.from
             let to = aliasMap[rel.to] ?? rel.to
+            // The DSL carries one description slot plus an optional
+            // technology; when label and description diverge, the label wins
+            // and the distinct description drops with a diagnostic.
+            var text = rel.label
+            if text.isEmpty, let description = rel.description, !description.isEmpty {
+                text = description
+            } else if let description = rel.description, !description.isEmpty, description != rel.label {
+                diagnostics.append(.lossyTransform(
+                    .c4SlotDrop,
+                    message: "Relationship description '\(description)' on \(rel.from) -> \(rel.to) dropped — the Structurizr DSL has a single description slot"
+                ))
+            }
             var relLine = "    \(from) -> \(to)"
-            if !rel.label.isEmpty {
-                relLine += " \"\(escape(rel.label))\""
+            if !text.isEmpty {
+                relLine += " \"\(escape(text))\""
             }
             if let tech = rel.technology, !tech.isEmpty {
                 relLine += " \"\(escape(tech))\""
+            }
+            if rel.kind != .rel {
+                // The DSL arrow grammar is `->` (directed) only; directional
+                // decorations (BiRel/Rel_Up/…) have no equivalent.
+                diagnostics.append(.lossyTransform(
+                    .c4SlotDrop,
+                    message: "Relationship kind '\(rel.kind.rawValue)' on \(rel.from) -> \(rel.to) dropped — the Structurizr DSL has only directed arrows"
+                ))
             }
             lines.append(relLine)
         }
@@ -155,10 +175,33 @@ enum StructurizrC4Export {
         let escapedLabel = escape(shape.label)
         let escapedDesc = shape.description.map { escape($0) } ?? ""
 
+        // Structurizr element syntax is `type "Name" "Description"
+        // "Technology"` — emit the description and technology slots when
+        // present.
+        var elementLine = "\(indent)\(safeAlias) = \(stype) \"\(escapedLabel)\""
         if !escapedDesc.isEmpty {
-            lines.append("\(indent)\(safeAlias) = \(stype) \"\(escapedLabel)\" \"\(escapedDesc)\"")
-        } else {
-            lines.append("\(indent)\(safeAlias) = \(stype) \"\(escapedLabel)\"")
+            elementLine += " \"\(escapedDesc)\""
+        }
+        // Only container/component families carry a technology slot in the
+        // Structurizr DSL grammar (`type "Name" "Description" "Technology"`);
+        // person/softwareSystem parse a second string as the description, so
+        // their technology drops with a diagnostic instead of shifting slots.
+        if shape.typeC4Shape.hasTechnologySlot, let technology = shape.technology, !technology.isEmpty {
+            elementLine += " \"\(escape(technology))\""
+        } else if !shape.typeC4Shape.hasTechnologySlot,
+                  let technology = shape.technology, !technology.isEmpty {
+            diagnostics.append(.lossyTransform(
+                .c4SlotDrop,
+                message: "Technology '\(technology)' on '\(shape.alias)' dropped — Structurizr \(stype) has no technology slot"
+            ))
+        }
+        lines.append(elementLine)
+
+        if isExternalShape(shape.typeC4Shape) {
+            diagnostics.append(.lossyTransform(
+                .shapeDowngrade,
+                message: "External shape '\(shape.alias)' (\(shape.typeC4Shape.rawValue)) emitted as base '\(stype)' — the Structurizr DSL has no external element distinction"
+            ))
         }
 
         if let tags = shape.tags, !tags.isEmpty {
@@ -179,6 +222,18 @@ enum StructurizrC4Export {
                     .replacingOccurrences(of: "\"", with: " ")
                 lines.append("\(indent)# diagramkit:tag=\(sanitized)")
             }
+        }
+    }
+
+    private static func isExternalShape(_ type: C4ShapeType) -> Bool {
+        switch type {
+        case .external_person, .external_system, .external_system_db,
+             .external_system_queue, .external_container, .external_container_db,
+             .external_container_queue, .external_component, .external_component_db,
+             .external_component_queue:
+            return true
+        default:
+            return false
         }
     }
 

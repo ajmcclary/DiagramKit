@@ -27,7 +27,7 @@ func diffParsedGraphModel(_ a: ParsedGraphModel, _ b: ParsedGraphModel) -> [Roun
 
     // 3) Edge symmetry. Edges are ordered, but Mermaid re-emission order is
     // not guaranteed to match the input. Sort both sides by canonical
-    // (source, target, label) and zip-compare.
+    // (source, target, label, style, arrowheads) and zip-compare.
     let aEdges = a.edges.sorted(by: edgeOrder)
     let bEdges = b.edges.sorted(by: edgeOrder)
     if aEdges.count != bEdges.count {
@@ -51,6 +51,22 @@ func diffParsedGraphModel(_ a: ParsedGraphModel, _ b: ParsedGraphModel) -> [Roun
                     detail: "lhs=\(ae.label ?? "nil") rhs=\(be.label ?? "nil")"
                 ))
             }
+            // Edge style + arrowheads. A style present on the source side
+            // and absent after the round-trip is a `.styleDrop` loss so the
+            // harness can require a paired exporter diagnostic.
+            if ae.style != be.style {
+                deltas.append(.loss(.styleDrop(
+                    target: "\(ae.source)→\(ae.target)",
+                    attribute: "style lhs=\(ae.style.rawValue) rhs=\(be.style.rawValue)"
+                )))
+            }
+            if ae.arrowHeadStart != be.arrowHeadStart || ae.arrowHeadEnd != be.arrowHeadEnd {
+                deltas.append(.loss(.styleDrop(
+                    target: "\(ae.source)→\(ae.target)",
+                    attribute: "arrowheads lhs=(\(ae.arrowHeadStart.rawValue),\(ae.arrowHeadEnd.rawValue)) " +
+                        "rhs=(\(be.arrowHeadStart.rawValue),\(be.arrowHeadEnd.rawValue))"
+                )))
+            }
         }
     }
 
@@ -65,8 +81,10 @@ private func edgeOrder(
     _ lhs: original_src_types.MermaidEdge,
     _ rhs: original_src_types.MermaidEdge
 ) -> Bool {
-    let lk = "\(lhs.source)|\(lhs.target)|\(lhs.label ?? "")"
-    let rk = "\(rhs.source)|\(rhs.target)|\(rhs.label ?? "")"
+    let lk = "\(lhs.source)|\(lhs.target)|\(lhs.label ?? "")|\(lhs.style.rawValue)|" +
+        "\(lhs.arrowHeadStart.rawValue)|\(lhs.arrowHeadEnd.rawValue)"
+    let rk = "\(rhs.source)|\(rhs.target)|\(rhs.label ?? "")|\(rhs.style.rawValue)|" +
+        "\(rhs.arrowHeadStart.rawValue)|\(rhs.arrowHeadEnd.rawValue)"
     return lk < rk
 }
 
