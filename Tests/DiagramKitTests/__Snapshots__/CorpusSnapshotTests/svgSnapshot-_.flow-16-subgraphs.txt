@@ -68,7 +68,7 @@
 </g>
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="106.9855,120.9 106.9855,144.9 119.953,144.9 119.953,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="297.8555,120.9 297.8555,144.9 293.039,144.9 293.039,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
-
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="183.906,187.35000000000002 213.906,187.35000000000002 213.906,102.45 243.906,102.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="React App" data-shape="rectangle">
   <path d="M 56.0 84.0 L 157.971 84.0 L 157.971 120.9 L 56.0 120.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="106.9855" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">React App</text>
