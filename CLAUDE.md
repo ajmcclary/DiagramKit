@@ -290,7 +290,12 @@ outside the defining module.
   this repo and is independent of DesignKit; canvas-follows-chrome syncs by
   theme display name (contract-tested in the app's test suite).
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
-  snapshots.
+  snapshots. Convention: new suites are swift-testing (`import Testing`)
+  unless they need XCTest-only machinery — parameterized corpus snapshot
+  cases stay XCTest where the parameterized swift-testing harness hits the
+  signal-10 runner crash, and IssueReporting-based expected-issue tracking
+  rides the XCTest bridge. Current split: ~264 swift-testing vs ~116
+  XCTest-only files.
 - `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
   pins the `DiagramError.unsupportedOnPlatform` contract mechanism + the
   zero-unsupported-families lockdown, and validates the three formerly
