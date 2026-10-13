@@ -3,6 +3,7 @@
 // reaching back into the umbrella.
 #if canImport(CoreGraphics)
 import Foundation
+import Synchronization
 import DiagramKitCommon
 
 /// Worker-thread helper that runs synchronous Mermaid work on a fresh
@@ -25,20 +26,56 @@ public enum DiagramWorkerThread {
 
     /// Run `work` on a fresh `Thread` named `"DiagramKit worker"`
     /// with an 8 MB stack.
+    ///
+    /// Cancellation (M-CG-1):
+    /// - A task that is already cancelled never spawns a thread —
+    ///   `run` throws `CancellationError` up front.
+    /// - The task's cancellation is forwarded to the worker as a
+    ///   cooperative flag that the thread body consults at its entry
+    ///   point and at completion — the cheap dispatch-boundary check,
+    ///   not an inside-the-loop poll. A render whose task was cancelled
+    ///   while running still finishes its current pass (the 8 MB thread
+    ///   must run to completion; there is no pool to return to), but its
+    ///   result is discarded with `CancellationError` instead of being
+    ///   published, so a keystroke-driven caller drops superseded
+    ///   renders early.
     public static func run<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
     ) async throws -> T {
-        try await withCheckedThrowingContinuation { continuation in
-            let thread = Thread {
-                do {
-                    continuation.resume(returning: try work())
-                } catch {
-                    continuation.resume(throwing: error)
+        try Task.checkCancellation()
+
+        // Cooperative cancellation flag shared with the worker thread.
+        // `Mutex` is `Sendable` by construction, so it is safe to touch
+        // from both the task and the fresh `Thread`.
+        let cancelled = Mutex<Bool>(false)
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
+                let thread = Thread {
+                    if cancelled.withLock({ $0 }) {
+                        continuation.resume(throwing: CancellationError())
+                        return
+                    }
+                    do {
+                        let value = try work()
+                        if cancelled.withLock({ $0 }) {
+                            // Cancelled mid-render: the work ran to
+                            // completion (no pool, no reuse), but the
+                            // result is stale — drop it.
+                            continuation.resume(throwing: CancellationError())
+                        } else {
+                            continuation.resume(returning: value)
+                        }
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
                 }
+                thread.name = "DiagramKit worker"
+                thread.stackSize = DiagramWorkerConfig.stackSize
+                thread.start()
             }
-            thread.name = "DiagramKit worker"
-            thread.stackSize = DiagramWorkerConfig.stackSize
-            thread.start()
+        } onCancel: {
+            cancelled.withLock { $0 = true }
         }
     }
 }

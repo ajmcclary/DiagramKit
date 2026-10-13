@@ -24,7 +24,7 @@ final class RequirementRendererTests: XCTestCase {
         let graph = try DiagramPipeline.parse(source)
         XCTAssertEqual(graph.type, .requirement)
 
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         XCTAssertGreaterThan(positioned.width, 0)
 
         // Check that content is requirement type

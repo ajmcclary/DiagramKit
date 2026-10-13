@@ -58,6 +58,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let topRightRed = countMatchingPixels(in: pixels, width: width, xRange: 220..<380, yRange: 20..<180, r: 255, g: 0, b: 0)
         let topLeftGreen = countMatchingPixels(in: pixels, width: width, xRange: 20..<180, yRange: 20..<180, r: 0, g: 255, b: 0)
@@ -100,6 +101,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let bottomLeftRedPixels = countMatchingPixels(in: pixels, width: width, xRange: 40..<160, yRange: 240..<360, r: 255, g: 0, b: 0)
         let topRightRedPixels = countMatchingPixels(in: pixels, width: width, xRange: 240..<360, yRange: 40..<160, r: 255, g: 0, b: 0)
@@ -140,6 +142,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let centerRedPixels = countMatchingPixels(in: pixels, width: width, xRange: 185..<215, yRange: 185..<215, r: 255, g: 0, b: 0)
         let centerBluePixels = countMatchingPixels(in: pixels, width: width, xRange: 185..<215, yRange: 185..<215, r: 0, g: 0, b: 255)
@@ -177,6 +180,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let borderColoredPixels = countColoredPixels(in: pixels, width: width, xRange: 0..<400, yRange: 0..<400)
         XCTAssertGreaterThan(borderColoredPixels, 100, "Border lines should produce colored pixels across the chart")
@@ -213,6 +217,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let leftSideDark = countDarkPixels(in: pixels, width: width, xRange: 0..<50, yRange: 0..<400)
         let rightSideDark = countDarkPixels(in: pixels, width: width, xRange: 350..<400, yRange: 0..<400)
@@ -250,6 +255,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let leftSideDark = countDarkPixels(in: pixels, width: width, xRange: 0..<50, yRange: 0..<400)
         let rightSideDark = countDarkPixels(in: pixels, width: width, xRange: 350..<400, yRange: 0..<400)
@@ -307,7 +313,9 @@ final class QuadrantRendererTests: XCTestCase {
         largeCtx.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positionedSmall, in: smallCtx, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: smallCtx)
         DiagramRenderer().render(positionedLarge, in: largeCtx, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: largeCtx)
 
         let smallRedPixels = countMatchingPixels(in: smallPixels, width: width, xRange: 180..<220, yRange: 180..<220, r: 255, g: 0, b: 0)
         let largeRedPixels = countMatchingPixels(in: largePixels, width: width, xRange: 180..<220, yRange: 180..<220, r: 255, g: 0, b: 0)
@@ -363,6 +371,7 @@ final class QuadrantRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         let topDarkPixels = countDarkPixels(in: pixels, width: width, xRange: 40..<260, yRange: 0..<50)
         XCTAssertLessThan(topDarkPixels, 10, "Title should not render when showTitle is false")
@@ -549,7 +558,7 @@ final class QuadrantRendererTests: XCTestCase {
         for example in quadrantExamples {
             do {
                 let graph = try DiagramPipeline.parse(example.source)
-                let positioned = try GraphLayout().layout(graph)
+                let positioned = try _GraphLayout().layout(graph)
 
                 let width = 400
                 let height = 400

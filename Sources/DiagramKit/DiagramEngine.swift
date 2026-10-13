@@ -228,7 +228,11 @@ public struct DiagramEngine {
     static func _runOnWorker<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
     ) async throws -> T {
-        try await withCheckedThrowingContinuation { continuation in
+        // Match the CG path's entry-point cancellation check; Linux has
+        // no view layer driving keystroke-rate renders, so the
+        // thread.cancel forwarding is not mirrored here.
+        try Task.checkCancellation()
+        return try await withCheckedThrowingContinuation { continuation in
             let thread = Thread {
                 do {
                     continuation.resume(returning: try work())

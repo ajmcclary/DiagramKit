@@ -104,7 +104,10 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
 - `DiagramImageRenderer` renders `BMImage` / PNG / JPEG.
 - `DiagramDocument` is the canonical parsed model.
 - `DiagramView`, `DiagramNativeView`, `DiagramLayer`, and `DiagramViewModel`
-  live in `DiagramKitViews`.
+  live in `DiagramKitViews`. `DiagramLayer` is a plain `@MainActor` model
+  object (historically a `CALayer` subclass; it never drew and was never in
+  a layer tree), and `DiagramViewModel` is a `@MainActor` class (formerly a
+  value type, whose `mutating prepare()` was an exclusivity trap).
 - `String` helpers use format-neutral names:
   `parseDiagram()`, `renderDiagramImage(...)`, `renderDiagramSVG(...)`, and
   `renderDiagramASCII(...)`.
@@ -180,7 +183,7 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
 Source string
   -> DiagramLoader.parseImportResult (registry probe → MermaidImporter / D2 / DOT / …)
   -> DiagramImportResult { document, diagnostics }      # parse-tier diagnostics
-  -> GraphLayout(...).layout
+  -> _GraphLayout(...).layout   (SPI; DiagramPipeline adds worker dispatch + fonts)
   -> PositionedGraph { …, diagnostics }                  # + layout-tier diagnostics
   -> DiagramRenderer.render (CG) | renderSVG | renderASCII
                               |                      \

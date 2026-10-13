@@ -35,10 +35,10 @@ struct ERAsciiRendererTests {
         """)
         #expect(output.text.contains("CUSTOMER"))
         #expect(output.text.contains("ORDER"))
-        // Relationship label surfaces (parser stores it; renderer may or may
-        // not draw it inline depending on capacity).
-        let hasLabel = output.text.contains("places")
-        #expect(hasLabel || !hasLabel) // pin "does not crash" — label inclusion is renderer-discretion
+        // The ER ASCII renderer draws relationship labels beside the
+        // connector (src_ascii_er_diagram.swift `_drawRelationshipLabels`);
+        // assert the label actually surfaces instead of pinning a no-op.
+        #expect(output.text.contains("places"))
     }
 
     @Test func selfRelationshipDoesNotCrash() async throws {

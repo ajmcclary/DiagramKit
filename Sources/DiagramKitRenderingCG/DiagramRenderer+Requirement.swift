@@ -22,11 +22,7 @@ extension DiagramRenderer {
                     y: 15 - bounding.height / 2,
                     width: bounding.width, height: bounding.height
                 )
-                #if os(macOS)
-                attr.draw(in: drawRect)
-                #else
-                attr.draw(with: drawRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
-                #endif
+                self.labelRenderer.drawAttributedString(attr, in: drawRect, context: ctx)
             }
 
             // Edges
@@ -69,11 +65,7 @@ extension DiagramRenderer {
                 let attr = MarkdownLabelRenderer.render(edge.labelText, config: MarkdownLabelRenderer.Config(fontSize: config.fontSizeEdgeLabel, textColor: self.theme.effectiveMuted()))
                 let bnds = attr.boundingRect(with: CGSize(width: 500, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
                 let dr = CGRect(x: lp.x - bnds.width / 2, y: lp.y - bnds.height / 2, width: bnds.width, height: bnds.height)
-                #if os(macOS)
-                attr.draw(in: dr)
-                #else
-                attr.draw(with: dr, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
-                #endif
+                self.labelRenderer.drawAttributedString(attr, in: dr, context: ctx)
             }
 
             // Nodes
@@ -115,11 +107,7 @@ extension DiagramRenderer {
                     y: nameY - nameBounds.height / 2,
                     width: nameBounds.width, height: nameBounds.height
                 )
-                #if os(macOS)
-                mutable.draw(in: nameRect)
-                #else
-                mutable.draw(with: nameRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
-                #endif
+                self.labelRenderer.drawAttributedString(mutable, in: nameRect, context: ctx)
 
                 // Body
                 let bodyLines = _reqBodyLines(node)
@@ -141,11 +129,7 @@ extension DiagramRenderer {
                             y: rowY - bnds.height / 2,
                             width: bnds.width, height: bnds.height
                         )
-                        #if os(macOS)
-                        bodyAttr.draw(in: dr)
-                        #else
-                        bodyAttr.draw(with: dr, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
-                        #endif
+                        self.labelRenderer.drawAttributedString(bodyAttr, in: dr, context: ctx)
                     }
                 }
             }

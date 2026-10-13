@@ -41,6 +41,7 @@ struct IshikawaRendererTests {
 
         let renderer = DiagramRenderer()
         renderer.render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: 320, height: 240))
+        CGInkAssertions.assertInk(in: context)
 
         var drawnPixelCount = 0
         for index in stride(from: 0, to: pixels.count, by: 4) {

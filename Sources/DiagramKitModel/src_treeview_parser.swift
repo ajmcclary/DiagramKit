@@ -45,6 +45,12 @@ public func _isTreeViewHeader(rawLines: [String]) -> Bool {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         return !trimmed.isEmpty && !trimmed.hasPrefix("%%")
     }?.trimmingCharacters(in: .whitespaces) ?? ""
+    // Case-sensitive on purpose, like the C4 matcher: `treeView-beta` is a
+    // package-specific family (no upstream Mermaid keyword), and the exact
+    // camelCase spelling is the dispatch contract — the hostile-input sweep
+    // (`SVGStructuralSweepTests`) relies on lowercase look-alikes NOT being
+    // claimed here. Most other families route through the case-insensitive
+    // `DiagramHeader.startsWithToken` instead.
     return firstLine == "treeView-beta" || firstLine.hasPrefix("treeView-beta ") || firstLine.hasPrefix("treeView-beta\t")
 }
 

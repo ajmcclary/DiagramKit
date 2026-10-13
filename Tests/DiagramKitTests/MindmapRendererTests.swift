@@ -75,7 +75,7 @@ final class MindmapRendererTests: XCTestCase {
         // Default layout resolves to tidy-tree; no frontmatter needed.
         let source = "mindmap\n  root\n    A"
         let graph = try DiagramPipeline.parse(source)
-        let layout = GraphLayout()
+        let layout = _GraphLayout()
         let positioned = try layout.layout(graph)
         XCTAssertEqual(positioned.diagram.type, .mindmap)
     }

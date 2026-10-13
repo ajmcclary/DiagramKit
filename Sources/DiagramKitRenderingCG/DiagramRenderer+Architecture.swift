@@ -160,16 +160,11 @@ extension DiagramRenderer {
             }
         }
 
-        for junction in data.junctions {
-            let rect = CGRect(
-                x: CGFloat(junction.x - junction.width / 2),
-                y: CGFloat(junction.y - junction.height / 2),
-                width: CGFloat(junction.width),
-                height: CGFloat(junction.height)
-            )
-            context.setFillColor(BMColor.clear.cgColor)
-            context.fill(rect)
-        }
+        // Junctions are invisible anchor points — the SVG renderer emits
+        // them with `fill-opacity="0"` (src_architecture_renderer.swift),
+        // so the CG path deliberately draws nothing for them. The former
+        // loop here filled their rects with `.clear`, a CG no-op that
+        // implied otherwise.
 
         context.restoreGState()
     }
@@ -214,21 +209,6 @@ extension DiagramRenderer {
             context.addLine(to: p2)
             context.addLine(to: p3)
         }
-        context.closePath()
-        context.setFillColor(fillColor.cgColor)
-        context.fillPath()
-    }
-
-    private func _drawArrowhead(at point: CGPoint, direction: CGFloat, size: CGFloat, in context: CGContext, fillColor: BMColor) {
-        context.beginPath()
-        context.move(to: point)
-        let angle: CGFloat = .pi * 150 / 180
-        let x1 = point.x + size * cos(direction + angle)
-        let y1 = point.y + size * sin(direction + angle)
-        let x2 = point.x + size * cos(direction - angle)
-        let y2 = point.y + size * sin(direction - angle)
-        context.addLine(to: CGPoint(x: x1, y: y1))
-        context.addLine(to: CGPoint(x: x2, y: y2))
         context.closePath()
         context.setFillColor(fillColor.cgColor)
         context.fillPath()

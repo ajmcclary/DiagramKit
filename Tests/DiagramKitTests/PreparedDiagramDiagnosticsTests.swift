@@ -10,7 +10,7 @@ struct PreparedDiagramDiagnosticsTests {
     @Test("Default aggregates empty + empty into empty")
     func defaultIsEmpty() throws {
         let doc = try DiagramPipeline.parse("pie\n  \"a\" : 1")
-        let positioned = try GraphLayout().layout(doc)
+        let positioned = try _GraphLayout().layout(doc)
         let prepared = PreparedDiagram(positioned: positioned, theme: .default)
         #expect(prepared.diagnostics == [])
     }
@@ -18,7 +18,7 @@ struct PreparedDiagramDiagnosticsTests {
     @Test("importDiagnostics + positioned.diagnostics aggregate in order")
     func aggregatesInOrder() throws {
         let doc = try DiagramPipeline.parse("pie\n  \"a\" : 1")
-        var positioned = try GraphLayout().layout(doc)
+        var positioned = try _GraphLayout().layout(doc)
         positioned.diagnostics = [
             DiagramDiagnostic(severity: .warning, message: "layout-1", location: nil),
             DiagramDiagnostic(severity: .warning, message: "layout-2", location: nil)

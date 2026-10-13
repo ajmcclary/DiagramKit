@@ -41,6 +41,7 @@ struct ZenUMLRendererTests {
         }
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: 640, height: 480))
+        CGInkAssertions.assertInk(in: context)
     }
 }
 #endif

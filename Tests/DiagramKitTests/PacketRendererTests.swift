@@ -38,6 +38,7 @@ final class PacketRendererTests: XCTestCase {
         }
 
         DiagramRenderer().render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
         return (pixels, width, height, positioned)
     }
 
@@ -96,6 +97,7 @@ final class PacketRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
         // No crash = success
     }
 
@@ -155,6 +157,7 @@ final class PacketRendererTests: XCTestCase {
         }
 
         DiagramRenderer().render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         var redPixelCount = 0
         for index in stride(from: 0, to: pixels.count, by: 4) {

@@ -80,8 +80,13 @@ extension DiagramRenderer {
             // 4b. Draw icon/image content inside nodes
             for node in nodes {
                 guard let props = node.properties else { continue }
+                // H9: parser-authored icon/image nodes (`A["x"]@{ icon: "fa:user" }`
+                // / `@{ img: "..." }`) keep `shape == "rectangle"` — only
+                // editor-created icons set `node.shape`. Branch on the
+                // properties as well so both routes render their content.
                 let iconShapes = Set(["icon-square", "icon-circle", "icon", "icon-rounded", "image-square"])
-                guard iconShapes.contains(node.shape) else { continue }
+                let hasIconOrImage = (props.icon?.isEmpty == false) || (props.img?.isEmpty == false)
+                guard iconShapes.contains(node.shape) || hasIconOrImage else { continue }
                 let rect = CGRect(x: node.x, y: node.y, width: node.width, height: node.height)
                 self._drawIconOrImage(props: props, bounds: rect, in: ctx, contentHeight: ch)
             }
@@ -199,20 +204,6 @@ extension DiagramRenderer {
         }
     }
 
-    private func _drawSubgraphLabels(_ groups: [PositionedGroup], in context: CGContext) {
-        let headerFont = self.fontResolver.groupHeaderFont()
-        for group in groups {
-            if group.label.contains("\n") {
-                let rect = CGRect(x: group.x + 8, y: group.y, width: group.width - 16, height: group.headerHeight)
-                labelRenderer.drawMultilineText(group.label, in: rect, context: context, color: theme.effectiveTextSecondary(), font: headerFont, alignment: .center)
-            } else {
-                let labelPoint = CGPoint(x: group.x + 8, y: group.y + group.headerHeight / 2)
-                labelRenderer.drawText(group.label, at: labelPoint, context: context, color: theme.effectiveTextSecondary(), font: headerFont, alignment: .left)
-            }
-            _drawSubgraphLabels(group.children, in: context)
-        }
-    }
-
     private func _drawSubgraphLabelsInFlipped(_ groups: [PositionedGroup], in context: CGContext, contentHeight ch: CGFloat) {
         let headerFont = self.fontResolver.groupHeaderFont()
         for group in groups {
@@ -258,39 +249,6 @@ extension DiagramRenderer {
             at: position,
             context: context,
             contentHeight: ch,
-            color: theme.effectiveTextSecondary(),
-            font: edgeFont,
-            alignment: .center
-        )
-    }
-
-    func _drawEdgeLabel(_ label: String, at position: CGPoint, in context: CGContext) {
-        let edgeFont = self.fontResolver.edgeLabelFont()
-        let attributes: [NSAttributedString.Key: Any] = [.font: edgeFont]
-        let size = (label as NSString).size(withAttributes: attributes)
-
-        let padding = self.tokens.edgeLabelPadding
-        let pillRect = CGRect(
-            x: position.x - size.width / 2 - padding,
-            y: position.y - size.height / 2 - padding / 2,
-            width: size.width + padding * 2,
-            height: size.height + padding
-        )
-
-        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: self.tokens.edgeLabelCornerRadius)
-        context.setFillColor(theme.background.cgColor)
-        context.addPath(pillPath.bm_cgPath)
-        context.fillPath()
-
-        context.setStrokeColor(theme.effectiveInnerStroke().cgColor)
-        context.setLineWidth(self.tokens.edgeLabelBorderWidth)
-        context.addPath(pillPath.bm_cgPath)
-        context.strokePath()
-
-        labelRenderer.drawText(
-            label,
-            at: position,
-            context: context,
             color: theme.effectiveTextSecondary(),
             font: edgeFont,
             alignment: .center

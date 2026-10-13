@@ -26,6 +26,12 @@ public struct DiagramHeader: Sendable {
     /// underscore). Use this in matchers where a broad `hasPrefix` would
     /// incorrectly accept longer identifiers — e.g. `gantt` is a diagram
     /// keyword but `ganttogram` should not match.
+    ///
+    /// Matching is CASE-INSENSITIVE (`normalized` lowercases first) — the
+    /// convention for most families. Two deliberate exceptions are
+    /// case-sensitive against `raw`: the C4 matcher (Mermaid requires the
+    /// capital `C4` keyword prefix) and the package-specific
+    /// `treeView-beta` matcher.
     public func startsWithToken(_ prefix: String) -> Bool {
         let norm = normalized
         guard norm.hasPrefix(prefix) else { return false }

@@ -55,7 +55,7 @@ struct RadarRendererTests {
     private func render(source: String) throws {
         try renderOnWorker {
             let graph = try DiagramPipeline.parse(source)
-            let positioned = try GraphLayout().layout(graph)
+            let positioned = try _GraphLayout().layout(graph)
             try render(positioned: positioned)
         }
     }
@@ -81,6 +81,7 @@ struct RadarRendererTests {
         }
 
         renderer.render(positioned, in: context, bounds: bounds)
+        CGInkAssertions.assertInk(in: context)
     }
 
     @Test("DiagramRenderer.render handles radar type without crashing")

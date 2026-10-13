@@ -23,7 +23,11 @@ import AppKit
 /// Before this helper, each path duplicated that setup verbatim. Any
 /// drift between them silently produced different images for the same
 /// prepared diagram. Both call sites now route through `render(...)`.
-@MainActor
+///
+/// Not main-actor-isolated (M-CG-4): the AppKit path is raw CGContext +
+/// `NSImage(cgImage:size:)` and the UIKit path is `UIGraphicsImageRenderer`
+/// — both documented thread-safe — so large bitmaps never need the UI
+/// thread.
 public enum DiagramBitmapRenderer {
 
     /// Render a bitmap by invoking `draw` against a CGContext that is:

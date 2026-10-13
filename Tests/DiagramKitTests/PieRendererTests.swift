@@ -270,6 +270,7 @@ final class PieRendererTests: XCTestCase {
         }
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: 450, height: 450))
+        CGInkAssertions.assertInk(in: context)
 
         let center = ((225 * 450) + 225) * 4
         XCTAssertGreaterThan(pixels[center], 220)
@@ -384,6 +385,7 @@ final class PieRendererTests: XCTestCase {
         context.scaleBy(x: 1, y: -1)
 
         DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+        CGInkAssertions.assertInk(in: context)
         return (pixels, width, height)
     }
 

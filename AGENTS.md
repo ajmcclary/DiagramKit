@@ -90,7 +90,11 @@ and a multiplatform `xcodebuild` sweep.
   Diagram-prefixed names in new code.
 - `@MainActor` only on methods that produce/consume `BMImage`, `CGContext`, or
   native UI types. `renderSVG` and `renderASCII` are intentionally not
-  main-actor.
+  main-actor, and since the M-CG-4 fix neither is rasterization:
+  `DiagramBitmapRenderer.render`, `PreparedDiagram.render`, and the
+  `DiagramImageRenderer` static render paths are nonisolated so large
+  bitmaps never block the UI thread; only thin configuration-reading
+  instance wrappers stay `@MainActor`.
 - Underscore-prefixed top-level names (`_PositionedNodePayload`,
   `_renderDiagramSVG`) are SPI. Use public typealiases such as `PositionedNode`
   outside the module.

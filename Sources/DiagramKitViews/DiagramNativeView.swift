@@ -48,8 +48,7 @@ public class DiagramNativeView: UIView {
 
     private var invalidationToken: AnyObject?
 
-    public override init(frame: CGRect) {
-        self.diagramLayer = DiagramLayer()
+    public override init(frame: CGRect) {        self.diagramLayer = DiagramLayer()
         super.init(frame: frame)
         commonInit()
     }
@@ -159,6 +158,8 @@ public class DiagramNativeView: NSView {
     public var parseError: Error? { diagramLayer.parseError }
     public var diagramBounds: CGRect { diagramLayer.diagramBounds }
 
+    private var invalidationToken: AnyObject?
+
     public override init(frame frameRect: NSRect) {
         self.diagramLayer = DiagramLayer()
         super.init(frame: frameRect)
@@ -174,7 +175,8 @@ public class DiagramNativeView: NSView {
     private func commonInit() {
         wantsLayer = true
         layer?.backgroundColor = diagramLayer.theme.background.cgColor
-        diagramLayer.onPrepareComplete = { [weak self] in
+        // Multi-handler wiring, matching the UIKit variant (M-CG-10).
+        invalidationToken = diagramLayer.addPrepareCompletionHandler { [weak self] in
             self?.invalidateIntrinsicContentSize()
             self?.needsDisplay = true
         }
@@ -227,11 +229,15 @@ public class DiagramNativeView: NSView {
 
 /// In DEBUG builds, fail loudly if `DiagramViewPreparerEnvironment` has not
 /// been configured by the time a view is constructed — that means the host
-/// app forgot to call `DiagramEngine.bootstrap()` (or equivalent setup)
-/// and view rendering will silently fall back to `DiagramPreparation.prepare`
-/// without the umbrella's canonical worker wiring.
+/// app forgot to call `DiagramEngine.bootstrap()` (or equivalent setup).
 ///
-/// In release builds the check is a no-op so the fallback path still works.
+/// There is NO working fallback: without a registered preparer,
+/// `DiagramLayer`'s pipeline reaches `DiagramPreparation.prepare`, which
+/// throws `DiagramPreparationError.notConfigured`, so the view renders
+/// only its background and the error is surfaced through `parseError`
+/// (and as a reported issue). The DEBUG assertion turns that silent
+/// failure into a construction-time signal; release builds skip the
+/// assertion and rely on the `parseError` surface.
 @MainActor
 private func _assertPreparerEnvironmentConfigured() {
     #if DEBUG
