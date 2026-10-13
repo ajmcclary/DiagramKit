@@ -27,9 +27,12 @@ on:
 permissions:
   contents: read
 
+# The weekly cron and a manual dispatch are both refs/heads/main; keying the
+# group on the event too keeps one from cancelling the other. Only superseded
+# PR runs cancel.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   macos:
@@ -40,6 +43,13 @@ jobs:
       TZ: Pacific/Auckland
     steps:
       - uses: actions/checkout@v7
+      - name: Restore SwiftPM build cache
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftpm-
       - name: Toolchain (expects macOS 27 + Xcode 27)
         run: |
           sw_vers
@@ -83,11 +93,19 @@ jobs:
         run: ./Scripts/check-stale-phase-comments.sh
       - name: Scripts/check-linux-check-runtime-skip.sh
         run: ./Scripts/check-linux-check-runtime-skip.sh
+      - name: Scripts/check-zedtrek-pin.sh
+        run: ./Scripts/check-zedtrek-pin.sh
       - name: Crash reports (on failure)
         if: failure()
         run: |
           shopt -s nullglob
-          for f in ~/Library/Logs/DiagnosticReports/*.ips; do
+          reports=(~/Library/Logs/DiagnosticReports/*.ips)
+          for _ in $(seq 1 10); do
+            [ ${#reports[@]} -gt 0 ] && break
+            sleep 2
+            reports=(~/Library/Logs/DiagnosticReports/*.ips)
+          done
+          for f in "${reports[@]}"; do
             echo "::group::$f"; head -c 60000 "$f"; echo; echo "::endgroup::"
           done
 
@@ -100,12 +118,30 @@ jobs:
     runs-on: ubuntu-24.04
     container: swift:6.3.1-noble
     timeout-minutes: 45
+    env:
+      TZ: Pacific/Auckland
     steps:
       - uses: actions/checkout@v7
+      - name: Restore SwiftPM build cache
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftpm-
       - name: swift build --build-tests
         run: swift build --build-tests
       - name: swift test
-        run: swift test
+        shell: bash
+        run: |
+          swift test 2>&1 | tee "$RUNNER_TEMP/swift-test-linux.log"
+      - name: Upload test logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-swift-test-log
+          path: ${{ runner.temp }}/swift-test-linux.log
+          if-no-files-found: ignore
 
   ios:
     name: iOS 27 · build
@@ -113,5 +149,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      - name: Toolchain (expects Xcode 27)
+        run: xcodebuild -version | head -1 | grep -q '^Xcode 27\.' || { echo "::error::expected Xcode 27"; exit 1; }
       - name: xcodebuild generic/platform=iOS
         run: xcodebuild -scheme DiagramKit-Package -destination 'generic/platform=iOS' -quiet build CODE_SIGNING_ALLOWED=NO

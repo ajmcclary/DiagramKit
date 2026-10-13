@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Builds the Linux-portable DiagramKit targets via swift:6.3.1-noble.
-# Mirrors MusicToolkit/Scripts/... pattern.
 #
 # Picks podman if available, else docker.
 #

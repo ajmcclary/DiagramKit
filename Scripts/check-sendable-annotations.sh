@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# The allowlist is two associative arrays; under stock macOS /bin/bash 3.2
+# `declare -A` fails and the run dies mid-parse (exit 2). Guard first so the
+# requirement is stated plainly instead of surfacing as a usage error.
+if [[ ${BASH_VERSINFO[0]:-0} -lt 4 ]]; then
+  echo "check-sendable-annotations.sh: requires bash 4+ (run via homebrew bash; CI installs it)" >&2
+  exit 2
+fi
+
 set -euo pipefail
 
 # check-sendable-annotations.sh

@@ -12,6 +12,28 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATE="$ROOT/Scripts/check-diagnostic-discipline.sh"
 
+# The gate requires bash 4+ (associative-array allowlist; it exits 2 under
+# stock /bin/bash 3.2 rather than fail open). Resolve a suitable interpreter
+# so this harness also works when invoked from bash 3.2.
+GATE_BASH=""
+if command -v bash >/dev/null 2>&1; then
+  if [[ "$(bash -c 'echo ${BASH_VERSINFO[0]}')" -ge 4 ]]; then
+    GATE_BASH="bash"
+  fi
+fi
+if [[ -z "$GATE_BASH" ]]; then
+  for candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /opt/local/bin/bash; do
+    if [[ -x "$candidate" ]]; then
+      GATE_BASH="$candidate"
+      break
+    fi
+  done
+fi
+if [[ -z "$GATE_BASH" ]]; then
+  echo "diagnostic-discipline self-test: requires bash 4+" >&2
+  exit 2
+fi
+
 FAILED=0
 
 run_fixture() {
@@ -28,7 +50,7 @@ run_fixture() {
   touch "$sandbox/.diagnostic-discipline-allowlist.txt"
 
   set +e
-  DIAGRAMKIT_DISCIPLINE_ROOT="$sandbox" "$GATE" >/dev/null 2>&1
+  DIAGRAMKIT_DISCIPLINE_ROOT="$sandbox" "$GATE_BASH" "$GATE" >/dev/null 2>&1
   local actual=$?
   set -e
 
@@ -47,6 +69,7 @@ run_fixture "bad-raw-init" 1
 run_fixture "bad-missing-pinned" 1
 run_fixture "bad-stale-pinned" 1
 run_fixture "bad-exporter-throws" 1
+run_fixture "bad-export-dir-throws" 1
 run_fixture "good-clean" 0
 
 if [[ "$FAILED" -gt 0 ]]; then

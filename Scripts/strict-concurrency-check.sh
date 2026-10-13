@@ -4,8 +4,21 @@ set -euo pipefail
 
 # Strict-concurrency gate for DiagramKit's first-party targets.
 #
-# Runs `swift build` under Swift 6 mode + `-strict-concurrency=complete` and
-# asserts no error or warning originates from anything inside `Sources/`.
+# The package pins `swiftLanguageModes: [.v6]`, so Swift 6 language mode —
+# with its complete strict-concurrency checking — is already the per-target
+# default. The former second compile with `-swift-version 6
+# -strict-concurrency=complete` therefore re-checked the same code and cost a
+# full rebuild on every run for no signal; it is gone.
+#
+# What this gate now enforces:
+#   1. The manifest still pins `.v6`. Dropping that pin would silently
+#      downgrade every target to Swift 5 mode and vacate the gate, so it is
+#      checked explicitly.
+#   2. The ordinary `swift build` emits no diagnostics originating from
+#      first-party `Sources/DiagramKit*` code. (Incremental builds re-emit
+#      diagnostics only for recompiled files; rule 1 is the durable
+#      enforcement, this is the belt-and-braces sweep.)
+#
 # Do not pass global `-warnings-as-errors`: SwiftPM forwards it to dependencies,
 # and Swift 6.3 rejects dependencies that intentionally use `-suppress-warnings`.
 # Errors from third-party transitive dependencies are tolerated — those are
@@ -14,16 +27,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+if ! grep -qF 'swiftLanguageModes: [.v6]' Package.swift; then
+  echo 'Package.swift no longer pins swiftLanguageModes: [.v6] — Swift 6 strict concurrency would no longer be the per-target default.' >&2
+  exit 1
+fi
+
 LOG="$(mktemp)"
 trap 'rm -f "$LOG"' EXIT
 
-printf '==> swift build -Xswiftc -swift-version -Xswiftc 6 -Xswiftc -strict-concurrency=complete\n'
+printf '==> swift build (Swift 6 mode via swiftLanguageModes: [.v6])\n'
 
 set +e
-swift build \
-  -Xswiftc -swift-version -Xswiftc 6 \
-  -Xswiftc -strict-concurrency=complete \
-  >"$LOG" 2>&1
+swift build >"$LOG" 2>&1
 BUILD_EXIT=$?
 set -e
 

@@ -1,9 +1,7 @@
 # Throwaway Dockerfile — verifies which DiagramKit targets build on Linux
 # Swift. Writes per-target outcomes to /tmp/results.txt.
 #
-# Mirrors MusicToolkit/Dockerfile.linux-check.
-#
-# Build context: mermaid-swift/
+# Build context: the DiagramKit package root.
 # Usage:
 #   docker build -f Dockerfile.linux-check -t diagramkit-linux-check .
 #   docker run --rm diagramkit-linux-check
