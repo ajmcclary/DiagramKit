@@ -68,19 +68,9 @@ extension DiagramEditor {
     /// serialization + atomicity contract as `perform` /
     /// `performFlowchart`.
     public func performSequence(_ mutation: SequenceMutation) async throws {
-        _enterMutationChain()
-        defer { _exitMutationChain() }
-
-        await _awaitPendingMutation()
-
-        let task = Task { @MainActor [weak self] in
-            guard let self else { return }
-            try await self._performSequenceInner(mutation)
+        try await _enqueueChainedMutation { editor in
+            try await editor._performSequenceInner(mutation)
         }
-        let generation = _setPendingMutation(task)
-        defer { _clearPendingMutationIfCurrent(generation: generation) }
-
-        try await task.value
     }
 
     func _performSequenceInner(_ mutation: SequenceMutation) async throws {

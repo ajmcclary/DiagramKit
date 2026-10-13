@@ -70,6 +70,11 @@ public final class DiagramEditor {
     public var selection: DiagramSelection?
 
     /// The undo manager backing the undo/redo stack.
+    ///
+    /// Prefer the editor's async `undo()` / `redo()`, which queue behind
+    /// the in-flight mutation chain. Direct `undoManager.undo()` /
+    /// `.redo()` calls are only safe while `isExporting == false` —
+    /// mid-export they commit state derived from a stale document.
     public let undoManager: UndoManager
 
     /// Maximum number of undo states to retain.
@@ -129,16 +134,24 @@ public final class DiagramEditor {
 
     /// True when at least one undoable action is registered.
     /// Observation-tracked; updates as the undo stack changes.
+    ///
+    /// Gated to `false` while `isExporting`: an undo committed during an
+    /// in-flight export would be clobbered by that export's commit
+    /// (which is derived from the pre-undo document). SwiftUI hosts get
+    /// the gate for free via `.disabled(!editor.canUndo)`; callers that
+    /// must undo mid-export should `await editor.undo()`, which queues
+    /// the action until the chain drains instead of dropping it.
     public var canUndo: Bool {
         _ = _undoStateTickle
-        return undoManager.canUndo
+        return !isExporting && undoManager.canUndo
     }
 
     /// True when at least one redoable action is registered.
     /// Observation-tracked; updates as the redo stack changes.
+    /// Gated to `false` while `isExporting` — see `canUndo`.
     public var canRedo: Bool {
         _ = _undoStateTickle
-        return undoManager.canRedo
+        return !isExporting && undoManager.canRedo
     }
 
     /// Display name of the action that `undo()` would reverse, or `""`
@@ -269,12 +282,65 @@ public final class DiagramEditor {
         if _mutationDepth == 0 { isExporting = false }
     }
 
-    /// Await any currently-pending mutation Task before starting a
-    /// new one. Errors from the previous task are absorbed so a failed
-    /// mutation does not stop later ones from running.
-    func _awaitPendingMutation() async {
-        if let pending = _pendingMutation {
+    /// Enqueue `body` as the next task on this editor's mutation chain
+    /// and await its completion.
+    ///
+    /// The chain is formed *inside* the task: installation of the new
+    /// task happens synchronously here on the MainActor — before this
+    /// caller suspends — and the task first awaits the previously
+    /// installed task before running `body`. Two callers enqueued while
+    /// task P is in flight therefore run strictly in install order
+    /// (P → A → B), and B can never observe pre-A state. (The earlier
+    /// `_awaitPendingMutation` shape awaited the captured pending task
+    /// in the *caller*, so A and B raced to install after P and B
+    /// committed a document derived from pre-A state, silently dropping
+    /// A's mutation.)
+    ///
+    /// Errors from earlier chain tasks are absorbed (a failed mutation
+    /// does not stop later ones); `body`'s own error propagates to this
+    /// caller. The task is unstructured, so cancelling the caller does
+    /// not abort an in-flight commit.
+    ///
+    /// - Parameter body: Runs on the MainActor with the editor passed
+    ///   back in; the `[weak self]` capture in the task means the body
+    ///   never runs against a deallocated editor.
+    func _enqueueChainedMutation(
+        _ body: @escaping @MainActor @Sendable (DiagramEditor) async throws -> Void
+    ) async throws {
+        _enterMutationChain()
+        defer { _exitMutationChain() }
+
+        let previous = _pendingMutation
+        let task = Task { @MainActor [weak self] in
+            if let previous {
+                _ = try? await previous.value
+            }
+            guard let self else { return }
+            try await body(self)
+        }
+        let generation = _setPendingMutation(task)
+        defer { _clearPendingMutationIfCurrent(generation: generation) }
+
+        try await task.value
+    }
+
+    /// Wait until the mutation chain has fully drained — no pending
+    /// mutation task remains. Used by `undo()`/`redo()` so a user undo
+    /// issued while an async mutation is mid-export applies strictly
+    /// after that commit instead of racing it. Errors are absorbed:
+    /// draining only cares about ordering.
+    ///
+    /// The `Task.yield()` between iterations is load-bearing: awaiting
+    /// an already-completed task's `value` can return without
+    /// suspending, so re-reading `_pendingMutation` before its owning
+    /// caller's deferred `_clearPendingMutationIfCurrent` has run would
+    /// re-await the same task in a tight loop and starve the MainActor.
+    /// The yield hands the executor to that caller so the slot clears.
+    func _awaitChainDrain() async {
+        while true {
+            guard let pending = _pendingMutation else { return }
             _ = try? await pending.value
+            await Task.yield()
         }
     }
 
