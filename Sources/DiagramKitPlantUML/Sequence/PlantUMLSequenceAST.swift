@@ -115,6 +115,9 @@ public enum PlantUMLGroupKind: String, Sendable, Equatable {
     case opt
     case group
     case box
+    case par
+    case critical
+    case `break`
 }
 
 public struct PlantUMLSequenceNote: Sendable, Equatable {

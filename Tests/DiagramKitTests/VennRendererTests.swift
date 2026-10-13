@@ -45,6 +45,7 @@ final class VennRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testSvgArcPathConvertsToBoundedCgPath() throws {

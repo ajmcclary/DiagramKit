@@ -30,33 +30,39 @@ public func renderPieSvg(
     }
 
     // CSS styles
+    let pieStroke = _isSafeCSSColor(chart.theme.pieStrokeColor) ? chart.theme.pieStrokeColor : "var(--line)"
+    let pieOuterStroke = _isSafeCSSColor(chart.theme.pieOuterStrokeColor) ? chart.theme.pieOuterStrokeColor : "var(--line)"
+    let pieTitleTextColor = _isSafeCSSColor(chart.theme.resolvedPieTitleTextColor) ? chart.theme.resolvedPieTitleTextColor : "var(--_text)"
+    let pieSectionTextColor = _isSafeCSSColor(chart.theme.resolvedPieSectionTextColor) ? chart.theme.resolvedPieSectionTextColor : "var(--_text)"
+    let pieLegendTextColor = _isSafeCSSColor(chart.theme.resolvedPieLegendTextColor) ? chart.theme.resolvedPieLegendTextColor : "var(--_text)"
+    let pieFontFamily = SVG.escapeText(chart.theme.resolvedFontFamily)
     parts.append("<style>")
     parts.append("""
     .pieCircle{
-      stroke: \(chart.theme.pieStrokeColor);
+      stroke: \(SVG.escapeText(pieStroke));
       stroke-width : \(chart.theme.pieStrokeWidth);
       opacity : \(chart.theme.pieOpacity);
     }
     .pieOuterCircle{
-      stroke: \(chart.theme.pieOuterStrokeColor);
+      stroke: \(SVG.escapeText(pieOuterStroke));
       stroke-width: \(chart.theme.pieOuterStrokeWidth);
       fill: none;
     }
     .pieTitleText {
       text-anchor: middle;
       font-size: \(chart.theme.pieTitleTextSize);
-      fill: \(chart.theme.resolvedPieTitleTextColor);
-      font-family: \(chart.theme.resolvedFontFamily);
+      fill: \(SVG.escapeText(pieTitleTextColor));
+      font-family: \(pieFontFamily);
     }
     .slice {
       text-anchor: middle;
-      font-family: \(chart.theme.resolvedFontFamily);
-      fill: \(chart.theme.resolvedPieSectionTextColor);
+      font-family: \(pieFontFamily);
+      fill: \(SVG.escapeText(pieSectionTextColor));
       font-size:\(chart.theme.pieSectionTextSize);
     }
     .legend text {
-      fill: \(chart.theme.resolvedPieLegendTextColor);
-      font-family: \(chart.theme.resolvedFontFamily);
+      fill: \(SVG.escapeText(pieLegendTextColor));
+      font-family: \(pieFontFamily);
       font-size: \(chart.theme.pieLegendTextSize);
     }
     """)

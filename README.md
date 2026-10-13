@@ -77,17 +77,28 @@ format explicitly, pass `sourceFormat:` to a render method, such as `.d2` or
 
 ## Display in SwiftUI
 
+Call `DiagramEngine.bootstrap()` once at startup (in your `App.init` or
+`@main` type), before creating any views:
+
 ```swift
 import SwiftUI
 import DiagramKit
 
+@main
+struct MyApp: App {
+    init() {
+        DiagramEngine.bootstrap()
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView(source: "flowchart LR\n    A --> B")
+        }
+    }
+}
+
 struct ContentView: View {
     let source: String
-
-    init(source: String) {
-        DiagramEngine.bootstrap()
-        self.source = source
-    }
 
     var body: some View {
         DiagramView(source: source)
@@ -96,9 +107,8 @@ struct ContentView: View {
 }
 ```
 
-Call `DiagramEngine.bootstrap()` once before creating views if you haven't
-already called an engine method. `DiagramView` handles asynchronous rendering;
-use `DiagramNativeView` for UIKit or AppKit integration.
+Views can then be created freely; `DiagramView` handles asynchronous
+rendering. Use `DiagramNativeView` for UIKit or AppKit integration.
 
 ## Learn more
 

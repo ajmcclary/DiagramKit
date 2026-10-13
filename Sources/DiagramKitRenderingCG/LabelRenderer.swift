@@ -98,7 +98,13 @@ public final class LabelRenderer {
 
     // MARK: - Private Drawing
 
-    private func drawAttributedString(
+    /// Draws `attributedString` into `rect` on `context`, installing an
+    /// `NSGraphicsContext` around the AppKit draw so the call is not a
+    /// no-op on a raw CGContext (bitmap renderers create a context with
+    /// `NSGraphicsContext.current == nil`). Internal so the CG renderer
+    /// extensions route every `NSAttributedString` draw through this
+    /// single implementation.
+    func drawAttributedString(
         _ attributedString: NSAttributedString,
         in rect: CGRect,
         context: CGContext

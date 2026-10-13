@@ -51,22 +51,22 @@ public enum DOTRecoveryMarker {
         if let args = stripPrefix("class-stereotype=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .classStereotype(className: String(fields[0]), stereotype: String(fields[1]))
+            return .classStereotype(className: RecoveryMarkerSyntax.decodeField(String(fields[0])), stereotype: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("er-cardinality=", rest) {
             let fields = args.split(separator: ",", maxSplits: 2, omittingEmptySubsequences: false)
             guard fields.count == 3 else { return nil }
-            return .erCardinality(relationshipId: String(fields[0]), source: String(fields[1]), target: String(fields[2]))
+            return .erCardinality(relationshipId: RecoveryMarkerSyntax.decodeField(String(fields[0])), source: RecoveryMarkerSyntax.decodeField(String(fields[1])), target: RecoveryMarkerSyntax.decodeField(String(fields[2])))
         }
         if let args = stripPrefix("arch-icon=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .archIcon(serviceID: String(fields[0]), kindRawValue: String(fields[1]))
+            return .archIcon(serviceID: RecoveryMarkerSyntax.decodeField(String(fields[0])), kindRawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("arch-group=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .archGroup(groupID: String(fields[0]), parentGroupID: String(fields[1]))
+            return .archGroup(groupID: RecoveryMarkerSyntax.decodeField(String(fields[0])), parentGroupID: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("family=", rest) {
             return .family(name: args)
@@ -77,7 +77,7 @@ public enum DOTRecoveryMarker {
         if let args = stripPrefix("mindmap-icon=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .mindmapIcon(nodeID: String(fields[0]), iconKey: String(fields[1]))
+            return .mindmapIcon(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), iconKey: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-diagram-kind=", rest) {
             return .c4DiagramKind(rawValue: args)
@@ -85,7 +85,7 @@ public enum DOTRecoveryMarker {
         if let args = stripPrefix("c4-shape-kind=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4ShapeKind(targetID: String(fields[0]), rawValue: String(fields[1]))
+            return .c4ShapeKind(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), rawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-external=", rest) {
             return .c4External(targetID: args)
@@ -93,93 +93,93 @@ public enum DOTRecoveryMarker {
         if let args = stripPrefix("c4-technology=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Technology(targetID: String(fields[0]), value: String(fields[1]))
+            return .c4Technology(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), value: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-description=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Description(targetID: String(fields[0]), value: String(fields[1]))
+            return .c4Description(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), value: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-sprite=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Sprite(targetID: String(fields[0]), value: String(fields[1]))
+            return .c4Sprite(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), value: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-tag=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Tag(targetID: String(fields[0]), value: String(fields[1]))
+            return .c4Tag(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), value: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-link=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Link(targetID: String(fields[0]), value: String(fields[1]))
+            return .c4Link(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), value: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-boundary-kind=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4BoundaryKind(targetID: String(fields[0]), rawValue: String(fields[1]))
+            return .c4BoundaryKind(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), rawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-rel-kind=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let idx = Int(fields[0]) else { return nil }
-            return .c4RelKind(edgeIndex: idx, rawValue: String(fields[1]))
+            return .c4RelKind(edgeIndex: idx, rawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("c4-color=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .c4Color(targetID: String(fields[0]), packed: String(fields[1]))
+            return .c4Color(targetID: RecoveryMarkerSyntax.decodeField(String(fields[0])), packed: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-cols=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let n = Int(fields[1]) else { return nil }
-            return .blockCols(containerID: String(fields[0]), columns: n)
+            return .blockCols(containerID: RecoveryMarkerSyntax.decodeField(String(fields[0])), columns: n)
         }
         if let args = stripPrefix("block-width=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let span = Int(fields[1]) else { return nil }
-            return .blockWidth(nodeID: String(fields[0]), widthInColumns: span)
+            return .blockWidth(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), widthInColumns: span)
         }
         if let args = stripPrefix("block-shape-fallback=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .blockShapeFallback(nodeID: String(fields[0]), rawValue: String(fields[1]))
+            return .blockShapeFallback(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), rawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-arrow-dir=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .blockArrowDir(nodeID: String(fields[0]), directionsCsv: String(fields[1]))
+            return .blockArrowDir(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), directionsCsv: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-space=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let idx = Int(fields[1]) else { return nil }
-            return .blockSpace(parentID: String(fields[0]), columnIndex: idx)
+            return .blockSpace(parentID: RecoveryMarkerSyntax.decodeField(String(fields[0])), columnIndex: idx)
         }
         if let args = stripPrefix("block-edge-attrs=", rest) {
             let fields = args.split(separator: ",", maxSplits: 4, omittingEmptySubsequences: false)
             guard fields.count == 5, let idx = Int(fields[0]) else { return nil }
             return .blockEdgeAttrs(
                 edgeIndex: idx,
-                thickness: String(fields[1]),
-                pattern: String(fields[2]),
-                arrowStart: String(fields[3]),
-                arrowEnd: String(fields[4])
+                thickness: RecoveryMarkerSyntax.decodeField(String(fields[1])),
+                pattern: RecoveryMarkerSyntax.decodeField(String(fields[2])),
+                arrowStart: RecoveryMarkerSyntax.decodeField(String(fields[3])),
+                arrowEnd: RecoveryMarkerSyntax.decodeField(String(fields[4]))
             )
         }
         if let args = stripPrefix("block-classdef=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .blockClassDef(className: String(fields[0]), stylesCsv: String(fields[1]))
+            return .blockClassDef(className: RecoveryMarkerSyntax.decodeField(String(fields[0])), stylesCsv: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-class-apply=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .blockClassApply(nodeID: String(fields[0]), className: String(fields[1]))
+            return .blockClassApply(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), className: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-style=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .blockStyle(nodeID: String(fields[0]), stylesCsv: String(fields[1]))
+            return .blockStyle(nodeID: RecoveryMarkerSyntax.decodeField(String(fields[0])), stylesCsv: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("block-acc-title=", rest) {
             return .blockAccTitle(text: args)
@@ -319,16 +319,10 @@ public enum DOTRecoveryMarker {
         "# diagramkit:block-acc-descr=\(sanitize(text))"
     }
 
+    /// Comma-safe single-line field encoding (shared base64 codec): values
+    /// carrying the field separator or quote/newline characters travel as
+    /// `b64:…` so the comma-separated arg grammar stays parseable.
     private static func sanitize(_ value: String) -> String {
-        var out = ""
-        for ch in value {
-            switch ch {
-            case "\n", "\r", "\"":
-                out.append(" ")
-            default:
-                out.append(ch)
-            }
-        }
-        return out
+        RecoveryMarkerSyntax.encodeField(value)
     }
 }

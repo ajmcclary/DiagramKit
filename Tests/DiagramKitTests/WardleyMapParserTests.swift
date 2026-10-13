@@ -658,4 +658,19 @@ final class WardleyMapParserTests: XCTestCase {
         let resolved = diagram.resolveNodeId("Nonexistent")
         XCTAssertEqual(resolved, "Nonexistent")
     }
+
+    func testMultilineAccDescrDoesNotSkipFollowingLines() throws {
+        let input = [
+            "wardley-beta",
+            "accDescr {",
+            "  multi",
+            "  line",
+            "}",
+            "component A [0.5, 0.5]",
+        ].joined(separator: "\n")
+        let (diagram, _) = try parseWardleyMap(lines(input))
+        XCTAssertEqual(diagram.accDescr, "multi\nline")
+        XCTAssertEqual(diagram.nodes.count, 1)
+        XCTAssertEqual(diagram.nodes[0].id, "A")
+    }
 }

@@ -1,2 +1,2 @@
 Participants: Client, DB
-• asyncMessage
+• Client-->DB: query

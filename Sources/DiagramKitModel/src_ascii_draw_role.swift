@@ -29,15 +29,17 @@ func fillRolesFromCanvas(
     }
 }
 
-func fillRolesFromCanvases(
-    _ roleCanvas: inout RoleCanvas,
-    _ canvases: [Canvas],
-    _ offset: DrawingCoord,
-    _ role: CharRole
-) {
-    for canvas in canvases {
-        fillRolesFromCanvas(&roleCanvas, canvas, offset, role)
-    }
+/// Border characters the class/ER/sequence ASCII renderers draw as box
+/// chrome; every other non-space character inside a box is label text.
+/// (`fillRolesForNodeBox`'s `_borderChars` below is deliberately larger —
+/// node boxes also use corners, dividers, and marker glyphs.)
+let asciiBoxBorderChars: Set<Character> = [
+    "┌", "┐", "└", "┘", "├", "┤", "┬", "┴", "┼", "│", "─",
+    "╭", "╮", "╰", "╯", "+", "-", "|",
+]
+
+func classifyAsciiBoxChar(_ ch: Character) -> CharRole {
+    asciiBoxBorderChars.contains(ch) ? .border : .text
 }
 
 private let _borderChars: Set<Character> = [

@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `KanbanDiagram` as columns of tickets. Sections become
@@ -7,11 +8,8 @@ public func renderKanbanAscii(_ model: KanbanDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
-
-    let nodesById = Dictionary(uniqueKeysWithValues: model.nodes.map { ($0.id, $0) })
-    _ = nodesById
 
     for section in model.sections {
         lines.append("[\(section.label.isEmpty ? section.id : section.label)]")

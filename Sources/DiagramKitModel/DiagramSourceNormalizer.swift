@@ -67,8 +67,10 @@ public enum DiagramSourceNormalizer {
 
     // MARK: - Private implementation
 
-    /// Quote-aware statement splitter. Characters in `separators` that appear
-    /// inside single- or double-quoted regions are treated as literal content.
+    /// Quote-aware statement splitter. Newlines always terminate a statement
+    /// (Mermaid lexers never allow quoted strings to span lines). Semicolons are
+    /// treated as literal content only inside double-quoted regions; single
+    /// quotes are never treated as quote openers.
     private static func _splitStatements(
         _ source: String,
         separators: CharacterSet
@@ -76,10 +78,18 @@ public enum DiagramSourceNormalizer {
         var parts: [String] = []
         var current = ""
         var inQuote = false
-        var quoteChar: Character?
         var isEscaped = false
 
         for ch in source {
+            if ch == "\n" {
+                // Newline always ends the current statement and resets quote state.
+                parts.append(current)
+                current = ""
+                inQuote = false
+                isEscaped = false
+                continue
+            }
+
             if inQuote {
                 current.append(ch)
                 if isEscaped {
@@ -90,16 +100,14 @@ public enum DiagramSourceNormalizer {
                     isEscaped = true
                     continue
                 }
-                if ch == quoteChar {
+                if ch == "\"" {
                     inQuote = false
-                    quoteChar = nil
                 }
                 continue
             }
 
-            if ch == "\"" || ch == "'" {
+            if ch == "\"" {
                 inQuote = true
-                quoteChar = ch
                 current.append(ch)
                 continue
             }

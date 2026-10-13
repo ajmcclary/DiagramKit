@@ -51,6 +51,10 @@ public struct MermaidImporter: DiagramSourceImporter {
             document.frontmatter = DiagramDocumentFrontmatter(theme: fmTheme, layout: fmLayout)
         }
 
+        if let fmDiagnostics = frontmatter?.diagnostics, !fmDiagnostics.isEmpty {
+            diagnostics.append(contentsOf: fmDiagnostics)
+        }
+
         return DiagramImportResult(document: document, diagnostics: diagnostics)
     }
 }

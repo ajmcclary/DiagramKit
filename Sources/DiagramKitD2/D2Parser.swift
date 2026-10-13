@@ -18,13 +18,40 @@ public struct D2Parser {
 
     // MARK: - Preprocessing
 
-    private func _stripInlineComment(_ line: String, marker: String) -> (stripped: String, wasStripped: Bool) {
-        guard let r = line.range(of: marker) else { return (line, false) }
-        let idx = line.distance(from: line.startIndex, to: r.lowerBound)
-        if idx == 0 || line[line.index(before: r.lowerBound)] == " " {
-            return (String(line[..<r.lowerBound]), true)
+    /// Returns the range of the first comment marker that appears OUTSIDE a
+    /// double-quoted string (with `\` escapes) and at line-start or after
+    /// whitespace. D2 comments are `#` only — `//` is not a D2 comment
+    /// marker, so it never strips.
+    private func _commentMarkerRange(_ line: String, marker: String) -> String.Index? {
+        var inString = false
+        var escaping = false
+        var i = line.startIndex
+        while i < line.endIndex {
+            let ch = line[i]
+            if inString {
+                if escaping {
+                    escaping = false
+                } else if ch == "\\" {
+                    escaping = true
+                } else if ch == "\"" {
+                    inString = false
+                }
+                i = line.index(after: i)
+                continue
+            }
+            if ch == "\"" {
+                inString = true
+                i = line.index(after: i)
+                continue
+            }
+            if ch == marker.first,
+               line[i...].hasPrefix(marker),
+               i == line.startIndex || line[line.index(before: i)] == " " {
+                return i
+            }
+            i = line.index(after: i)
         }
-        return (line, false)
+        return nil
     }
 
     private func preprocess(_ source: String) -> (cleaned: String, diagnostics: [DiagramDiagnostic]) {
@@ -49,19 +76,15 @@ public struct D2Parser {
                 inBlockComment = true
                 continue
             }
-            if trimmed.hasPrefix("#") || trimmed.hasPrefix("//") {
+            if trimmed.hasPrefix("#") {
                 continue
             }
-            // Strip inline comments. Both `#` and `//` are valid D2
-            // inline-comment markers. Only strip when the marker is at
-            // line-start or preceded by whitespace, so identifiers
-            // containing `#`/`//` aren't truncated.
+            // Strip inline `#` comments — quote-aware, so labels like
+            // `A["Item #1"]` survive. D2 has no `//` comment syntax; a `//`
+            // inside or outside quotes is content.
             var cleanLine = String(line)
-            let hashResult = _stripInlineComment(cleanLine, marker: "#")
-            cleanLine = hashResult.stripped
-            let slashResult = _stripInlineComment(cleanLine, marker: "//")
-            cleanLine = slashResult.stripped
-            if hashResult.wasStripped || slashResult.wasStripped {
+            if let hashRange = _commentMarkerRange(cleanLine, marker: "#") {
+                cleanLine = String(cleanLine[..<hashRange])
                 diagnostics.append(.lossyTransform(
                     .d2InlineCommentStripped,
                     message: "D2 inline comment stripped from line \(lineNo); the comment value is not preserved in the parsed document.",
@@ -141,12 +164,13 @@ public struct D2Parser {
     // MARK: - Edge parsing
 
     private func parseEdge(_ line: String, lineNumber: Int) throws -> (D2EdgeDefinition, lines: Int)? {
-        // Split by edge operators
+        // Split by edge operators — but only at occurrences OUTSIDE quoted
+        // strings, so a label like `"go -> there"` never parses as an edge.
         let operators = ["<->", "->", "--"]
         for op in operators {
-            if let range = line.range(of: op) {
-                let beforeOp = String(line[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
-                let afterOp = String(line[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+            guard let range = _edgeOperatorRange(line, op: op) else { continue }
+            let beforeOp = String(line[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let afterOp = String(line[range.upperBound...]).trimmingCharacters(in: .whitespaces)
 
                 // Parse source and target
                 // Source might have `<` prefix
@@ -199,7 +223,37 @@ public struct D2Parser {
                     targetArrow: targetArrow,
                     edgeKind: edgeKind
                 ), lines: 1)
+        }
+        return nil
+    }
+
+    /// First range of `op` in `line` outside double-quoted strings.
+    private func _edgeOperatorRange(_ line: String, op: String) -> Range<String.Index>? {
+        var inString = false
+        var escaping = false
+        var i = line.startIndex
+        while i < line.endIndex {
+            let ch = line[i]
+            if inString {
+                if escaping {
+                    escaping = false
+                } else if ch == "\\" {
+                    escaping = true
+                } else if ch == "\"" {
+                    inString = false
+                }
+                i = line.index(after: i)
+                continue
             }
+            if ch == "\"" {
+                inString = true
+                i = line.index(after: i)
+                continue
+            }
+            if ch == op.first, line[i...].hasPrefix(op) {
+                return i..<line.index(i, offsetBy: op.count)
+            }
+            i = line.index(after: i)
         }
         return nil
     }
@@ -259,7 +313,12 @@ public struct D2Parser {
         // Check if this is a property on the current node context
         // In this simple parser, we treat key.subkey as a property of key
         if key.contains(".") {
-            let parts = key.split(separator: ".")
+            let parts = key.split(separator: ".", omittingEmptySubsequences: false)
+            guard parts.count >= 2, !parts[0].isEmpty else {
+                // Invalid dotted key like `.: foo` — treat as a node definition with
+                // the raw key as the id rather than trapping on an empty base id.
+                return .nodeDefinition(D2NodeDefinition(id: key, label: value))
+            }
             let baseId = String(parts[0])
             let property = parts.dropFirst().joined(separator: ".")
 

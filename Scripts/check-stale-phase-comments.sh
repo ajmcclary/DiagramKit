@@ -22,6 +22,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# `rg --quiet` inside an `if` would pass vacuously when ripgrep is absent
+# (every pattern would look clean). Fail loudly instead.
+if ! command -v rg >/dev/null 2>&1; then
+  echo "check-stale-phase-comments.sh: requires ripgrep (rg) on PATH" >&2
+  exit 2
+fi
+
 # Use rg with explicit failure if any match is found. `--quiet` is fine here
 # because we re-run without it to show context when the gate fails.
 PATTERNS=(

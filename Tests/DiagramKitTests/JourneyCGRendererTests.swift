@@ -46,7 +46,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Do thing: 5: Me
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
         guard let context = makeContext(size: size) else {
@@ -55,7 +55,7 @@ final class JourneyCGRendererTests: XCTestCase {
         }
         let bounds = CGRect(origin: .zero, size: size)
         renderer.render(positioned, in: context, bounds: bounds)
-        XCTAssertTrue(true)
+        CGInkAssertions.assertInk(in: context)
     }
 
     func test_cgProducesNonNilImage() throws {
@@ -66,7 +66,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Do thing: 5: Me
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
         guard let context = makeContext(size: size) else {
@@ -75,6 +75,7 @@ final class JourneyCGRendererTests: XCTestCase {
         }
         let bounds = CGRect(origin: .zero, size: size)
         renderer.render(positioned, in: context, bounds: bounds)
+        CGInkAssertions.assertInk(in: context)
         let image = makeImage(from: context)
         XCTAssertNotNil(image)
     }
@@ -91,7 +92,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Lunch: 5: Me
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
         guard let context = makeContext(size: size) else {
@@ -100,6 +101,7 @@ final class JourneyCGRendererTests: XCTestCase {
         }
         let bounds = CGRect(origin: .zero, size: size)
         renderer.render(positioned, in: context, bounds: bounds)
+        CGInkAssertions.assertInk(in: context)
         let image = makeImage(from: context)
         XCTAssertNotNil(image)
     }
@@ -112,7 +114,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Do thing: 5: Me
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
         guard let context = makeContext(size: size) else {
@@ -121,6 +123,7 @@ final class JourneyCGRendererTests: XCTestCase {
         }
         let bounds = CGRect(origin: .zero, size: size)
         renderer.render(positioned, in: context, bounds: bounds)
+        CGInkAssertions.assertInk(in: context)
         let image = makeImage(from: context)
         guard let img = image else {
             XCTFail("Image is nil")
@@ -140,7 +143,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Sleep: 3: Bob
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
         guard let context = makeContext(size: size) else {
@@ -149,6 +152,7 @@ final class JourneyCGRendererTests: XCTestCase {
         }
         let bounds = CGRect(origin: .zero, size: size)
         renderer.render(positioned, in: context, bounds: bounds)
+        CGInkAssertions.assertInk(in: context)
         let image = makeImage(from: context)
         XCTAssertNotNil(image)
     }

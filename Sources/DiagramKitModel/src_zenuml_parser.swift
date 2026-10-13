@@ -956,6 +956,7 @@ private final class ZenUMLRecursiveDescentParser {
         // @return annotation — may be followed by async message or returnArrow on same/next line
         if case .annotationRet = peek() {
             advance()
+            let afterAnnotationPos = pos
             skipNewlinesAndComments()
             // Try async message first: A->B: content
             if let async = parseAsyncMessage() {
@@ -970,7 +971,8 @@ private final class ZenUMLRecursiveDescentParser {
                     if case .colon = peek() { advance(); if case .eventPayload(let s) = peek() { content = s; advance() } }
                     return .ret(value: nil, async: nil, returnArrow: .returnArrowMessage(from: from, to: to, content: content))
                 }
-                pos = savedPos
+                // Never rewind to the annotation itself — guarantee progress.
+                pos = afterAnnotationPos
             }
             // Bare @return with nothing after
             return .ret(value: nil, async: nil, returnArrow: nil)

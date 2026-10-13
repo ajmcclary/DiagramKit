@@ -15,6 +15,26 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 
+# check-sendable-annotations.sh and check-diagnostic-discipline.sh require
+# bash 4+ (associative arrays; they exit 2 under stock /bin/bash 3.2 rather
+# than fail open). Resolve a suitable interpreter once, mirroring
+# check-diagnostic-discipline-tests/run.sh.
+GATE_BASH=""
+if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+  GATE_BASH="bash"
+else
+  for candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /opt/local/bin/bash; do
+    if [[ -x "$candidate" ]] && [[ "$("$candidate" -c 'echo ${BASH_VERSINFO[0]}')" -ge 4 ]]; then
+      GATE_BASH="$candidate"
+      break
+    fi
+  done
+fi
+if [[ -z "$GATE_BASH" ]]; then
+  printf '%s\n' "bootstrap-smoke-check: WARNING no bash 4+ found; the sendable/diagnostic gates will exit 2 (install bash via Homebrew)." >&2
+  GATE_BASH="bash"
+fi
+
 status=0
 
 run_gate() {
@@ -53,11 +73,10 @@ run_build() {
   printf '%s\n' "$output"
 }
 
-# Cheap deterministic design gates run before compilation so generated drift
+# Cheap deterministic gates run before compilation so generated drift
 # fails fast. The sample-app UI adherence gate moved with the sample to
 # apps/DiagramStudio/Scripts/check-sample-design-adherence.sh in the
 # workspace reorganization.
-run_gate "check_codeeditor_design_system.sh" "$ROOT/Scripts/check_codeeditor_design_system.sh"
 
 run_gate "swift package dump-package" swift package dump-package
 # Catch undeclared-module-dep regressions that incremental builds mask. Each
@@ -85,11 +104,12 @@ run_gate "swift test (corpus multi-format image)" \
   swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot"
 run_gate "check-file-sizes.sh" "$ROOT/Scripts/check-file-sizes.sh"
 run_gate "strict-concurrency-check.sh" "$ROOT/Scripts/strict-concurrency-check.sh"
-run_gate "check-sendable-annotations.sh" "$ROOT/Scripts/check-sendable-annotations.sh"
-run_gate "check-diagnostic-discipline.sh" "$ROOT/Scripts/check-diagnostic-discipline.sh"
+run_gate "check-sendable-annotations.sh" "$GATE_BASH" "$ROOT/Scripts/check-sendable-annotations.sh"
+run_gate "check-diagnostic-discipline.sh" "$GATE_BASH" "$ROOT/Scripts/check-diagnostic-discipline.sh"
 run_gate "check-diagnostic-discipline-tests/run.sh" "$ROOT/Scripts/check-diagnostic-discipline-tests/run.sh"
 run_gate "check-stale-phase-comments.sh" "$ROOT/Scripts/check-stale-phase-comments.sh"
 run_gate "check-linux-check-runtime-skip.sh" "$ROOT/Scripts/check-linux-check-runtime-skip.sh"
+run_gate "check-zedtrek-pin.sh" "$ROOT/Scripts/check-zedtrek-pin.sh"
 run_gate "linux-check.sh" "$ROOT/Scripts/linux-check.sh"
 
 run_build "iOS" 'generic/platform=iOS'

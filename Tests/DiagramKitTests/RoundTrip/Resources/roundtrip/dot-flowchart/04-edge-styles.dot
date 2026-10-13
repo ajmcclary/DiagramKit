@@ -1,0 +1,5 @@
+digraph G {
+    a -> b [style=dotted];
+    b -> c [style=bold];
+    c -> d [dir=both];
+}

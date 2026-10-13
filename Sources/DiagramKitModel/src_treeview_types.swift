@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 // MARK: - Core Model Types
@@ -324,7 +325,7 @@ public struct PositionedTreeViewDiagram: Sendable {
 
 // MARK: - Parser Errors
 
-public enum TreeViewParserError: Error, LocalizedError {
+public enum TreeViewParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case emptySource
     case invalidLine(String)

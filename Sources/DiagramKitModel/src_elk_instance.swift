@@ -129,8 +129,6 @@ private func _layoutChildren(
     let idSet = Set(ids)
     let idToIndex = Dictionary(ids.enumerated().map { ($1, $0) }, uniquingKeysWith: { _, last in last })
 
-    var predecessors = Array(repeating: [Int](), count: nodeInfo.count)
-    var indegree = Array(repeating: 0, count: nodeInfo.count)
     var adjacency = Array(repeating: [Int](), count: nodeInfo.count)
 
     for edge in edges {
@@ -147,33 +145,48 @@ private func _layoutChildren(
             continue
         }
         adjacency[s].append(t)
-        predecessors[t].append(s)
-        indegree[t] += 1
     }
 
     var layer = Array(repeating: 0, count: nodeInfo.count)
-    var queue: [Int] = []
-    var head = 0
-    for i in 0..<indegree.count where indegree[i] == 0 {
-        queue.append(i)
-    }
 
-    while head < queue.count {
-        let u = queue[head]
-        head += 1
-        for v in adjacency[u] {
-            layer[v] = max(layer[v], layer[u] + 1)
-            indegree[v] -= 1
-            if indegree[v] == 0 {
-                queue.append(v)
+    // Cycle handling (M-SVG-5): Kahn's algorithm stalls on cycles, so first
+    // strip back edges with a deterministic DFS (nodes in index order,
+    // neighbors in adjacency order), then longest-path layer the remaining
+    // DAG in reverse-postorder. Acyclic graphs layer identically to Kahn's
+    // (same longest-path values); cycle members now spread across ranks
+    // instead of all collapsing into rank 1.
+    var dfsState = Array(repeating: 0, count: nodeInfo.count) // 0 new, 1 open, 2 done
+    var isBackEdge = adjacency.map { marks in Array(repeating: false, count: marks.count) }
+    var topoOrder: [Int] = []
+
+    for start in 0..<nodeInfo.count where dfsState[start] == 0 {
+        dfsState[start] = 1
+        var stack: [(node: Int, nextEdge: Int)] = [(start, 0)]
+        while let top = stack.last {
+            if top.nextEdge < adjacency[top.node].count {
+                stack[stack.count - 1].nextEdge += 1
+                let v = adjacency[top.node][top.nextEdge]
+                if dfsState[v] == 1 {
+                    // Back edge into the open DFS path — part of a cycle.
+                    isBackEdge[top.node][top.nextEdge] = true
+                } else if dfsState[v] == 0 {
+                    dfsState[v] = 1
+                    stack.append((v, 0))
+                }
+            } else {
+                dfsState[top.node] = 2
+                stack.removeLast()
+                topoOrder.append(top.node)
             }
         }
     }
 
-    if head < nodeInfo.count {
-        for idx in 0..<nodeInfo.count where !queue.contains(idx) {
-            let predMax = predecessors[idx].map { layer[$0] }.max() ?? 0
-            layer[idx] = predMax + 1
+    // Reverse postorder of the DFS forest is a topological order once back
+    // edges are ignored; one relaxation pass in that order yields the
+    // longest-path layering.
+    for u in topoOrder.reversed() {
+        for (j, v) in adjacency[u].enumerated() where !isBackEdge[u][j] {
+            layer[v] = max(layer[v], layer[u] + 1)
         }
     }
 

@@ -44,18 +44,24 @@ cd "$PROJECT_ROOT"
 
 mkdir -p .rebaseline-logs
 
-JSON="Tests/DiagramKitTests/Resources/test-diagrams.json"
+JSON="Sources/DiagramKitCorpus/Resources/test-diagrams.json"
 if [ ! -f "$JSON" ]; then
     echo "Corpus file missing: $JSON" >&2
     exit 1
 fi
 
-# Extract IDs (jq preferred, sed fallback).
+# Extract IDs (jq preferred, sed fallback). No `mapfile`: it is bash 4+ and
+# stock macOS /bin/bash is 3.2.
+ALL_IDS=()
 if command -v jq >/dev/null 2>&1; then
-    mapfile -t ALL_IDS < <(jq -r '.diagrams[].id' "$JSON")
+    while IFS= read -r id; do ALL_IDS+=("$id"); done < <(jq -r '.diagrams[].id' "$JSON")
 else
-    mapfile -t ALL_IDS < <(grep -oE '"id"\s*:\s*"[^"]+"' "$JSON" \
+    while IFS= read -r id; do ALL_IDS+=("$id"); done < <(grep -oE '"id"\s*:\s*"[^"]+"' "$JSON" \
         | sed -E 's/.*"id"\s*:\s*"([^"]+)".*/\1/')
+fi
+if [ "${#ALL_IDS[@]}" -eq 0 ]; then
+    echo "No corpus IDs extracted from $JSON" >&2
+    exit 1
 fi
 echo "Found ${#ALL_IDS[@]} corpus entries."
 
@@ -67,7 +73,7 @@ record_target() {
     local ids=()
     if [ -s "$missing_file" ]; then
         echo "[$name] resuming from $missing_file"
-        mapfile -t ids < "$missing_file"
+        while IFS= read -r id; do ids+=("$id"); done < "$missing_file"
     else
         ids=( "${ALL_IDS[@]}" )
     fi

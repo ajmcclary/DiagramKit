@@ -1,6 +1,15 @@
 // Ported from original/src/multiline-utils.ts
 import Foundation
 
+private let _brTagRegex = try! NSRegularExpression(pattern: #"<br\s*/?>"#, options: [.caseInsensitive])
+private let _formatStripRegex = try! NSRegularExpression(pattern: #"</?(?:sub|sup|small|mark)\s*>"#, options: [.caseInsensitive])
+private let _boldRegex = try! NSRegularExpression(pattern: #"\*\*(.+?)\*\*"#, options: [])
+private let _italicRegex = try! NSRegularExpression(pattern: #"\*([^\s*](?:[^*]*[^\s*])?)\*"#, options: [])
+private let _strikeRegex = try! NSRegularExpression(pattern: #"~~(.+?)~~"#, options: [])
+private let _htmlFormatRegex = try! NSRegularExpression(pattern: #"</?(?:b|strong|i|em|u|s|del)\s*>"#, options: [.caseInsensitive])
+private let _formatTagDetectRegex = try! NSRegularExpression(pattern: #"</?(?:b|strong|i|em|u|s|del)\s*>"#, options: [.caseInsensitive])
+private let _inlineFormatRegex = try! NSRegularExpression(pattern: #"<(\/)?(?:(b|strong)|(i|em)|(u)|(s|del))\s*>"#, options: [.caseInsensitive])
+
 public final class original_src_multiline_utils {
     public init() {}
 
@@ -21,25 +30,20 @@ public final class original_src_multiline_utils {
         }
 
         var result = unquoted
-        result = regexReplace(result, pattern: #"<br\s*/?>"#, template: "\n", options: [.caseInsensitive])
+        result = regexReplace(result, regex: _brTagRegex, template: "\n")
         result = result.replacingOccurrences(of: "\\n", with: "\n")
-        result = regexReplace(result, pattern: #"</?(?:sub|sup|small|mark)\s*>"#, template: "", options: [.caseInsensitive])
+        result = regexReplace(result, regex: _formatStripRegex, template: "")
 
         // Markdown formatting -> HTML tags (order matters)
-        result = regexReplace(result, pattern: #"\*\*(.+?)\*\*"#, template: "<b>$1</b>")
-        result = regexReplace(result, pattern: #"\*([^\s*](?:[^*]*[^\s*])?)\*"#, template: "<i>$1</i>")
-        result = regexReplace(result, pattern: #"~~(.+?)~~"#, template: "<s>$1</s>")
+        result = regexReplace(result, regex: _boldRegex, template: "<b>$1</b>")
+        result = regexReplace(result, regex: _italicRegex, template: "<i>$1</i>")
+        result = regexReplace(result, regex: _strikeRegex, template: "<s>$1</s>")
 
         return result
     }
 
     public static func stripFormattingTags(_ text: String) -> String {
-        regexReplace(
-            text,
-            pattern: #"</?(?:b|strong|i|em|u|s|del)\s*>"#,
-            template: "",
-            options: [.caseInsensitive]
-        )
+        regexReplace(text, regex: _htmlFormatRegex, template: "")
     }
 
     /// Canonical XML escaping. Escapes `&`, `<`, `>`, `"`, and `'` (numeric `&#39;`).
@@ -142,24 +146,11 @@ public final class original_src_multiline_utils {
     }
 
     private static func hasFormatTags(_ line: String) -> Bool {
-        guard let regex = try? NSRegularExpression(
-            pattern: #"</?(?:b|strong|i|em|u|s|del)\s*>"#,
-            options: [.caseInsensitive]
-        ) else {
-            return false
-        }
         let range = NSRange(line.startIndex..<line.endIndex, in: line)
-        return regex.firstMatch(in: line, options: [], range: range) != nil
+        return _formatTagDetectRegex.firstMatch(in: line, options: [], range: range) != nil
     }
 
     private static func parseInlineFormatting(_ line: String) -> [StyledSegment] {
-        guard let regex = try? NSRegularExpression(
-            pattern: #"<(\/)?(?:(b|strong)|(i|em)|(u)|(s|del))\s*>"#,
-            options: [.caseInsensitive]
-        ) else {
-            return [StyledSegment(text: line, bold: false, italic: false, underline: false, strikethrough: false)]
-        }
-
         var segments: [StyledSegment] = []
         var bold = false
         var italic = false
@@ -168,7 +159,7 @@ public final class original_src_multiline_utils {
         var lastUtf16Index = 0
 
         let fullRange = NSRange(line.startIndex..<line.endIndex, in: line)
-        let matches = regex.matches(in: line, options: [], range: fullRange)
+        let matches = _inlineFormatRegex.matches(in: line, options: [], range: fullRange)
 
         for match in matches {
             if match.range.location > lastUtf16Index {
@@ -214,6 +205,15 @@ public final class original_src_multiline_utils {
             return nil
         }
         return String(source[r])
+    }
+
+    private static func regexReplace(
+        _ source: String,
+        regex: NSRegularExpression,
+        template: String
+    ) -> String {
+        let range = NSRange(source.startIndex..<source.endIndex, in: source)
+        return regex.stringByReplacingMatches(in: source, options: [], range: range, withTemplate: template)
     }
 
     private static func regexReplace(

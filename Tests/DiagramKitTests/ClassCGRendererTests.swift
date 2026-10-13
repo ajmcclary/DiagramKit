@@ -67,7 +67,7 @@ struct ClassCGRendererTests {
     private func render(source: String) throws {
         try renderOnWorker {
             let graph = try DiagramPipeline.parse(source)
-            let positioned = try GraphLayout().layout(graph)
+            let positioned = try _GraphLayout().layout(graph)
             let renderer = DiagramRenderer()
             let size = CGSize(
                 width: CGFloat(max(1, positioned.width)),
@@ -79,6 +79,7 @@ struct ClassCGRendererTests {
                 throw RenderError.contextCreationFailed
             }
             renderer.render(positioned, in: context, bounds: bounds)
+            CGInkAssertions.assertInk(in: context)
         }
     }
 

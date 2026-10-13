@@ -41,6 +41,56 @@ private func flowDoc(_ nodes: [String]) -> DiagramDocument {
     return DiagramDocument(payload: .flowchart(model))
 }
 
+/// Deterministic coordination point for exporters that must hold the
+/// worker thread at a known point. Replaces the former load-sensitive
+/// `Task.sleep` observations (REVIEW M-T-5): tests await
+/// `waitUntilStarted()` to know the export is in flight, and
+/// `release()` to let it finish — no wall-clock timing.
+private actor ExportGate {
+    private var startedContinuations: [CheckedContinuation<Void, Never>] = []
+    private var releaseContinuation: CheckedContinuation<Void, Never>?
+
+    /// Resumes once the exporter has signaled that it entered `export`.
+    func waitUntilStarted() async {
+        await withCheckedContinuation { startedContinuations.append($0) }
+    }
+
+    func signalStarted() {
+        for continuation in startedContinuations { continuation.resume() }
+        startedContinuations.removeAll()
+    }
+
+    func awaitRelease() async {
+        await withCheckedContinuation { releaseContinuation = $0 }
+    }
+
+    func release() {
+        releaseContinuation?.resume()
+        releaseContinuation = nil
+    }
+}
+
+/// Exporter that signals `gate` on entry and blocks its worker thread
+/// until `gate.release()` — the same semaphore-blocking pattern the
+/// suite already uses, but with deterministic start/release edges.
+private struct GatedExporter: DiagramExporter {
+    let name: String = "Gated"
+    let formatID: DiagramFormatID = .mermaid
+    let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+    let gate: ExportGate
+
+    func export(_ document: DiagramDocument) throws -> DiagramExportResult {
+        let sema = DispatchSemaphore(value: 0)
+        Task {
+            await gate.signalStarted()
+            await gate.awaitRelease()
+            sema.signal()
+        }
+        sema.wait()
+        return DiagramExportResult(source: "gated")
+    }
+}
+
 @MainActor
 private func makeEditor(_ nodes: [String] = ["A"]) -> DiagramEditor {
     DiagramEditor(
@@ -117,18 +167,22 @@ struct DiagramEditorAsyncExportTests {
 
     @Test("Cancelling the outer Task does not abort the in-flight commit")
     func cancellationIsolation() async throws {
-        let editor = makeEditor(["A"])
+        let gate = ExportGate()
+        let editor = DiagramEditor(
+            document: flowDoc(["A"]),
+            preferredExportFormat: .mermaid,
+            exportRegistry: ExporterRegistry.empty.registering(GatedExporter(gate: gate))
+        )
 
         let task = Task { @MainActor in
             try await editor.performFlowchart(.insertNode(id: "B", label: "B"))
         }
-        // Let the inner Task start the worker hop, then cancel the outer.
-        try await Task.sleep(for: .milliseconds(10))
+        // Deterministic: the exporter has signaled entry, so the commit
+        // is genuinely mid-flight when the caller is cancelled.
+        await gate.waitUntilStarted()
         task.cancel()
-        _ = try? await task.value
-
-        // Drain any continuation work.
-        try await Task.sleep(for: .milliseconds(50))
+        await gate.release()
+        try await task.value
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false), "expected flowchart")
@@ -174,27 +228,7 @@ struct DiagramEditorAsyncExportTests {
 
     @Test("isExporting is false at rest, true during a mutation, false after")
     func isExportingTransitions() async throws {
-        actor Gate {
-            private var continuation: CheckedContinuation<Void, Never>?
-            func wait() async {
-                await withCheckedContinuation { self.continuation = $0 }
-            }
-            func release() { continuation?.resume(); continuation = nil }
-        }
-        let gate = Gate()
-
-        struct GatedExporter: DiagramExporter {
-            let name: String = "Gated"
-            let formatID: DiagramFormatID = .mermaid
-            let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
-            let gate: Gate
-            func export(_ document: DiagramDocument) throws -> DiagramExportResult {
-                let sema = DispatchSemaphore(value: 0)
-                Task { await gate.wait(); sema.signal() }
-                sema.wait()
-                return DiagramExportResult(source: "gated")
-            }
-        }
+        let gate = ExportGate()
 
         let editor = DiagramEditor(
             document: flowDoc(["A"]),
@@ -206,7 +240,9 @@ struct DiagramEditorAsyncExportTests {
         let task = Task { @MainActor in
             try await editor.performFlowchart(.insertNode(id: "B", label: "B"))
         }
-        try await Task.sleep(for: .milliseconds(50))
+        // Deterministic: once the exporter has signaled entry the
+        // mutation is in flight, so isExporting must be true.
+        await gate.waitUntilStarted()
         #expect(editor.isExporting == true)
         await gate.release()
         try await task.value

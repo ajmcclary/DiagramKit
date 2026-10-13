@@ -101,6 +101,14 @@ public struct DiagramFontResolver: Sendable {
         return BMFont(name: name, size: size)
     }
 
+    /// SPI (underscore-prefixed): lock-protected `BMFont(name:size:)` for
+    /// out-of-module render/layout code that builds a font outside the
+    /// resolver instance methods (e.g. mindmap text measurement) — see the
+    /// `fontLock` contract above.
+    public static func _lockedBMFont(name: String, size: CGFloat) -> BMFont? {
+        makeBMFont(name: name, size: size)
+    }
+
     private static func makeSystemBMFont(size: CGFloat, weight: BMFont.Weight) -> BMFont {
         fontLock.lock()
         defer { fontLock.unlock() }
@@ -225,10 +233,10 @@ public struct DiagramFontResolver: Sendable {
         if let family = tokens.defaultProportionalFontFamily {
             if bold {
                 for name in ["\(family)-Bold", "\(family) Bold"] {
-                    if let f = BMFont(name: name, size: size) { return f }
+                    if let f = Self.makeBMFont(name: name, size: size) { return f }
                 }
             }
-            if let f = BMFont(name: family, size: size) { return f }
+            if let f = Self.makeBMFont(name: family, size: size) { return f }
         }
         if let family = tokens.eventModelingFontFamily {
             if bold {
@@ -237,14 +245,14 @@ public struct DiagramFontResolver: Sendable {
                 // for older registrations), and the spaced variant.
                 let stripped = family.replacingOccurrences(of: " ", with: "")
                 for name in ["\(stripped)-Bold", "\(family.replacingOccurrences(of: " MS", with: ""))-BoldMS", "\(family) Bold"] {
-                    if let f = BMFont(name: name, size: size) { return f }
+                    if let f = Self.makeBMFont(name: name, size: size) { return f }
                 }
             }
             // Family lookup tolerates both with-space and without-space
             // forms; macOS sometimes registers it under either.
             let stripped = family.replacingOccurrences(of: " ", with: "")
             for name in [family, stripped] {
-                if let f = BMFont(name: name, size: size) { return f }
+                if let f = Self.makeBMFont(name: name, size: size) { return f }
             }
         }
         if bold { return BMFont.boldSystemFont(ofSize: size) }
@@ -256,7 +264,7 @@ public struct DiagramFontResolver: Sendable {
     /// Resolve the node-label font.
     public func nodeLabelFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeNodeLabel) {
+           let f = Self.makeBMFont(name: family, size: tokens.fontSizeNodeLabel) {
             return f
         }
         return proportionalFont(size: tokens.fontSizeNodeLabel, weight: tokens.fontWeightNodeLabel)
@@ -265,7 +273,7 @@ public struct DiagramFontResolver: Sendable {
     /// Resolve the edge-label font.
     public func edgeLabelFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeEdgeLabel) {
+           let f = Self.makeBMFont(name: family, size: tokens.fontSizeEdgeLabel) {
             return f
         }
         return proportionalFont(size: tokens.fontSizeEdgeLabel, weight: tokens.fontWeightEdgeLabel)
@@ -274,7 +282,7 @@ public struct DiagramFontResolver: Sendable {
     /// Resolve the group-header font.
     public func groupHeaderFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeGroupHeader) {
+           let f = Self.makeBMFont(name: family, size: tokens.fontSizeGroupHeader) {
             return f
         }
         return proportionalFont(size: tokens.fontSizeGroupHeader, weight: tokens.fontWeightGroupHeader)
@@ -289,9 +297,9 @@ public struct DiagramFontResolver: Sendable {
         if let family = tokens.defaultProportionalFontFamily {
             let italicCandidates = ["\(family)-Italic", "\(family) Italic"]
             for name in italicCandidates {
-                if let f = BMFont(name: name, size: size) { return f }
+                if let f = Self.makeBMFont(name: name, size: size) { return f }
             }
-            if let baseFont = BMFont(name: family, size: size) {
+            if let baseFont = Self.makeBMFont(name: family, size: size) {
                 #if canImport(UIKit)
                 if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
                     return BMFont(descriptor: descriptor, size: size)
@@ -321,9 +329,9 @@ public struct DiagramFontResolver: Sendable {
         if let family = tokens.defaultFontFamily {
             let italicCandidates = ["\(family)-Italic", "\(family) Italic"]
             for name in italicCandidates {
-                if let f = BMFont(name: name, size: size) { return f }
+                if let f = Self.makeBMFont(name: name, size: size) { return f }
             }
-            if let f = BMFont(name: family, size: size) { return f }
+            if let f = Self.makeBMFont(name: family, size: size) { return f }
         }
         #if canImport(UIKit)
         return UIFont(name: "Menlo-Italic", size: size)
@@ -340,9 +348,9 @@ public struct DiagramFontResolver: Sendable {
         if let family = tokens.defaultFontFamily {
             let candidates = ["\(family)-Bold", "\(family) Bold"]
             for name in candidates {
-                if let f = BMFont(name: name, size: size) { return f }
+                if let f = Self.makeBMFont(name: name, size: size) { return f }
             }
-            if let f = BMFont(name: family, size: size) { return f }
+            if let f = Self.makeBMFont(name: family, size: size) { return f }
         }
         return BMFont.monospacedSystemFont(ofSize: size, weight: .bold)
     }

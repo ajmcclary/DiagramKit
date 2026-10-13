@@ -59,15 +59,15 @@
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="94.32,209.80000000000004 94.32,185.80000000000004 84.31649999999999,185.80000000000004 84.31649999999999,161.80000000000004" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="84.31649999999999,124.90000000000003 84.31649999999999,100.90000000000003 72.831,100.90000000000003 72.831,76.90000000000003" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Foundation" data-shape="rectangle">
-  <path d="M 40.0 209.80000000000004 L 148.64 209.80000000000004 L 148.64 246.70000000000005 L 40.0 246.70000000000005 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 209.80 L 148.64 209.80 L 148.64 246.70 L 40 246.70 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="94.32" y="228.25000000000006" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Foundation</text>
 </g>
 <g class="node" data-id="B" data-label="Layer 2" data-shape="rectangle">
-  <path d="M 40.0 124.90000000000003 L 128.63299999999998 124.90000000000003 L 128.63299999999998 161.80000000000004 L 40.0 161.80000000000004 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 124.90 L 128.63 124.90 L 128.63 161.80 L 40 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="84.31649999999999" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Layer 2</text>
 </g>
 <g class="node" data-id="C" data-label="Top" data-shape="rectangle">
-  <path d="M 40.0 40.00000000000003 L 105.662 40.00000000000003 L 105.662 76.90000000000003 L 40.0 76.90000000000003 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 105.66 40 L 105.66 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="72.831" y="58.45000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Top</text>
 </g>
 </svg>

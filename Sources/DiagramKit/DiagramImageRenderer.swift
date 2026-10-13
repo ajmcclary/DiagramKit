@@ -72,32 +72,30 @@ public final class DiagramImageRenderer {
     /// Parse, lay out, and render `source` to a `BMImage`. `nil` is
     /// returned (and an issue reported) if the layout produced an empty
     /// bounding box. `overrideScale` takes precedence over `self.scale`.
+    ///
+    /// The method is `@MainActor` only because it reads the renderer's
+    /// mutable configuration; the prepare + rasterization itself runs in
+    /// the nonisolated static implementation, so large images never
+    /// block the UI thread (M-CG-4).
     @MainActor
     public func renderImage(from source: String, scale overrideScale: CGFloat? = nil) async throws -> BMImage? {
-        let theme = theme
-        let layoutConfig = layoutConfig
-        let sourceFormat = sourceFormat
-        let prepared = try await DiagramEngine._runOnWorker {
-            try DiagramPipeline.prepare(
-                source: source,
-                theme: theme,
-                layoutConfig: layoutConfig,
-                sourceFormat: sourceFormat
-            )
-        }
-        let image = _renderPrepared(prepared, scale: overrideScale ?? scale)
-        if image == nil {
-            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:) returned nil.")
-        }
-        return image
+        try await Self._renderFromSource(
+            source: source,
+            theme: theme,
+            layoutConfig: layoutConfig,
+            sourceFormat: sourceFormat,
+            scale: overrideScale ?? scale
+        )
     }
 
     /// Render an already-positioned graph to a `BMImage`. Bypasses
     /// parse + layout. Use when you have a cached `PositionedGraph`.
-    @MainActor
+    /// Synchronous and nonisolated — the rasterization is off-main-safe
+    /// CGContext work and runs on the caller's thread (M-CG-4).
     public func renderImage(from positioned: PositionedGraph, scale overrideScale: CGFloat? = nil) -> BMImage? {
-        let image = _renderPrepared(
+        let image = Self._renderPrepared(
             PreparedDiagram(positioned: positioned, theme: theme),
+            theme: theme,
             scale: overrideScale ?? scale
         )
         if image == nil {
@@ -107,25 +105,18 @@ public final class DiagramImageRenderer {
     }
 
     /// Parse, lay out, and render `source` fit into the given pixel
-    /// `size`, centred and aspect-preserved.
+    /// `size`, centred and aspect-preserved. See ``renderImage(from:scale:)``
+    /// for the isolation note (M-CG-4).
     @MainActor
     public func renderImage(from source: String, size: CGSize) async throws -> BMImage? {
-        let theme = theme
-        let layoutConfig = layoutConfig
-        let sourceFormat = sourceFormat
-        let prepared = try await DiagramEngine._runOnWorker {
-            try DiagramPipeline.prepare(
-                source: source,
-                theme: theme,
-                layoutConfig: layoutConfig,
-                sourceFormat: sourceFormat
-            )
-        }
-        let image = _renderPreparedFitted(prepared, size: size)
-        if image == nil {
-            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:size:) returned nil.")
-        }
-        return image
+        try await Self._renderFittedFromSource(
+            source: source,
+            theme: theme,
+            layoutConfig: layoutConfig,
+            sourceFormat: sourceFormat,
+            size: size,
+            scale: scale
+        )
     }
 
     /// Parse + layout + emit SVG markup. `idPolicy` controls how
@@ -196,37 +187,94 @@ public final class DiagramImageRenderer {
 
     // MARK: - Platform image rendering
 
+    /// Nonisolated implementations (M-CG-4): every function here touches
+    /// only `Sendable` values (`PreparedDiagram`, `DiagramTheme`, …), so
+    /// the worker-dispatched prepare and the CGContext rasterization run
+    /// off the main actor regardless of the caller's isolation.
+
+    private nonisolated static func _renderFromSource(
+        source: String,
+        theme: DiagramTheme,
+        layoutConfig: LayoutConfig,
+        sourceFormat: DiagramFormatID?,
+        scale: CGFloat
+    ) async throws -> BMImage? {
+        let prepared = try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.prepare(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
+            )
+        }
+        let image = _renderPrepared(prepared, theme: theme, scale: scale)
+        if image == nil {
+            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:) returned nil.")
+        }
+        return image
+    }
+
+    private nonisolated static func _renderFittedFromSource(
+        source: String,
+        theme: DiagramTheme,
+        layoutConfig: LayoutConfig,
+        sourceFormat: DiagramFormatID?,
+        size: CGSize,
+        scale: CGFloat
+    ) async throws -> BMImage? {
+        let prepared = try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.prepare(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
+            )
+        }
+        let image = _renderPreparedFitted(prepared, theme: theme, size: size, scale: scale)
+        if image == nil {
+            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:size:) returned nil.")
+        }
+        return image
+    }
+
     /// Bitmap creation now routes through the shared
     /// `DiagramBitmapRenderer` so the UIKit/AppKit setup can't drift
     /// between `DiagramImageRenderer` and `DiagramLayer`.
-    @MainActor
-    private func renderBitmap(
+    private nonisolated static func renderBitmap(
         size: CGSize,
         scale: CGFloat,
+        theme: DiagramTheme,
         draw: (CGContext) -> Void
     ) -> BMImage? {
         DiagramBitmapRenderer.render(size: size, scale: scale, theme: theme, draw: draw)
     }
 
-    @MainActor
-    private func _renderPrepared(_ prepared: PreparedDiagram, scale: CGFloat) -> BMImage? {
+    private nonisolated static func _renderPrepared(
+        _ prepared: PreparedDiagram,
+        theme: DiagramTheme,
+        scale: CGFloat
+    ) -> BMImage? {
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
         let size = CGSize(width: diagBounds.width, height: diagBounds.height)
-        return renderBitmap(size: size, scale: scale) { ctx in
+        return renderBitmap(size: size, scale: scale, theme: theme) { ctx in
             ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
             prepared.render(in: ctx, bounds: diagBounds)
         }
     }
 
-    @MainActor
-    private func _renderPreparedFitted(_ prepared: PreparedDiagram, size: CGSize) -> BMImage? {
+    private nonisolated static func _renderPreparedFitted(
+        _ prepared: PreparedDiagram,
+        theme: DiagramTheme,
+        size: CGSize,
+        scale: CGFloat
+    ) -> BMImage? {
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
         let scaleX = size.width / diagBounds.width
         let scaleY = size.height / diagBounds.height
         let fitScale = min(scaleX, scaleY)
-        return renderBitmap(size: size, scale: scale) { ctx in
+        return renderBitmap(size: size, scale: scale, theme: theme) { ctx in
             let scaledWidth = diagBounds.width * fitScale
             let scaledHeight = diagBounds.height * fitScale
             let offsetX = (size.width - scaledWidth) / 2
@@ -240,32 +288,41 @@ public final class DiagramImageRenderer {
 }
 
 extension DiagramImageRenderer {
-    /// One-shot convenience: build a renderer with the given theme +
-    /// scale and render `source` to a `BMImage`. Equivalent to
+    /// One-shot convenience: render `source` to a `BMImage` with the
+    /// given theme + scale. Equivalent to
     /// `DiagramImageRenderer(theme: …).renderImage(from: source)`.
-    @MainActor
+    /// Nonisolated — the heavy work never touches the main actor (M-CG-4).
     public static func render(
         _ source: String,
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0,
         sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
-        let renderer = DiagramImageRenderer(theme: theme, sourceFormat: sourceFormat)
-        renderer.scale = scale
-        return try await renderer.renderImage(from: source)
+        try await _renderFromSource(
+            source: source,
+            theme: theme,
+            layoutConfig: LayoutConfig(),
+            sourceFormat: sourceFormat,
+            scale: scale
+        )
     }
 
     /// One-shot convenience: render `source` fit into `size`,
-    /// centred and aspect-preserved.
-    @MainActor
+    /// centred and aspect-preserved. Nonisolated (M-CG-4).
     public static func render(
         _ source: String,
         size: CGSize,
         theme: DiagramTheme = .default,
         sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
-        let renderer = DiagramImageRenderer(theme: theme, sourceFormat: sourceFormat)
-        return try await renderer.renderImage(from: source, size: size)
+        try await _renderFittedFromSource(
+            source: source,
+            theme: theme,
+            layoutConfig: LayoutConfig(),
+            sourceFormat: sourceFormat,
+            size: size,
+            scale: 2.0
+        )
     }
 }
 #endif

@@ -42,6 +42,7 @@ struct TreemapRendererTests {
         #expect(context != nil)
         if let context {
             DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: 120, height: 80))
+            CGInkAssertions.assertInk(in: context)
         }
     }
 }

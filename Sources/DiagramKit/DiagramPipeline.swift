@@ -163,7 +163,7 @@ public enum DiagramPipeline {
     ) throws -> PositionedGraph {
         try runPipeline(operation: "DiagramPipeline.layout(source:)") {
             let graph = try loadDocument(source, sourceFormat: sourceFormat, registry: registry)
-            return try GraphLayout(config: config).layout(graph)
+            return try _GraphLayout(config: config).layout(graph)
         }
     }
 
@@ -175,7 +175,7 @@ public enum DiagramPipeline {
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
         try runPipeline(operation: "DiagramPipeline.layout(graph:)") {
-            try GraphLayout(config: config).layout(graph)
+            try _GraphLayout(config: config).layout(graph)
         }
     }
 
@@ -199,7 +199,7 @@ public enum DiagramPipeline {
                 sourceFormat: sourceFormat,
                 registry: registry
             )
-            let positioned = try GraphLayout(config: layoutConfig).layout(importResult.document)
+            let positioned = try _GraphLayout(config: layoutConfig).layout(importResult.document)
             return PreparedDiagram(
                 positioned: positioned,
                 theme: theme,
@@ -227,7 +227,7 @@ public enum DiagramPipeline {
         try runPipeline(operation: "DiagramPipeline.renderSVG") {
             let graph = try loadDocument(source, sourceFormat: sourceFormat, registry: registry)
             try _assertPlatformSupport(graph)
-            let positioned = try GraphLayout(config: layoutConfig).layout(graph)
+            let positioned = try _GraphLayout(config: layoutConfig).layout(graph)
 
             let colors = _diagramColors(from: theme)
             let font = DiagramSVGFontFamily.proportional
@@ -249,7 +249,8 @@ public enum DiagramPipeline {
     /// positioned entry point in `SVGRenderRegistry` are supported.
     public static func renderSVG(
         positioned: PositionedGraph,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        idPolicy: SVGIDPolicy = .unique
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             try _assertPlatformSupport(positioned.diagram)
@@ -257,7 +258,7 @@ public enum DiagramPipeline {
             let font = DiagramSVGFontFamily.proportional
             let diagramId = SVGIDGenerator.id(
                 for: "\(positioned.diagram.type.rawValue)-\(positioned.width)x\(positioned.height)",
-                policy: .unique
+                policy: idPolicy
             )
             let svg = try SVGRenderRegistry.render(
                 positioned: positioned,

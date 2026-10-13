@@ -36,7 +36,7 @@ enum DOTBlockExport {
         // Preserve root-level columns via marker.
         if let rootCols = block.blockDatabase[block.rootId]?.columns,
            rootCols >= 1 {
-            lines.append("  \(DOTRecoveryMarker.emitBlockCols(containerID: block.rootId, columns: rootCols))")
+            lines.append("  \(DOTRecoveryMarker.emitBlockCols(containerID: sanitize(block.rootId), columns: rootCols))")
         }
 
         for (idx, edge) in block.edges.enumerated() {
@@ -78,7 +78,7 @@ enum DOTBlockExport {
             guard let node = db[id] else { continue }
             switch node.type {
             case .space:
-                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockSpace(parentID: parentID, columnIndex: col))")
+                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockSpace(parentID: sanitize(parentID), columnIndex: col))")
                 continue
 
             case .composite:
@@ -97,7 +97,7 @@ enum DOTBlockExport {
                 )
                 lines.append("\(indent)}")
                 if let cols = node.columns, cols >= 1 {
-                    lines.append("\(indent)\(DOTRecoveryMarker.emitBlockCols(containerID: id, columns: cols))")
+                    lines.append("\(indent)\(DOTRecoveryMarker.emitBlockCols(containerID: sanitize(id), columns: cols))")
                 }
 
             default:
@@ -105,15 +105,15 @@ enum DOTBlockExport {
             }
 
             if let styles = node.styles, !styles.isEmpty {
-                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockStyle(nodeID: id, stylesCsv: styles.joined(separator: ";")))")
+                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockStyle(nodeID: sanitize(id), stylesCsv: styles.joined(separator: ";")))")
             }
             if let classes = node.classes {
                 for className in classes {
-                    lines.append("\(indent)\(DOTRecoveryMarker.emitBlockClassApply(nodeID: id, className: className))")
+                    lines.append("\(indent)\(DOTRecoveryMarker.emitBlockClassApply(nodeID: sanitize(id), className: className))")
                 }
             }
             if let span = node.widthInColumns, span > 1 {
-                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockWidth(nodeID: id, widthInColumns: span))")
+                lines.append("\(indent)\(DOTRecoveryMarker.emitBlockWidth(nodeID: sanitize(id), widthInColumns: span))")
             }
         }
     }
@@ -133,7 +133,7 @@ enum DOTBlockExport {
         }
         lines.append("\(indent)\(sanitize(node.id)) [\(attrs)];")
         if mapped.lossy {
-            lines.append("\(indent)\(DOTRecoveryMarker.emitBlockShapeFallback(nodeID: node.id, rawValue: node.type.rawValue))")
+            lines.append("\(indent)\(DOTRecoveryMarker.emitBlockShapeFallback(nodeID: sanitize(node.id), rawValue: node.type.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
                 message: "block shape '\(node.type.rawValue)' downgraded to DOT '\(mapped.name)'"
@@ -141,7 +141,7 @@ enum DOTBlockExport {
         }
         if node.type == .blockArrow, let dirs = node.directions, !dirs.isEmpty {
             let csv = dirs.map(\.rawValue).joined(separator: ",")
-            lines.append("\(indent)\(DOTRecoveryMarker.emitBlockArrowDir(nodeID: node.id, directionsCsv: csv))")
+            lines.append("\(indent)\(DOTRecoveryMarker.emitBlockArrowDir(nodeID: sanitize(node.id), directionsCsv: csv))")
         }
     }
 
@@ -192,31 +192,14 @@ enum DOTBlockExport {
     // MARK: - Sanitization / escaping
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default:
-                continue
-            }
-        }
-        return out.isEmpty ? "node" : out
+        DOTHygiene.mangleID(raw)
     }
 
-    private static func escape(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
+    private static func escape(_ s: String) -> String {
+        DOTHygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .joined(separator: " ")
+        DOTHygiene.singleLine(s)
     }
 }

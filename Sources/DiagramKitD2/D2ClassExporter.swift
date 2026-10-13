@@ -124,7 +124,7 @@ struct D2ClassMapper {
             }
         }
 
-        let classMap = Dictionary(uniqueKeysWithValues: classes.map { ($0.id, $0) })
+        let classMap = Dictionary(classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let diagram = ClassDiagram(
             classes: classes,
             classMap: classMap,
@@ -191,9 +191,11 @@ private struct PartialClass {
             let methodName: String
             let params: String
             if let lp = nameAndParams.firstIndex(of: "("),
-               let rp = nameAndParams.lastIndex(of: ")") {
+               let rp = nameAndParams.lastIndex(of: ")"),
+               lp < rp,
+               let paramsSlice = _safeSubstring(nameAndParams, from: nameAndParams.index(after: lp), to: rp) {
                 methodName = String(nameAndParams[..<lp])
-                params = String(nameAndParams[nameAndParams.index(after: lp)..<rp])
+                params = paramsSlice
             } else {
                 methodName = nameAndParams
                 params = ""
@@ -241,13 +243,15 @@ private struct PartialClass {
 }
 
 /// Emits D2 source for the `.classDiagram` payload using D2's `shape: class`
-/// block form. Stereotypes (carried on `ClassNode.annotations`) are dropped
-/// with a paired `.classStereotypeDrop` diagnostic.
+/// block form. D2 has no native stereotype slot, so stereotypes (carried on
+/// `ClassNode.annotations`) travel in a DiagramKit recovery marker; each one
+/// is paired with a `.classStereotypeDrop` diagnostic noting that consumers
+/// outside DiagramKit's own importer will not see it in the D2 source.
 enum D2ClassExport {
 
     static func emit(_ diagram: ClassDiagram, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
-        let diagnostics: [DiagramDiagnostic] = []
+        var diagnostics: [DiagramDiagnostic] = []
 
         if let title = title, !title.isEmpty {
             lines.append("# title: \(title.replacingOccurrences(of: "\n", with: " "))")
@@ -269,7 +273,17 @@ enum D2ClassExport {
             }
             lines.append("}")
             for stereotype in c.annotations where !stereotype.isEmpty {
-                lines.append(D2RecoveryMarker.emitClassStereotype(className: c.id, stereotype: stereotype))
+                // The marker must key on the id as it appears in the emitted
+                // D2 source (sanitized), not the model id — that is what the
+                // importer correlates against.
+                lines.append(D2RecoveryMarker.emitClassStereotype(
+                    className: D2ClassExport.sanitizeID(c.id),
+                    stereotype: stereotype
+                ))
+                diagnostics.append(.lossyTransform(
+                    .classStereotypeDrop,
+                    message: "Stereotype '\(stereotype)' on class '\(c.id)' carried via a DiagramKit recovery marker — D2 has no native stereotype slot"
+                ))
             }
             lines.append("")
         }
@@ -292,17 +306,6 @@ enum D2ClassExport {
     }
 
     static func sanitizeID(_ raw: String) -> String {
-        var result = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { result.append("_") }
-                result.append(ch)
-            case " ", "-", ".":
-                result.append("_")
-            default: break
-            }
-        }
-        return result.isEmpty ? "node" : result
+        D2Hygiene.mangleID(raw)
     }
 }

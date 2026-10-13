@@ -286,22 +286,21 @@ enum MermaidFlowchartExport {
         arrowHeadStart: original_src_types.ArrowHeadType,
         arrowHeadEnd: original_src_types.ArrowHeadType
     ) -> String {
-        let startMarker = arrowHeadMarker(arrowHeadStart)
         let endMarker = arrowHeadMarker(arrowHeadEnd)
 
         let lineStr: String
         switch style {
         case .solid: lineStr = "--"
-        case .dotted: lineStr = "-."
+        case .dotted: lineStr = endMarker.isEmpty ? "-." : "-.-"
         case .thick: lineStr = "=="
         case .invisible: lineStr = "~~"
         }
 
-        if endMarker == ">" {
-            return "\(startMarker)\(lineStr)\(endMarker)"
-        } else {
-            return "\(startMarker)\(lineStr)\(endMarker)"
-        }
+        // A start arrowhead in Mermaid points LEFT (`<`) — the shared
+        // marker table emits `>` for `.arrow` because that is its tail
+        // spelling, so invert it at the start position.
+        let startPrefix = arrowHeadStart == .arrow ? "<" : arrowHeadMarker(arrowHeadStart)
+        return "\(startPrefix)\(lineStr)\(endMarker)"
     }
 
     private static func arrowHeadMarker(_ type: original_src_types.ArrowHeadType) -> String {

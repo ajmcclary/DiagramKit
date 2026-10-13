@@ -136,12 +136,12 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
     let attrs = entity.attributes
     let cssClasses = entity.cssClasses
     let effectiveStyles = _effectiveErStyles(entity)
-    let cssStyles = effectiveStyles.joined(separator: "; ")
-    let styleAttr = cssStyles.isEmpty ? "" : " style=\"\(SVG.escapeAttribute(cssStyles))\""
+    let styleAttr = _safeErStyleAttribute(effectiveStyles)
     let labelFontSize = config?.fontSize ?? original_src_styles.FONT_SIZES.nodeLabel
 
     var parts: [String] = []
-    parts.append("<g class=\"entity \(SVG.escapeAttribute(cssClasses))\" data-id=\"\(SVG.escapeAttribute(entity.id))\" data-node-id=\"\(SVG.escapeAttribute(entity.nodeId))\" data-label=\"\(SVG.escapeAttribute(label))\"\(styleAttr)>")
+    let safeClassTokens = _sanitizeSVGClassTokens(cssClasses)
+    parts.append("<g class=\"entity \(safeClassTokens)\" data-id=\"\(SVG.escapeAttribute(entity.id))\" data-node-id=\"\(SVG.escapeAttribute(entity.nodeId))\" data-label=\"\(SVG.escapeAttribute(label))\"\(styleAttr)>")
 
     // Fill color from styles or default
     let fill = _extractCssValue(effectiveStyles, property: "fill") ?? config?.fill ?? "var(--_node-fill)"
@@ -273,6 +273,36 @@ private func _effectiveErStyles(_ entity: PositionedErEntity) -> [String] {
     entity.cssCompiledStyles + entity.cssStyles
 }
 
+/// Sanitizes user-supplied ER entity style declarations into a safe
+/// `style="..."` attribute. Only fill/stroke/color/width declarations are
+/// preserved; everything else is dropped to prevent inline-style injection.
+private func _safeErStyleAttribute(_ styles: [String]) -> String {
+    let safeDeclarations = styles.compactMap { raw -> String? in
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ";"))
+        guard !trimmed.isEmpty else { return nil }
+        let parts = trimmed.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2 else { return nil }
+        let property = parts[0].lowercased()
+        let value = parts[1].trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else { return nil }
+
+        let safeValue: String?
+        switch property {
+        case "fill", "stroke", "color":
+            safeValue = _isSafeCSSColor(value) ? SVG.escapeAttribute(value) : nil
+        case "stroke-width":
+            safeValue = value.allSatisfy({ $0.isNumber || $0 == "." || $0.isWhitespace }) ? value : nil
+        default:
+            safeValue = nil
+        }
+        guard let safeValue = safeValue else { return nil }
+        return "\(property):\(safeValue)"
+    }
+    guard !safeDeclarations.isEmpty else { return "" }
+    return " style=\"\(safeDeclarations.joined(separator: ";"))\""
+}
+
 // MARK: - Attribute Rendering
 
 private func _renderAttribute(
@@ -296,7 +326,7 @@ private func _renderAttribute(
         parts.append(
             "<text x=\"\(boxX + 6 + keyWidth / 2)\" y=\"\(y)\" text-anchor=\"middle\" " +
                 "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" font-size=\"\(ERFont.keySize)\" " +
-                "font-weight=\"\(ERFont.keyWeight)\" fill=\"var(--_text-sec)\">\(keyText)</text>"
+                "font-weight=\"\(ERFont.keyWeight)\" fill=\"var(--_text-sec)\">\(SVG.escapeText(keyText))</text>"
         )
     }
 
@@ -529,15 +559,3 @@ private func _midpoint(_ points: [ErPoint]) -> ErPoint {
     return points[points.count - 1]
 }
 
-final class original_src_er_renderer {
-    public init() {}
-
-    public static func renderErSvg(
-        _ diagram: PositionedErDiagram,
-        _ colors: DiagramColors,
-        _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false
-    ) throws -> String {
-        try _renderErSvgEntry(diagram, colors, font, transparent)
-    }
-}

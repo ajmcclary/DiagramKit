@@ -1,8 +1,11 @@
 # Files grandfathered above the 1000-line ERROR_LIMIT.
 #
 # These are JS-ported per-diagram parsers / layouts / renderers in
-# DiagramKitModel that mirror upstream mermaid-js source files closely.
-# Splitting them would diverge from upstream and create maintenance churn.
+# DiagramKitModel. Most mirror upstream mermaid-js source files closely;
+# splitting them would diverge from upstream and create maintenance churn.
+# Exceptions: `src_wardley_parser.swift` and `src_zenuml_parser.swift` are
+# native rewrites (Wardley maps and ZenUML have no mermaid-js upstream in
+# this port's lineage), grandfathered for the same size reason.
 # Long-term plan: consolidate the dual CG/SVG render paths onto a single
 # canonical path (see CLAUDE.md "drift hazard"); revisit then.
 #
@@ -11,9 +14,12 @@
 Sources/DiagramKitModel/src_class_parser.swift
 Sources/DiagramKitModel/src_er_parser.swift
 Sources/DiagramKitModel/src_parser.swift
-Sources/DiagramKitModel/src_renderer.swift
+# src_renderer.swift left the list in the Phase 9 remediation: the dead
+# `_render*` shape helpers superseded by ShapeSpecRegistry brought it under
+# the limit (M-SVG-6).
 Sources/DiagramKitModel/src_sequence_types.swift
 Sources/DiagramKitModel/src_venn_layout.swift
+# Native rewrites, not upstream mirrors — see header note.
 Sources/DiagramKitModel/src_wardley_parser.swift
 Sources/DiagramKitModel/src_xychart_parser.swift
 Sources/DiagramKitModel/src_zenuml_parser.swift

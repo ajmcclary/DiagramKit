@@ -5,20 +5,23 @@ import DiagramKitModel
 import DiagramKitRenderingCG
 import DiagramKitCommon
 import CoreGraphics
-@preconcurrency import QuartzCore
-
-#if canImport(UIKit)
-import UIKit
-#elseif canImport(AppKit)
-import AppKit
-#endif
 
 // PreparedDiagram moved to DiagramKitRenderingCG/PreparedDiagram.swift
 
-/// A CALayer subclass that manages the diagram rendering pipeline:
-/// parse -> layout -> draw.
+/// A plain observable model object that manages the diagram rendering
+/// pipeline: parse -> layout -> expose prepared state.
+///
+/// Historically this type subclassed `CALayer` (hence the name), but it
+/// never implemented `draw(in:)`, was never added to a layer tree, and
+/// its `needsDisplayOnBoundsChange` / `contentsScale` /
+/// `setNeedsDisplay()` surface was dead — `DiagramNativeView` paints
+/// from the prepared model directly. It is now a ordinary `@MainActor`
+/// class exposing exactly the live pipeline state; the public name is
+/// retained for source compatibility (`MermaidLayer` remains a
+/// deprecated alias). `renderImage(scale:)` and `DiagramNativeView`
+/// remain the supported ways to obtain pixels.
 @MainActor
-public class DiagramLayer: CALayer {
+public final class DiagramLayer {
 
     // MARK: - Public Properties
 
@@ -28,12 +31,22 @@ public class DiagramLayer: CALayer {
         }
     }
 
+    /// Theme only affects rendering; the equality guard skips the whole
+    /// pipeline when the value is unchanged (M-CG-2).
     public var theme: DiagramTheme = .default {
-        didSet { prepareDiagram() }
+        didSet {
+            guard theme != oldValue else { return }
+            prepareDiagram()
+        }
     }
 
+    /// Layout configuration drives parse + layout, so any change
+    /// re-prepares; the equality guard skips no-op writes (M-CG-2).
     public var layoutConfig: LayoutConfig = LayoutConfig() {
-        didSet { prepareDiagram() }
+        didSet {
+            guard layoutConfig != oldValue else { return }
+            prepareDiagram()
+        }
     }
 
     public var sourceFormat: DiagramFormatID? {
@@ -70,56 +83,10 @@ public class DiagramLayer: CALayer {
 
     // MARK: - Initialization
 
-    public override init() {
-        super.init()
-        commonInit()
-    }
-
-    public override init(layer: Any) {
-        super.init(layer: layer)
-        commonInit()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        commonInit()
-    }
+    public init() {}
 
     deinit {
         preparationTask?.cancel()
-    }
-
-    /// CALayer's overridden initializers are `nonisolated` (forced by the
-    /// parent's signature), so `commonInit()` is too. The writes below land
-    /// on CALayer-inherited properties, which `@preconcurrency QuartzCore`
-    /// exposes as nonisolated. When the umbrella drops `@preconcurrency`,
-    /// this method must move to `@MainActor` — but that requires the inits
-    /// to be `@MainActor` first, which is only legal once CALayer's own
-    /// inits are visible as `@MainActor`.
-    private nonisolated func commonInit() {
-        needsDisplayOnBoundsChange = true
-        #if canImport(UIKit)
-        // `UIScreen.main` is deprecated on iOS 13+ multi-scene apps; at
-        // init time the layer is not yet attached to a window so we
-        // have no scene to query. Hosts that need exact per-scene
-        // backing scale on iPad should call ``updateContentsScale(_:)``
-        // from `traitCollectionDidChange(_:)` once the view is in a
-        // window.
-        contentsScale = UIScreen.main.scale
-        #elseif canImport(AppKit)
-        contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
-        #endif
-    }
-
-    /// Updates the layer's `contentsScale` from a host-provided value.
-    /// Use when the layer is hosted on iPad / Catalyst and the
-    /// `UIScreen.main.scale` fallback in ``commonInit()`` could be
-    /// wrong for the current `UIWindowScene`. No-op if the value is
-    /// equal to the current scale.
-    public func updateContentsScale(_ scale: CGFloat) {
-        guard scale > 0, scale != contentsScale else { return }
-        contentsScale = scale
-        setNeedsDisplay()
     }
 
     // MARK: - Preparation observers
@@ -172,6 +139,10 @@ public class DiagramLayer: CALayer {
     }
 
     private func prepareDiagram() {
+        // M-CG-1: a superseded render's task is cancelled; the worker
+        // thread drops at the `Task.checkCancellation` entry point in
+        // `DiagramWorkerThread.run`, so a source edit per keystroke no
+        // longer runs every spawned 8 MB render to completion.
         preparationTask?.cancel()
         preparationGeneration &+= 1
         let myGeneration = preparationGeneration
@@ -180,7 +151,6 @@ public class DiagramLayer: CALayer {
         guard !source.isEmpty else {
             preparedDiagram = nil
             diagramBounds = .zero
-            setNeedsDisplay()
             notifyPrepareComplete()
             return
         }
@@ -231,7 +201,6 @@ public class DiagramLayer: CALayer {
                 self.diagramBounds = .zero
                 self.parseError = error
             }
-            self.setNeedsDisplay()
             self.notifyPrepareComplete()
         }
     }

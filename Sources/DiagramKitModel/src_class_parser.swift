@@ -173,9 +173,9 @@ public struct ClassMember: Sendable {
         self.returnType = returnType
         self.text = text ?? {
             let vis = visibility.isEmpty ? "" : "\(visibility) "
-            let genId = parseGenericTypes(id)
-            let genParams = parseGenericTypes(parameters)
-            let genReturn = parseGenericTypes(returnType)
+            let genId = _parseGenericTypes(id)
+            let genParams = _parseGenericTypes(parameters)
+            let genReturn = _parseGenericTypes(returnType)
             let methodPart = memberType == .method ? "(\(genParams))" : ""
             let returnPart = !returnType.isEmpty ? " : \(genReturn)" : ""
             return "\(vis)\(genId)\(methodPart)\(returnPart)"
@@ -427,7 +427,12 @@ public enum ClassParserError: Error, LocalizedError, _RecoverableDiagramError {
 
 // MARK: - Generic Type Helpers (Slice 1)
 
+@available(*, deprecated, renamed: "_parseGenericTypes", message: "SPI; not part of the supported public API.")
 public func parseGenericTypes(_ input: String) -> String {
+    return _parseGenericTypes(input)
+}
+
+public func _parseGenericTypes(_ input: String) -> String {
     guard input.contains("~") else { return input }
     var result = input
     while let openRange = result.range(of: "~") {
@@ -446,7 +451,12 @@ public func parseGenericTypes(_ input: String) -> String {
     return result
 }
 
+@available(*, deprecated, renamed: "_splitClassNameAndType", message: "SPI; not part of the supported public API.")
 public func splitClassNameAndType(_ rawId: String) -> (className: String, type: String?) {
+    return _splitClassNameAndType(rawId)
+}
+
+public func _splitClassNameAndType(_ rawId: String) -> (className: String, type: String?) {
     // If backtick-quoted, the entire content is the name (no generic extraction)
     if rawId.hasPrefix("`") && rawId.hasSuffix("`") {
         let inner = String(rawId.dropFirst().dropLast())
@@ -465,7 +475,12 @@ public func splitClassNameAndType(_ rawId: String) -> (className: String, type: 
     return (cleaned.trimmingCharacters(in: .whitespacesAndNewlines), nil)
 }
 
+@available(*, deprecated, renamed: "_cleanupLabel", message: "SPI; not part of the supported public API.")
 public func cleanupLabel(_ label: String) -> String {
+    return _cleanupLabel(label)
+}
+
+public func _cleanupLabel(_ label: String) -> String {
     var cleaned = label
     if cleaned.hasPrefix(":") { cleaned = String(cleaned.dropFirst()) }
     cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -555,7 +570,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         for (i, comp) in components.enumerated() {
             let path = components.prefix(i + 1).joined(separator: ".")
             let isLeaf = i == components.count - 1
-            let displayLabel = isLeaf ? cleanupLabel(label ?? comp) : comp
+            let displayLabel = isLeaf ? _cleanupLabel(label ?? comp) : comp
 
             if var existing = diagram.namespaceMap[path] {
                 existing.parent = existing.parent ?? parentId
@@ -665,7 +680,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
 
         return [fromId, toId].compactMap { rawId in
             guard !rawId.isEmpty else { return nil }
-            let (className, genericType) = splitClassNameAndType(rawId)
+            let (className, genericType) = _splitClassNameAndType(rawId)
             return (className, genericType)
         }
     }
@@ -815,7 +830,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             let idRaw = groups[safe: 1] ?? ""
             let styleName = groups[safe: 2] ?? ""
             let hasBrace = groups[safe: 3]
-            let (className, genericType) = splitClassNameAndType(idRaw)
+            let (className, genericType) = _splitClassNameAndType(idRaw)
             var cls = _ensureClass(&classMap, &classOrder, className)
             if let t = genericType, !t.isEmpty { cls.type = t; cls.text = "\(cls.label)<\(t)>" }
             cls.cssClasses += " \(styleName)"
@@ -830,7 +845,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             let idRaw = groups[safe: 1] ?? ""
             let genericType = groups[safe: 2]
             let hasBrace = groups[safe: 3]
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             var cls = _ensureClass(&classMap, &classOrder, className)
             if let t = genericType, !t.isEmpty { cls.type = t; cls.text = "\(cls.label)<\(t)>" }
             classMap[className] = cls
@@ -843,11 +858,11 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s*\["([^"]*)"\]\s*(?:\{\s*$)?$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let label = groups[safe: 2] ?? idRaw
-            let (className, genericType) = splitClassNameAndType(idRaw)
+            let (className, genericType) = _splitClassNameAndType(idRaw)
             var cls = _ensureClass(&classMap, &classOrder, className)
-            cls.label = cleanupLabel(label)
+            cls.label = _cleanupLabel(label)
             cls.type = genericType
-            cls.text = "\(cleanupLabel(label))\(genericType.map { "<\($0)>" } ?? "")"
+            cls.text = "\(_cleanupLabel(label))\(genericType.map { "<\($0)>" } ?? "")"
             classMap[className] = cls
             if rawLine.hasSuffix("{") { currentClassId = className; braceDepth = 1 }
             addClassToCurrentNamespace(className)
@@ -858,7 +873,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s*(?:~(\w+)~)?\s*(\{\s*)$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let genericType = groups[safe: 2]
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             var cls = _ensureClass(&classMap, &classOrder, className)
             if let t = genericType, !t.isEmpty { cls.type = t; cls.text = "\(cls.label)<\(t)>" }
             classMap[className] = cls
@@ -870,7 +885,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s*(?:~(\w+)~)?\s*$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let genericType = groups[safe: 2]
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             var cls = _ensureClass(&classMap, &classOrder, className)
             if let t = genericType, !t.isEmpty { cls.type = t; cls.text = "\(cls.label)<\(t)>" }
             classMap[className] = cls
@@ -882,7 +897,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s+<<(.+)>>\s*(\{\s*)$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let annot = groups[safe: 2] ?? ""
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             let annotations = annot.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
             var cls = _ensureClass(&classMap, &classOrder, className)
             cls.annotations = annotations
@@ -897,7 +912,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s+<<(.+)>>\s*$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let annot = groups[safe: 2] ?? ""
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             let annotations = annot.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
             var cls = _ensureClass(&classMap, &classOrder, className)
             cls.annotations = annotations
@@ -910,7 +925,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^class\s+(\S+?)\s+<<(.+)>>\s*\{\s*\}\s*$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let annot = groups[safe: 2] ?? ""
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             let annotations = annot.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
             var cls = _ensureClass(&classMap, &classOrder, className)
             cls.annotations = annotations
@@ -922,7 +937,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         // Inline member shorthand: ClassName : member
         if let groups = _groups(#"^(\S+?)\s*:\s*(.+)$"#, rawLine),
            let idRaw = groups[safe: 1], let rest = groups[safe: 2] {
-            let (className, _) = splitClassNameAndType(idRaw)
+            let (className, _) = _splitClassNameAndType(idRaw)
             if !_regexTest(#"<\|--|--|\*--|o--|-->|\.\.>|\.\.\|>|--o|--\*|--\|>|<\|\.\.|<--|<\.\.|\(\)"#, rest) {
                 var cls = _ensureClass(&classMap, &classOrder, className)
                 if let parsed = _parseMember(rest) {
@@ -1136,9 +1151,9 @@ private func _parseMember(_ line: String) -> _ParsedMember? {
         let cleanReturn = returnRaw.replacingOccurrences(of: #"[$*]$"#, with: "", options: .regularExpression)
 
         // Build text: visibility + name(params) : returnType (with generic conversion)
-        let genName = parseGenericTypes(cleanName)
-        let genParams = parseGenericTypes(params)
-        let genReturn = parseGenericTypes(cleanReturn)
+        let genName = _parseGenericTypes(cleanName)
+        let genParams = _parseGenericTypes(params)
+        let genReturn = _parseGenericTypes(cleanReturn)
         let text: String = {
             let vis = visibility.isEmpty ? "" : "\(visibility) "
             let methodSig = "\(genName)(\(genParams))"
@@ -1198,7 +1213,7 @@ private func _parseMember(_ line: String) -> _ParsedMember? {
     let hasAbstract = attrClassifier == "*"
     let hasStatic = attrClassifier == "$"
 
-    let attrText = parseGenericTypes(rawAttr)
+    let attrText = _parseGenericTypes(rawAttr)
     let attrId = rawAttr
 
     var cssStyle = ""
@@ -1299,8 +1314,8 @@ private func _parseRelationship(_ line: String) -> ClassRelationship? {
     // Clean backtick-escaped IDs
     fromId = _unbacktick(fromId)
     toId = _unbacktick(toId)
-    fromId = splitClassNameAndType(fromId).className
-    toId = splitClassNameAndType(toId).className
+    fromId = _splitClassNameAndType(fromId).className
+    toId = _splitClassNameAndType(toId).className
 
     // Check for label after toId
     if label == nil, let labelGroup = _firstGroup(#":\s*(.+)$"#, trimmed) {
@@ -1354,15 +1369,15 @@ private func _tokenizeArrow(_ arrow: String) -> _RelationParseResult? {
         if i < chars.count && (chars[i] == "." || chars[i] == "-") { i += 1 }
     }
 
-    // Parse right side marker
-    while i < chars.count {
-        if chars[i] == "|" && i + 1 < chars.count && chars[i + 1] == ">" { type2 = ClassRelationType.inheritance.rawValue; i += 2; break }
-        else if i < chars.count && chars[i] == "*" { type2 = ClassRelationType.composition.rawValue; i += 1 }
-        else if i < chars.count && chars[i] == "o" { type2 = ClassRelationType.aggregation.rawValue; i += 1 }
-        else if i < chars.count && chars[i] == ">" { type2 = ClassRelationType.dependency.rawValue; i += 1 }
-        else if chars[i] == "(" && i + 1 < chars.count && chars[i + 1] == ")" { type2 = ClassRelationType.lollipop.rawValue; i += 2; break }
+    // Parse right side marker (single pass — the historical `while` loop
+    // unconditionally broke after one iteration).
+    if i < chars.count {
+        if chars[i] == "|" && i + 1 < chars.count && chars[i + 1] == ">" { type2 = ClassRelationType.inheritance.rawValue; i += 2 }
+        else if chars[i] == "*" { type2 = ClassRelationType.composition.rawValue; i += 1 }
+        else if chars[i] == "o" { type2 = ClassRelationType.aggregation.rawValue; i += 1 }
+        else if chars[i] == ">" { type2 = ClassRelationType.dependency.rawValue; i += 1 }
+        else if chars[i] == "(" && i + 1 < chars.count && chars[i + 1] == ")" { type2 = ClassRelationType.lollipop.rawValue; i += 2 }
         else { i += 1 }
-        break
     }
 
     return _RelationParseResult(type1: type1, type2: type2, lineType: lineType)
@@ -1427,9 +1442,39 @@ private func _finalizeLollipops(_ diagram: ClassDiagram) -> ClassDiagram {
 
 // MARK: - Regex Helpers
 
+private let _classRegexCache = _ClassRegexCache()
+
+// Concurrency Contract: class-parser regex lookups go through a lock-guarded
+// dictionary cache. `NSRegularExpression` instances are thread-safe once
+// constructed, the lock makes get-or-insert atomic, and the key set is the
+// parser's own fixed pattern vocabulary (no user-controllable unbounded
+// growth). All parser entry points run on the 8 MB worker thread, but the
+// cache is safe under arbitrary concurrency.
+private final class _ClassRegexCache: @unchecked Sendable {
+    private var storage: [String: NSRegularExpression] = [:]
+    private let lock = NSLock()
+
+    func regex(for pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
+        let key = "\(pattern)\(options.rawValue)"
+        lock.lock()
+        if let cached = storage[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        lock.lock()
+        storage[key] = regex
+        lock.unlock()
+        return regex
+    }
+}
+
 private func _regexTest(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> Bool {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return false }
+    guard let regex = _classRegexCache.regex(for: pattern, options: options) else { return false }
     let range = NSRange(value.startIndex..<value.endIndex, in: value)
     return regex.firstMatch(in: value, options: [], range: range) != nil
 }
@@ -1440,7 +1485,7 @@ private func _firstGroup(_ pattern: String, _ value: String, caseInsensitive: Bo
 
 private func _groups(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> [String]? {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
+    guard let regex = _classRegexCache.regex(for: pattern, options: options) else { return nil }
     let nsValue = value as NSString
     let range = NSRange(location: 0, length: nsValue.length)
     guard let match = regex.firstMatch(in: value, options: [], range: range) else { return nil }
@@ -1521,10 +1566,3 @@ private func _isUnsafeURL(_ url: String) -> Bool {
 
 // MARK: - Wrapper class
 
-final class original_src_class_parser {
-    public init() {}
-
-    public static func parseClassDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ClassDiagram {
-        try _parseClassDiagramEntry(lines, frontmatter: frontmatter)
-    }
-}

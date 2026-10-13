@@ -1,0 +1,6 @@
+digraph G {
+  A [shape=record, label="{A|id}"];
+  B [shape=record, label="{B|id}"];
+  A -> B [arrowtail=tee, arrowhead=crow, dir=both];
+  A -> B [arrowtail=crow, arrowhead=tee, dir=both];
+}

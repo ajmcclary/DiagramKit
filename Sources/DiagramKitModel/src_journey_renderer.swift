@@ -248,9 +248,7 @@ private func _renderJourneySvgEntry(
 // MARK: - Helpers
 
 private func _fmt(_ value: Double) -> String {
-    let rounded = value.rounded()
-    if rounded == value && rounded.isFinite {
-        let intVal = Int(rounded)
+    if let intVal = _safeIntegralInt(value) {
         return String(intVal)
     }
     return String(format: "%.1f", value)

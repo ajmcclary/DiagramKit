@@ -1,6 +1,8 @@
 import Foundation
 import DiagramKitCommon
 
+private let _ishikawaHeaderRegex = try! NSRegularExpression(pattern: #"^ishikawa(-beta)?\b"#, options: .caseInsensitive)
+
 // MARK: - Public parse entry point
 
 public func parseIshikawaDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (IshikawaDiagram, [DiagramDiagnostic]) {
@@ -198,10 +200,9 @@ private func _tokenizeIshikawa(_ lines: [String]) -> [IshikawaToken] {
             continue
         }
 
-        let ishikawaHeaderRegex = try! NSRegularExpression(pattern: #"^ishikawa(-beta)?\b"#, options: .caseInsensitive)
         let firstWord = trimmed.split(separator: " ", omittingEmptySubsequences: true).first.map(String.init) ?? trimmed
         let range = NSRange(firstWord.startIndex..., in: firstWord)
-        if ishikawaHeaderRegex.firstMatch(in: firstWord, range: range) != nil {
+        if _ishikawaHeaderRegex.firstMatch(in: firstWord, range: range) != nil {
             tokens.append(.ishikawa)
             if let fwRange = trimmed.range(of: firstWord) {
                 let remainderStart = fwRange.upperBound

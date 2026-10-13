@@ -33,6 +33,12 @@ private final class _MutableNode: @unchecked Sendable {
     }
 }
 
+private let _treemapTitlePattern = try! NSRegularExpression(pattern: "^title\\s+(.+)$", options: .caseInsensitive)
+private let _treemapAccTitlePattern = try! NSRegularExpression(pattern: "^accTitle\\s*:\\s*(.+)$", options: .caseInsensitive)
+private let _treemapAccDescrPattern = try! NSRegularExpression(pattern: "^accDescr\\s*:\\s*(.+)$", options: .caseInsensitive)
+private let _treemapAccDescrOpenPattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+)$")
+private let _treemapAccDescrInlinePattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+?)\\s*\\}\\s*$", options: .caseInsensitive)
+
 public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> (TreemapDiagram, [DiagramDiagnostic]) {
     guard !rawLines.isEmpty else {
         throw TreemapParserError.emptySource
@@ -45,12 +51,6 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
     var inAccDescrBlock = false
 
     var classDefs: [TreemapClassDef] = []
-
-    let titlePattern = try! NSRegularExpression(pattern: "^title\\s+(.+)$", options: .caseInsensitive)
-    let accTitlePattern = try! NSRegularExpression(pattern: "^accTitle\\s*:\\s*(.+)$", options: .caseInsensitive)
-    let accDescrPattern = try! NSRegularExpression(pattern: "^accDescr\\s*:\\s*(.+)$", options: .caseInsensitive)
-    let accDescrOpenPattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+)$")
-    let accDescrInlinePattern = try! NSRegularExpression(pattern: "^accDescr\\s*\\{\\s*(.+?)\\s*\\}\\s*$", options: .caseInsensitive)
 
     var headerFound = false
     let root = _MutableNode(name: "", children: [])
@@ -90,12 +90,12 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
 
         if trimmed.isEmpty || trimmed.hasPrefix("%%") { continue }
 
-        if let match = accDescrInlinePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+        if let match = _treemapAccDescrInlinePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
             accDescr = (trimmed as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces)
             continue
         }
 
-        if let match = accDescrOpenPattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+        if let match = _treemapAccDescrOpenPattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
             inAccDescrBlock = true
             accDescrLines = []
             let firstContent = (trimmed as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces)
@@ -108,17 +108,17 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
             continue
         }
 
-        if let match = accTitlePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+        if let match = _treemapAccTitlePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
             accTitle = _unquoteTreemap((trimmed as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }
 
-        if let match = accDescrPattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+        if let match = _treemapAccDescrPattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
             accDescr = _unquoteTreemap((trimmed as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }
 
-        if let match = titlePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
+        if let match = _treemapTitlePattern.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
             diagramTitle = _unquoteTreemap((trimmed as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces))
             continue
         }

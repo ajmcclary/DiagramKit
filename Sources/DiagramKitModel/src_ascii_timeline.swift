@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `TimelineDiagram` as a vertical timeline. Sections become
@@ -7,7 +8,7 @@ public func renderTimelineAscii(_ model: TimelineDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
     var currentSection: String? = nil

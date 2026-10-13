@@ -1,4 +1,5 @@
 // Ported from original/src/ascii/grid.ts
+import DiagramKitCommon
 import Foundation
 
 open class original_src_ascii_grid {
@@ -206,7 +207,7 @@ open class original_src_ascii_grid {
     /// - subgraph bounding boxes and offsetting
     public static func createMapping(_ graph: AsciiGraph) throws {
         let dir = graph.config.graphDirection
-        var highestPositionPerLevel = Array(repeating: 0, count: 100)
+        var highestPositionPerLevel: [Int: Int] = [:]
 
         var nodesFound = Set<String>()
         var initialRoots: [AsciiNode] = []
@@ -258,20 +259,20 @@ open class original_src_ascii_grid {
 
         for node in externalRootNodes {
             let requested = dir == "LR"
-                ? GridCoord(x: 0, y: highestPositionPerLevel[0])
-                : GridCoord(x: highestPositionPerLevel[0], y: 0)
+                ? GridCoord(x: 0, y: highestPositionPerLevel[0, default: 0])
+                : GridCoord(x: highestPositionPerLevel[0, default: 0], y: 0)
             _ = reserveSpotInGrid(graph, node, requested)
-            highestPositionPerLevel[0] += 4
+            highestPositionPerLevel[0, default: 0] += 4
         }
 
         if shouldSeparate, !subgraphRootNodes.isEmpty {
             let subgraphLevel = 4
             for node in subgraphRootNodes {
                 let requested = dir == "LR"
-                    ? GridCoord(x: subgraphLevel, y: highestPositionPerLevel[subgraphLevel])
-                    : GridCoord(x: highestPositionPerLevel[subgraphLevel], y: subgraphLevel)
+                    ? GridCoord(x: subgraphLevel, y: highestPositionPerLevel[subgraphLevel, default: 0])
+                    : GridCoord(x: highestPositionPerLevel[subgraphLevel, default: 0], y: subgraphLevel)
                 _ = reserveSpotInGrid(graph, node, requested)
-                highestPositionPerLevel[subgraphLevel] += 4
+                highestPositionPerLevel[subgraphLevel, default: 0] += 4
             }
         }
 
@@ -295,7 +296,7 @@ open class original_src_ascii_grid {
                     if edgeDir != graph.config.graphDirection {
                         highestPosition = edgeDir == "LR" ? gc.y : gc.x
                     } else {
-                        highestPosition = highestPositionPerLevel[childLevel]
+                        highestPosition = highestPositionPerLevel[childLevel, default: 0]
                     }
 
                     let requested = edgeDir == "LR"
@@ -303,7 +304,7 @@ open class original_src_ascii_grid {
                         : GridCoord(x: highestPosition, y: childLevel)
                     _ = reserveSpotInGrid(graph, child, requested, effectiveDir: edgeDir)
                     if edgeDir == graph.config.graphDirection {
-                        highestPositionPerLevel[childLevel] = highestPosition + 4
+                        highestPositionPerLevel[childLevel, default: 0] = highestPosition + 4
                     }
                     placedCount += 1
                 }
@@ -567,7 +568,7 @@ open class original_src_ascii_grid {
             var index: Int
         }
 
-        let lenLabel = edge.text.count
+        let lenLabel = terminalDisplayWidth(edge.text)
         var segments: [Segment] = []
         if edge.path.count >= 2 {
             for i in 1 ..< edge.path.count {

@@ -97,11 +97,11 @@
 <text class="messageText" x="157.5" y="184.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA">reverse stick bottom</text>
 </g>
 <g class="message" data-from="Alice/" data-to="Bob" data-label="reverse half top dotted" data-arrow-type="56" data-self="false">
-<line class="messageLine0" x1="367.5" y1="225.0" x2="227.5" y2="225.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-half-bottom-rev-dot)" />
+<line class="messageLine0" x1="367.5" y1="225.0" x2="227.5" y2="225.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-half-bottom-rev)" />
 <text class="messageText" x="297.5" y="219.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA">reverse half top dotted</text>
 </g>
 <g class="message" data-from="Alice" data-to="Bob" data-label="reverse stick top dotted" data-arrow-type="57" data-self="false">
-<line class="messageLine1" x1="87.5" y1="260.0" x2="227.5" y2="260.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-stick-top-rev-dot)" />
+<line class="messageLine1" x1="87.5" y1="260.0" x2="227.5" y2="260.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-stick-top-rev)" />
 <text class="messageText" x="157.5" y="254.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA">reverse stick top dotted</text>
 </g>
 <g class="actor"data-id="Alice" data-label="Alice" data-type="participant">
@@ -128,12 +128,4 @@
 <rect x="330.0" y="305.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="367.5" y="337.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Alice/</text>
 </g>
-<script type="text/javascript">
-function popupMenuToggle(popId) {
-  var pop = document.getElementById(popId);
-  if (!pop) return;
-  var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
-  pop.setAttribute('visibility', vis);
-}
-</script>
 </svg>

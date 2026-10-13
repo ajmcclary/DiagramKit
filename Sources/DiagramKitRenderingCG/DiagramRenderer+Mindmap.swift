@@ -248,7 +248,7 @@ extension DiagramRenderer {
 
     private func _drawMindmapNodeText(_ node: PositionedMindmapNode, context: CGContext, theme: MindmapThemeConfig, config: MindmapConfig) {
         let fill = node.isRoot ? theme.gitBranchLabel0 : theme.cScaleLabel(for: node.section ?? 0)
-        let font = BMFont(name: theme.fontFamily, size: CGFloat(theme.fontSize))
+        let font = DiagramFontResolver._lockedBMFont(name: theme.fontFamily, size: CGFloat(theme.fontSize))
             ?? self.fontResolver.proportionalFont(size: CGFloat(theme.fontSize), weight: .regular)
 
         let x = node.x - node.width / 2

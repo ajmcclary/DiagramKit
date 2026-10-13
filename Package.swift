@@ -33,8 +33,11 @@ let package = Package(
         .library(name: "DiagramKitRenderingCG", targets: ["DiagramKitRenderingCG"]),
         .library(name: "DiagramKitViews", targets: ["DiagramKitViews"]),
         .library(name: "DiagramKitTestSupport", targets: ["DiagramKitTestSupport"]),
-        // Internal test/tooling corpus (not advertised for external reuse);
-        // shipped as a product only so the path-dependency app can import it.
+        // UNSUPPORTED TOOLING PRODUCTS (see the doc-comment banners in
+        // Sources/DiagramKitTestSupport/DiagramKitTestSupport.swift and
+        // Sources/DiagramKitCorpus/DiagramCorpus.swift): exempt from semver
+        // stability; shipped as products only so the path-dependency app can
+        // import them. Do not depend on them from outside this repository.
         .library(name: "DiagramKitCorpus", targets: ["DiagramKitCorpus"]),
         .library(name: "DiagramKitD2", targets: ["DiagramKitD2"]),
         .library(name: "DiagramKitGraphviz", targets: ["DiagramKitGraphviz"]),
@@ -190,9 +193,11 @@ let package = Package(
                 "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitImport",
                 "DiagramKitExport",
                 "DiagramKitMermaid",
                 "DiagramKitInteractive",
+                "DiagramKitViews",
                 "DiagramKitTestSupport",
                 "DiagramKitCorpus",
                 "DiagramKitD2",

@@ -8,6 +8,37 @@ import DiagramKitImport
 import Foundation
 
 extension DiagramEditor {
+    // MARK: - Queued undo/redo
+
+    /// Undo the last committed mutation, waiting for any in-flight
+    /// mutation chain to drain first.
+    ///
+    /// H2 related fix: an undo issued while an async mutation was
+    /// mid-export used to restore a snapshot immediately and then be
+    /// clobbered by that export's commit — a stale document derived from
+    /// the pre-undo state, plus an incoherent redo entry.
+    ///
+    /// Queueing until the chain drains is chosen over re-validating a
+    /// document version at commit time because it can neither drop the
+    /// user's undo action (the undo always applies, only later) nor
+    /// commit stale state (the undo runs strictly after the in-flight
+    /// commit, so `_restoreSnapshot`'s redo registration captures the
+    /// post-commit document). The drain loop re-reads `_pendingMutation`
+    /// on the MainActor, and once it observes nil there is no suspension
+    /// before `undoManager.undo()` runs, so no mutation can interleave
+    /// between drain and undo.
+    public func undo() async {
+        await _awaitChainDrain()
+        undoManager.undo()
+    }
+
+    /// Redo the most recently undone mutation. Same queue-until-drained
+    /// contract as `undo()` — see there for the rationale.
+    public func redo() async {
+        await _awaitChainDrain()
+        undoManager.redo()
+    }
+
     // MARK: - Undo grouping
 
     /// Begin an undo group. All mutations until `endUndoGrouping()`

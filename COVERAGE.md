@@ -5,9 +5,11 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-21 (Wave J). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-10-13. Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
-corpus counts.
+corpus counts. Paths prefixed `superproject:` live in the workspace
+superproject's `docs/archive/` tree (this repository's own archive was
+removed in `e88a7a09`).
 
 ## Legend
 
@@ -95,10 +97,8 @@ corpus counts.
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **47
-same-format fixtures** (+2 D2/DOT block fixtures in Wave J) and **86
-cross-format directed pairs** (43 unordered; +4 directed Mermaid ↔ {d2,dot}
-block fixtures in Wave J).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **61
+same-format fixtures** and **84 cross-format directed pairs** (42 unordered).
 
 | Layer | Coverage |
 |-------|----------|
@@ -116,11 +116,11 @@ covered (family × format) intersection. Closure landed across four waves
 of two specs (plus PlantUML deployment dialect and Wave E):
 
 - **Waves A/B/C** of
-  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md`
   closed every export-side `⚠` via the comment-encoded recovery-marker
   pattern (Structurizr-style pre-lexer scan + positional correlation).
 - **Wave D** of
-  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md)
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md`
   closed every import-side `⚠`:
   - Class-family residuals (3 cells): D2/DOT class `link`/`tooltip`/`style`
     routed into `ClassNode.link`/`.tooltip`/`.styles`; PlantUML
@@ -146,7 +146,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   Mermaid architecture emits `.lossyTransform(.shapeDowngrade, …)`
   per non-`.service` kind. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported`. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-plantuml-deployment-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-plantuml-deployment-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-plantuml-deployment-design.md`.
 - **Wave E — D2 + DOT architecture / mindmap / treeView.** D2 and
   DOT each gain three families (no matrix `⚠` involved; all three
   were `—`). Detection: structural probe for architecture (≥2
@@ -162,7 +162,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   kind-based encoding via reciprocal `iconForKind`/`kindForIcon`
   helpers on both mappers. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported` / `.idSanitization`. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`.
 - **Wave G — D2 + DOT c4.** D2 and DOT each gain one family (no matrix
   `⚠` involved; all four cells were `—`). Detection: marker-forced
   (`# diagramkit:family=c4`) or presence-of-any-c4-marker structural
@@ -182,7 +182,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   `DiagnosticCategory` cases; reuses `.shapeDowngrade` /
   `.styleDrop` / `.slotUnsupported` / `.idSanitization`. No new
   `RoundTripLoss` cases. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-c4-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-c4-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-c4-design.md`.
 - **Wave F — D2 sequenceDiagram.** D2 gains one family (no matrix `⚠`
   involved; the cell was `—`). Detection: structural probe for a
   top-level `shape: sequence_diagram` declaration plus marker-forced
@@ -202,7 +202,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   autonumber, title). No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.styleDrop` / `.idSanitization` /
   `.slotUnsupported`. No new `RoundTripLoss` cases. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-sequence-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-sequence-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-sequence-design.md`.
 - **Wave H — PlantUML treeView (WBS + JSON + YAML).** PlantUML gains
   one family (no matrix `⚠` involved; the cell was `—`). Detection:
   marker-forced via outer-probe start keywords (`@startwbs`,
@@ -233,7 +233,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   new `DiagnosticCategory` cases; reuses `.slotUnsupported` /
   `.idSanitization` / `.accessibilityDrop`. No new `RoundTripLoss`
   cases. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-plantuml-treeview-design.md`.
 - **Wave J — D2 + DOT block.** D2 and DOT each gain one family (no
   matrix `⚠` involved; both cells were `—`). Detection: marker-forced
   via `# diagramkit:family=block`, or marker-presence structural
@@ -255,7 +255,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   markers without exercising new logic). No new `DiagnosticCategory`
   cases; reuses `.shapeDowngrade` / `.styleDrop` / `.slotUnsupported`
   / `.idSanitization`. No new `RoundTripLoss` cases. Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-block-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-block-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-block-design.md`.
 - **Wave I — treeView synthetic-root bridge.** Mermaid ↔ {D2, DOT,
   PlantUML} treeView cross-format paths gain bidirectional convention
   bridging (no matrix `⚠` involved; the convention mismatch had been
@@ -269,7 +269,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   One new `RoundTripLoss.syntheticRootFlattened` case (PlantUML-only
   trigger — D2/DOT preserve forests losslessly). No new
   `DiagnosticCategory` cases (reuses `.slotUnsupported`). Closes
-  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md).
+  `superproject:docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md`.
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
@@ -391,4 +391,4 @@ need.
 | Structurizr | `Sources/DiagramKitStructurizr/StructurizrImporter.swift` (+ parser/mapper) | `Sources/DiagramKitStructurizr/StructurizrExporter.swift` |
 | PlantUML | `Sources/DiagramKitPlantUML/PlantUMLImporter.swift` (+ per-family parsers, `PlantUMLFamilyProbe.swift`) | `Sources/DiagramKitPlantUML/Exporter/PlantUMLExporter.swift` + per-family exporters |
 | Round-trip fixtures | — | `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` |
-| Corpus | — | `Tests/DiagramKitTests/Resources/test-diagrams.json` (424 entries: 397 Mermaid + 27 multi-format) |
+| Corpus | — | `Sources/DiagramKitCorpus/Resources/test-diagrams.json` (435 entries: 406 Mermaid + 29 multi-format) |

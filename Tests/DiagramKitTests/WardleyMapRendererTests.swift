@@ -52,6 +52,7 @@ final class WardleyMapRendererTests: XCTestCase {
         }
 
         DiagramRenderer().render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
 
         var redPixelCount = 0
         for index in stride(from: 0, to: pixels.count, by: 4) {

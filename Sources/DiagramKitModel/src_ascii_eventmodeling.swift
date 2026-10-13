@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render an `EventModelingDiagram` as a list of frames followed by
@@ -6,7 +7,7 @@ public func renderEventModelingAscii(_ model: EventModelingDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
     if !model.frames.isEmpty {

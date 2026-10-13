@@ -43,18 +43,23 @@ extension DiagramRenderer {
             // 0. Rect background highlights (behind everything)
             for rect in rectHighlights {
                 let r = CGRect(x: rect.x, y: rect.y, width: max(0, rect.width), height: max(0, rect.height))
-                let color = _parseCSSColor(rect.fill) ?? theme.effectiveSurface().cgColor.copy(alpha: 0.15)!
-                ctx.setFillColor(color)
+                // Alpha-dimming applies only to the theme fallback — a
+                // color parsed from `rect.fill` is used as-is.
+                let surface = theme.effectiveSurface().cgColor
+                ctx.setFillColor(_parseCSSColor(rect.fill) ?? surface.copy(alpha: 0.15) ?? surface)
                 ctx.fill(r)
             }
 
             // 0.5 Boxes (actor groups)
             for box in boxes {
                 let boxRect = CGRect(x: box.x, y: box.y, width: box.width, height: box.height)
-                let fillColor = _parseCSSColor(box.fill) ?? theme.effectiveSurface().cgColor.copy(alpha: 0.1)!
+                // Alpha-dimming applies only to the theme fallback — a
+                // color parsed from `box.fill` is used as-is.
+                let surface = theme.effectiveSurface().cgColor
+                let fillColor = _parseCSSColor(box.fill) ?? surface.copy(alpha: 0.1) ?? surface
                 ctx.setFillColor(fillColor)
                 ctx.fill(boxRect)
-                ctx.setStrokeColor(fillColor.copy(alpha: 0.6)!)
+                ctx.setStrokeColor(fillColor.copy(alpha: 0.6) ?? fillColor)
                 ctx.setLineWidth(1.0)
                 ctx.setLineDash(phase: 0, lengths: [6, 4])
                 let path = BMBezierPath(roundedRect: boxRect, cornerRadius: 4)
@@ -516,12 +521,16 @@ extension DiagramRenderer {
 
     // MARK: - Color helper
 
+    private static let _rgbaRegex = try! NSRegularExpression(
+        pattern: #"rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)"#,
+        options: []
+    )
+
     private func _parseCSSColor(_ str: String) -> CGColor? {
         let s = str.lowercased()
         if s == "transparent" { return CGColor(red: 0, green: 0, blue: 0, alpha: 0) }
         // rgb(r,g,b) / rgba(r,g,b,a)
-        if let m = try? NSRegularExpression(pattern: #"rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)"#, options: [])
-            .firstMatch(in: s, options: [], range: NSRange(s.startIndex..., in: s)),
+        if let m = Self._rgbaRegex.firstMatch(in: s, options: [], range: NSRange(s.startIndex..., in: s)),
            let r1 = Range(m.range(at: 1), in: s), let r2 = Range(m.range(at: 2), in: s), let r3 = Range(m.range(at: 3), in: s) {
             let r = CGFloat(Int(s[r1]) ?? 0) / 255
             let g = CGFloat(Int(s[r2]) ?? 0) / 255

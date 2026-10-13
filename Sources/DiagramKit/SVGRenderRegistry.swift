@@ -18,7 +18,8 @@ struct SVGRenderDescriptor: Sendable {
         _ diagramId: String?,
         _ colors: DiagramColors,
         _ font: String,
-        _ transparent: Bool
+        _ transparent: Bool,
+        _ options: RenderOptions
     ) throws -> String
 }
 
@@ -39,14 +40,15 @@ extension SVGRenderDescriptor {
             _ diagramId: String?,
             _ colors: DiagramColors,
             _ font: String,
-            _ transparent: Bool
+            _ transparent: Bool,
+            _ options: RenderOptions
         ) throws -> String
     ) -> SVGRenderDescriptor {
-        SVGRenderDescriptor(type: type) { positioned, diagramId, colors, font, transparent in
+        SVGRenderDescriptor(type: type) { positioned, diagramId, colors, font, transparent, options in
             guard let payload = extract(positioned) else {
                 throw DiagramStructuralError.payloadMismatch(type)
             }
-            return try render(payload, diagramId, colors, font, transparent)
+            return try render(payload, diagramId, colors, font, transparent, options)
         }
     }
 }
@@ -181,31 +183,31 @@ private extension PositionedGraph {
 enum SVGRenderRegistry {
 
     static let all: [DiagramType: SVGRenderDescriptor] = [
-        .sequenceDiagram: .typed(.sequenceDiagram, { $0.sequenceDiagramStruct }) { diagram, _, colors, font, transparent in
-            try renderSequenceSvg(diagram, colors, font, transparent)
+        .sequenceDiagram: .typed(.sequenceDiagram, { $0.sequenceDiagramStruct }) { diagram, _, colors, font, transparent, options in
+            try renderSequenceSvg(diagram, colors, font, transparent, interactive: options.interactive ?? false)
         },
-        .classDiagram: .typed(.classDiagram, { $0.classDiagramStruct }) { diagram, _, colors, font, transparent in
+        .classDiagram: .typed(.classDiagram, { $0.classDiagramStruct }) { diagram, _, colors, font, transparent, _ in
             try renderClassSvg(diagram, colors, font, transparent)
         },
-        .erDiagram: .typed(.erDiagram, { $0.erDiagramStruct }) { diagram, _, colors, font, transparent in
+        .erDiagram: .typed(.erDiagram, { $0.erDiagramStruct }) { diagram, _, colors, font, transparent, _ in
             try renderErSvg(diagram, colors, font, transparent)
         },
-        .xyChart: .typed(.xyChart, { $0.xyChart }) { chart, _, colors, font, transparent in
-            renderXYChartSvg(chart, colors, font, transparent, interactive: false)
+        .xyChart: .typed(.xyChart, { $0.xyChart }) { chart, _, colors, font, transparent, options in
+            renderXYChartSvg(chart, colors, font, transparent, interactive: options.interactive ?? false)
         },
-        .pie: .typed(.pie, { $0.pieChart }) { chart, _, colors, font, transparent in
+        .pie: .typed(.pie, { $0.pieChart }) { chart, _, colors, font, transparent, _ in
             renderPieSvg(chart, colors, font, transparent)
         },
-        .journey: .typed(.journey, { $0.journeyDiagram }) { diagram, diagramId, colors, font, transparent in
+        .journey: .typed(.journey, { $0.journeyDiagram }) { diagram, diagramId, colors, font, transparent, _ in
             try renderJourneySvg(diagram, colors, font, transparent, diagramId: diagramId ?? "mermaid-0")
         },
-        .gantt: .typed(.gantt, { $0.ganttDiagram }) { data, diagramId, colors, font, transparent in
+        .gantt: .typed(.gantt, { $0.ganttDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderGanttSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .quadrantChart: .typed(.quadrantChart, { $0.quadrantChart }) { chart, _, colors, font, transparent in
+        .quadrantChart: .typed(.quadrantChart, { $0.quadrantChart }) { chart, _, colors, font, transparent, _ in
             renderQuadrantSvg(chart, colors, font, transparent)
         },
-        .requirement: .typed(.requirement, { $0.requirementDiagram }) { data, diagramId, colors, font, transparent in
+        .requirement: .typed(.requirement, { $0.requirementDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderRequirementSvg(data, colors, font, transparent,
                 diagramId: diagramId,
                 look: data.config.look,
@@ -214,65 +216,65 @@ enum SVGRenderRegistry {
         },
         .flowchart: SVGRenderDescriptor(
             type: .flowchart,
-            renderPositioned: { positioned, _, colors, font, transparent in
+            renderPositioned: { positioned, _, colors, font, transparent, _ in
                 try renderSvg(positioned, colors, font, transparent)
             }
         ),
         .stateDiagram: SVGRenderDescriptor(
             type: .stateDiagram,
-            renderPositioned: { positioned, _, colors, font, transparent in
+            renderPositioned: { positioned, _, colors, font, transparent, _ in
                 try renderSvg(positioned, colors, font, transparent)
             }
         ),
-        .gitGraph: .typed(.gitGraph, { $0.gitGraphDiagram }) { data, diagramId, _, _, _ in
+        .gitGraph: .typed(.gitGraph, { $0.gitGraphDiagram }) { data, diagramId, _, _, _, _ in
             renderGitGraphSvg(data, diagramId: diagramId ?? "")
         },
-        .mindmap: .typed(.mindmap, { $0.mindmapDiagram }) { data, diagramId, colors, font, transparent in
+        .mindmap: .typed(.mindmap, { $0.mindmapDiagram }) { data, diagramId, colors, font, transparent, _ in
             renderMindmapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .timeline: .typed(.timeline, { $0.timelineDiagram }) { data, diagramId, colors, font, transparent in
+        .timeline: .typed(.timeline, { $0.timelineDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderTimelineSvg(data, diagramId: diagramId ?? "mermaid-0", colors, font, transparent)
         },
-        .sankey: .typed(.sankey, { $0.sankeyDiagram }) { diagram, diagramId, colors, font, transparent in
+        .sankey: .typed(.sankey, { $0.sankeyDiagram }) { diagram, diagramId, colors, font, transparent, _ in
             renderSankeySvg(diagram, colors, font, transparent, diagramId: diagramId)
         },
-        .block: .typed(.block, { $0.blockDiagram }) { data, diagramId, colors, font, transparent in
+        .block: .typed(.block, { $0.blockDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderBlockSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
         },
-        .packet: .typed(.packet, { $0.packetDiagram }) { data, _, colors, font, transparent in
+        .packet: .typed(.packet, { $0.packetDiagram }) { data, _, colors, font, transparent, _ in
             renderPacketSvg(data, colors, font, transparent, theme: data.theme)
         },
-        .kanban: .typed(.kanban, { $0.kanbanDiagram }) { data, diagramId, colors, font, transparent in
+        .kanban: .typed(.kanban, { $0.kanbanDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderKanbanSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .architecture: .typed(.architecture, { $0.architectureDiagram }) { data, diagramId, colors, font, transparent in
+        .architecture: .typed(.architecture, { $0.architectureDiagram }) { data, diagramId, colors, font, transparent, _ in
             try renderArchitectureSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .radar: .typed(.radar, { $0.radarDiagram }) { diagram, _, colors, font, transparent in
+        .radar: .typed(.radar, { $0.radarDiagram }) { diagram, _, colors, font, transparent, _ in
             renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
         },
-        .treemap: .typed(.treemap, { $0.treemapDiagram }) { data, diagramId, colors, font, transparent in
+        .treemap: .typed(.treemap, { $0.treemapDiagram }) { data, diagramId, colors, font, transparent, _ in
             renderTreemapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .venn: .typed(.venn, { $0.vennDiagram }) { data, diagramId, colors, font, transparent in
+        .venn: .typed(.venn, { $0.vennDiagram }) { data, diagramId, colors, font, transparent, _ in
             renderVennSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .ishikawa: .typed(.ishikawa, { $0.ishikawaDiagram }) { data, diagramId, colors, font, transparent in
+        .ishikawa: .typed(.ishikawa, { $0.ishikawaDiagram }) { data, diagramId, colors, font, transparent, _ in
             renderIshikawaSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
         },
-        .treeView: .typed(.treeView, { $0.treeViewDiagram }) { data, diagramId, _, font, _ in
+        .treeView: .typed(.treeView, { $0.treeViewDiagram }) { data, diagramId, _, font, _, _ in
             renderTreeViewSvg(data, diagramId: diagramId ?? "", font: font)
         },
-        .eventModeling: .typed(.eventModeling, { $0.eventModelingDiagram }) { data, diagramId, colors, font, transparent in
+        .eventModeling: .typed(.eventModeling, { $0.eventModelingDiagram }) { data, diagramId, colors, font, transparent, _ in
             renderEventModelingSvg(data, diagramId: diagramId ?? "", colors: colors, font: font, transparent: transparent)
         },
-        .wardleyBeta: .typed(.wardleyBeta, { $0.wardleyMapDiagram }) { diagram, _, colors, font, transparent in
+        .wardleyBeta: .typed(.wardleyBeta, { $0.wardleyMapDiagram }) { diagram, _, colors, font, transparent, _ in
             renderWardleyMapSvg(diagram, colors: colors, font: font, transparent: transparent)
         },
-        .c4: .typed(.c4, { $0.c4Diagram }) { diagram, diagramId, colors, font, transparent in
+        .c4: .typed(.c4, { $0.c4Diagram }) { diagram, diagramId, colors, font, transparent, _ in
             try renderC4Svg(diagram, diagramId: diagramId ?? "", colors, font, transparent)
         },
-        .zenuml: .typed(.zenuml, { $0.zenumlDiagram }) { data, _, colors, font, transparent in
+        .zenuml: .typed(.zenuml, { $0.zenumlDiagram }) { data, _, colors, font, transparent, _ in
             renderZenUMLSvg(data, colors: colors, font: font, transparent: transparent)
         },
     ]
@@ -283,7 +285,8 @@ enum SVGRenderRegistry {
         diagramId: String? = nil,
         colors: DiagramColors,
         font: String,
-        transparent: Bool
+        transparent: Bool,
+        options: RenderOptions = RenderOptions()
     ) throws -> String {
         let type = positioned.diagram.type
         guard let descriptor = all[type] else {
@@ -291,6 +294,6 @@ enum SVGRenderRegistry {
                 "SVG rendering for \(type.rawValue)"
             )
         }
-        return try descriptor.renderPositioned(positioned, diagramId, colors, font, transparent)
+        return try descriptor.renderPositioned(positioned, diagramId, colors, font, transparent, options)
     }
 }

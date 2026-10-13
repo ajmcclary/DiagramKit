@@ -139,19 +139,21 @@ public struct DOTMapper {
                     )
                     context.subgraphStack.append((subgraph: sg, nodeIds: []))
                     walkStatements(sub.statements, context: &context)
-                    let closed = context.subgraphStack.removeLast()
+                    var closed = context.subgraphStack.removeLast()
                     closed.subgraph.nodeIds = closed.nodeIds
 
                     if context.subgraphStack.isEmpty {
                         context.subgraphs.append(closed.subgraph)
                     } else {
                         let parentIdx = context.subgraphStack.count - 1
-                        context.subgraphStack[parentIdx].subgraph.children.append(closed.subgraph)
+                        var parent = context.subgraphStack[parentIdx]
+                        parent.subgraph.children.append(closed.subgraph)
                         for nodeId in closed.nodeIds {
-                            if !context.subgraphStack[parentIdx].nodeIds.contains(nodeId) {
-                                context.subgraphStack[parentIdx].nodeIds.append(nodeId)
+                            if !parent.nodeIds.contains(nodeId) {
+                                parent.nodeIds.append(nodeId)
                             }
                         }
+                        context.subgraphStack[parentIdx] = parent
                     }
                 } else {
                     // Anonymous subgraph: inline nodes/edges into parent scope
@@ -298,9 +300,11 @@ public struct DOTMapper {
     private func recordNodeInCurrentSubgraph(id: String, context: inout MappingContext) {
         if !context.subgraphStack.isEmpty {
             let idx = context.subgraphStack.count - 1
-            if !context.subgraphStack[idx].nodeIds.contains(id) {
-                context.subgraphStack[idx].nodeIds.append(id)
+            var current = context.subgraphStack[idx]
+            if !current.nodeIds.contains(id) {
+                current.nodeIds.append(id)
             }
+            context.subgraphStack[idx] = current
         }
     }
 

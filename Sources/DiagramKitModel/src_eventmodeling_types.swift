@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Entity Types
 
@@ -447,7 +448,7 @@ public struct PositionedEventModelingDiagram: Sendable, Equatable {
 
 // MARK: - Parser Errors
 
-public enum EventModelingParserError: Error, LocalizedError {
+public enum EventModelingParserError: Error, LocalizedError, _RecoverableDiagramError {
     case emptySource
     case missingHeader
     case invalidFrameToken(String, Int)        // line content, line number

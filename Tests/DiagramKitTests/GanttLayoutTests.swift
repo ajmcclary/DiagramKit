@@ -148,7 +148,7 @@ struct GanttLayoutTests {
 
     @Test("Today marker honors DIAGRAMKIT_GANTT_TODAY for deterministic snapshots")
     func todayMarkerHonorsEnvOverride() throws {
-        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+        GanttTodayEnv.set()
         let config = GanttDiagramConfig.default
         let task = GanttTask(
             id: "t1", task: "Task", section: "S1", type: "S1",

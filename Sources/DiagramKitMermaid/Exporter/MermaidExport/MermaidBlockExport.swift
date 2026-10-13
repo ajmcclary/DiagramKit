@@ -92,9 +92,36 @@ enum MermaidBlockExport {
             return
         }
 
-        // Auto-generated space nodes — emit as bare `space` keyword.
+        // Auto-generated space nodes — emit as the `space` keyword, with the
+        // column width when the parser recorded one (`space:3`).
         if node.type == .space {
-            lines.append("\(indent)space")
+            if let width = node.widthInColumns, width > 0 {
+                lines.append("\(indent)space:\(width)")
+            } else {
+                lines.append("\(indent)space")
+            }
+            return
+        }
+
+        // Block arrows re-emit in the native `arrow<["Label"]>(dir,dir)`
+        // idiom; the parser synthesizes the arrow id on re-parse (the
+        // comparator normalizes auto-generated ids), so the bare `arrow`
+        // keyword is correct.
+        if node.type == .blockArrow {
+            let dirs = (node.directions ?? []).map(\.rawValue).joined(separator: ",")
+            var head = "arrow"
+            // `<["Label"]` — the closing `>` is shared with the directions
+            // group `>(dir,dir)`, so it is appended once below.
+            if !node.label.isEmpty {
+                head += "<[\"\(escapeQuotedLabel(node.label))\"]"
+            }
+            if !dirs.isEmpty {
+                head += ">(\(dirs))"
+            } else if !node.label.isEmpty {
+                head += ">"
+            }
+            let span = node.widthInColumns.map { ":\($0)" } ?? ""
+            lines.append("\(indent)\(head)\(span)")
             return
         }
 

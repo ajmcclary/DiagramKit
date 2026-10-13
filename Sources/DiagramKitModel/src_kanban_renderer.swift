@@ -21,10 +21,10 @@ public func renderKanbanSvg(
     var svg = ""
 
     let bounds = _kanbanSvgBounds(positioned)
-    let viewBoxX = Int(floor(bounds.minX))
-    let viewBoxY = Int(floor(bounds.minY))
-    let width = max(1, Int(ceil(bounds.maxX)) - viewBoxX)
-    let height = max(1, Int(ceil(bounds.maxY)) - viewBoxY)
+    let viewBoxX = _safeInt(floor(bounds.minX), default: 0)
+    let viewBoxY = _safeInt(floor(bounds.minY), default: 0)
+    let width = max(1, _safeInt(ceil(bounds.maxX), default: 0) - viewBoxX)
+    let height = max(1, _safeInt(ceil(bounds.maxY), default: 0) - viewBoxY)
 
     let _builder = SVGDocumentBuilder(
         width: Double(width), height: Double(height),

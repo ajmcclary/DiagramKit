@@ -179,8 +179,12 @@ enum D2ERExport {
             lines.append("")
         }
 
+        var relIDOccurrences: [String: Int] = [:]
         for rel in diagram.relationships {
-            let relID = "\(rel.entity1)_\(rel.entity2)"
+            let pairKey = "\(rel.entity1)_\(rel.entity2)"
+            let occurrence = (relIDOccurrences[pairKey] ?? 0) + 1
+            relIDOccurrences[pairKey] = occurrence
+            let relID = occurrence == 1 ? pairKey : "\(pairKey)_\(occurrence)"
             let src = sanitizeID(rel.entity1)
             let tgt = sanitizeID(rel.entity2)
             if !rel.label.isEmpty {
@@ -202,17 +206,6 @@ enum D2ERExport {
     }
 
     static func sanitizeID(_ raw: String) -> String {
-        var result = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { result.append("_") }
-                result.append(ch)
-            case " ", "-", ".":
-                result.append("_")
-            default: break
-            }
-        }
-        return result.isEmpty ? "node" : result
+        D2Hygiene.mangleID(raw)
     }
 }

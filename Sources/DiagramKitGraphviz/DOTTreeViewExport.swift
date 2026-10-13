@@ -68,39 +68,14 @@ enum DOTTreeViewExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default: break
-            }
-        }
-        // DOT reserves `node`/`edge`/`graph`/`subgraph` as keywords;
-        // synthesize `n0` for inputs that sanitize empty (e.g. "/").
-        if out.isEmpty { return "n0" }
-        switch out {
-        case "node", "edge", "graph", "subgraph", "digraph", "strict":
-            return "_\(out)"
-        default:
-            return out
-        }
+        DOTHygiene.mangleID(raw, emptyPlaceholder: "n0")
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        DOTHygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        DOTHygiene.singleLine(s)
     }
 }

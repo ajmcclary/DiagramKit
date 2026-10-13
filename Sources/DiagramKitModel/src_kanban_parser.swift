@@ -1,7 +1,7 @@
 import Foundation
 import DiagramKitCommon
 
-public enum KanbanParserError: Error, LocalizedError {
+public enum KanbanParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case itemsWithoutSection(String)
     case invalidShape(String)
@@ -218,7 +218,9 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
 private func _kanbanTitleValue(_ line: String) -> String? {
     let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
     let lower = trimmed.lowercased()
-    guard lower.hasPrefix("title ") else { return nil }
+    guard lower.hasPrefix("title") else { return nil }
+    let afterKeyword = lower.dropFirst("title".count)
+    guard afterKeyword.isEmpty || afterKeyword.first?.isWhitespace == true else { return nil }
     let start = trimmed.index(trimmed.startIndex, offsetBy: "title".count)
     return String(trimmed[start...]).trimmingCharacters(in: .whitespacesAndNewlines)
 }
@@ -749,25 +751,11 @@ public func _splitKanbanKeyValue(_ line: String) -> [(String, String)] {
 }
 
 public func _unquoteKanbanValue(_ value: String) -> String {
-    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(value.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 public func _kbnStripQuotes(_ text: String) -> String {
-    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(text.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 public func _kbnSanitizeText(_ text: String) -> String {

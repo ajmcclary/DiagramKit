@@ -52,7 +52,7 @@ Noto Sans Mono is DiagramKit's default monospace font, used for code-like labels
 
 ### Why bundle fonts at all?
 
-Snapshot-image determinism depends on every host machine resolving identical glyph outlines for a given (family, size, weight, italic) tuple. Apple's system fonts (San Francisco, Menlo, etc.) drift across major OS updates: the same `UIFont.systemFont(ofSize: 14)` produces subtly different glyph paths between macOS 14 and macOS 15, breaking snapshot tests with no underlying code change. Bundling Noto Sans / Noto Sans Mono and registering them at process load gives `BMFont(name: "Noto Sans", …)` lookups a stable resolution across hosts, OS versions, and CI runners. This pattern mirrors the convention established in the sibling `MusicToolkit` package.
+Snapshot-image determinism depends on every host machine resolving identical glyph outlines for a given (family, size, weight, italic) tuple. Apple's system fonts (San Francisco, Menlo, etc.) drift across major OS updates: the same `UIFont.systemFont(ofSize: 14)` produces subtly different glyph paths between macOS 14 and macOS 15, breaking snapshot tests with no underlying code change. Bundling Noto Sans / Noto Sans Mono and registering them at process load gives `BMFont(name: "Noto Sans", …)` lookups a stable resolution across hosts, OS versions, and CI runners.
 
 ## Third-party Swift libraries
 
@@ -84,16 +84,22 @@ These dependencies are declared in [Package.swift](Package.swift) and resolved b
 
 ### `swift-snapshot-testing`
 
-- **Origin:** <https://github.com/pointfreeco/swift-snapshot-testing> (currently pinned to the fork at <https://github.com/ajmcclary/swift-snapshot-testing> branch `fix-swift-6.3-attachable`)
+- **Origin:** <https://github.com/pointfreeco/swift-snapshot-testing>, pinned by version (`from: "1.19.3"`).
 - **License:** MIT
 - **Copyright:** Copyright © 2019 Point-Free, Inc.
 - **SPDX Identifier:** MIT
 - **Used by:** `DiagramKitTests` for SVG / image / ASCII baselines.
-- **Note on the fork:** the fork carries [pointfreeco/swift-snapshot-testing#1090](https://github.com/pointfreeco/swift-snapshot-testing/pull/1090), which fixes a Swift 6.3 `Attachable` cross-import-overlay break (`Data: Attachable` and `NSImage: AttachableAsImage` live in `_Testing_Foundation` / `_Testing_AppKit` overlays that SwiftPM only enables for test targets). Once #1090 ships in a tagged upstream release (likely 1.19.3+), `Package.swift` will switch back to the upstream `pointfreeco/swift-snapshot-testing`.
+- **Version note:** the former `ajmcclary/swift-snapshot-testing`
+  `fix-swift-6.3-attachable` fork (carrying
+  [pointfreeco/swift-snapshot-testing#1090](https://github.com/pointfreeco/swift-snapshot-testing/pull/1090))
+  was only needed on the open-source swift-6.3-RELEASE toolchain; upstream
+  1.19.3 builds cleanly under the Apple Swift 6.4 / Xcode 27 toolchain, and
+  the fork pin was dropped on 2026-07-14.
 
 ## Inspirational / convention sources
 
-- **Sibling `MusicToolkit` package** — DiagramKit's layered-target shape, governance scripts, and bundled-font / `@unchecked Sendable` policies are direct ports from MusicToolkit.
+None. DiagramKit's layered-target shape, governance gates, and
+bundled-font / `@unchecked Sendable` policies evolved in this repository.
 
 ## License texts
 

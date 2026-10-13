@@ -153,4 +153,85 @@ final class FlowchartStateERReviewRegressionTests: XCTestCase {
             XCTAssertGreaterThan(entity.height, 0)
         }
     }
+
+    func testErDiagramQuotedLabelPreservesOperatorsAndStripsInlineComments() throws {
+        let document = try DiagramPipeline.parse("""
+        erDiagram
+          "A--B" ||--o{ "C..D" : label %% not a comment
+        """)
+        guard case .erDiagram(let er) = document.payload else {
+            return XCTFail("Expected .erDiagram payload")
+        }
+        let labels = Set(er.entities.map { $0.label })
+        XCTAssertTrue(labels.contains("A--B"))
+        XCTAssertTrue(labels.contains("C..D"))
+        let rel = try XCTUnwrap(er.relationships.first)
+        XCTAssertEqual(rel.label, "label")
+    }
+
+    // MARK: - Review remediation: C2 / C3 / M-PAR-4 / M-PAR-6
+
+    func testFlowchartApostropheInUnquotedLabelDoesNotSwallowFollowingLines() throws {
+        let document = try DiagramPipeline.parse("""
+        flowchart TD
+          A[Don't panic] --> B[Keep calm]
+          B --> C[Done]
+        """)
+        guard case .flowchart(let graph) = document.payload else {
+            return XCTFail("Expected .flowchart payload")
+        }
+        XCTAssertEqual(graph.nodesInOrder.count, 3)
+        let labels = graph.nodesInOrder.map { $0.node.label }
+        XCTAssertTrue(labels.contains("Don't panic"))
+        XCTAssertTrue(labels.contains("Keep calm"))
+        XCTAssertTrue(labels.contains("Done"))
+        XCTAssertEqual(graph.edges.count, 2)
+    }
+
+    func testFlowchartNoSpaceArrowCreatesNodeBAndEdge() throws {
+        let document = try DiagramPipeline.parse("""
+        graph TD
+          A-->B
+        """)
+        guard case .flowchart(let graph) = document.payload else {
+            return XCTFail("Expected .flowchart payload")
+        }
+        let ids = Set(graph.nodesInOrder.map { $0.id })
+        XCTAssertTrue(ids.contains("A"))
+        XCTAssertTrue(ids.contains("B"))
+        XCTAssertEqual(graph.edges.count, 1)
+        XCTAssertEqual(graph.edges.first?.source, "A")
+        XCTAssertEqual(graph.edges.first?.target, "B")
+    }
+
+    func testFlowchartTextEmbeddedLabelPicksEarliestCloser() throws {
+        let document = try DiagramPipeline.parse("""
+        flowchart TD
+          A == label ==> B --> C
+        """)
+        guard case .flowchart(let graph) = document.payload else {
+            return XCTFail("Expected .flowchart payload")
+        }
+        XCTAssertEqual(graph.edges.count, 2)
+        let first = try XCTUnwrap(graph.edges.first)
+        XCTAssertEqual(first.source, "A")
+        XCTAssertEqual(first.target, "B")
+        XCTAssertEqual(first.label, "label")
+        let second = try XCTUnwrap(graph.edges.dropFirst().first)
+        XCTAssertEqual(second.source, "B")
+        XCTAssertEqual(second.target, "C")
+    }
+
+    func testFlowchartC4DirectionDoesNotMatchInsideRelLabel() throws {
+        let document = try DiagramPipeline.parse("""
+        C4Context
+          Rel(a, b, "Set direction LR here")
+        """)
+        guard case .c4(let c4) = document.payload else {
+            return XCTFail("Expected .c4 payload")
+        }
+        XCTAssertEqual(c4.relationships.count, 1)
+        let rel = try XCTUnwrap(c4.relationships.first)
+        XCTAssertEqual(rel.label, "Set direction LR here")
+    }
 }

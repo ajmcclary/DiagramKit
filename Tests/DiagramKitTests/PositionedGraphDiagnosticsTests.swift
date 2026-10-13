@@ -8,14 +8,14 @@ struct PositionedGraphDiagnosticsTests {
     @Test("Default value is empty array")
     func defaultIsEmpty() throws {
         let doc = try DiagramPipeline.parse("pie\n  \"a\" : 1")
-        let positioned = try GraphLayout().layout(doc)
+        let positioned = try _GraphLayout().layout(doc)
         #expect(positioned.diagnostics == [])
     }
 
     @Test("Field is publicly mutable")
     func fieldIsMutable() throws {
         let doc = try DiagramPipeline.parse("pie\n  \"a\" : 1")
-        var positioned = try GraphLayout().layout(doc)
+        var positioned = try _GraphLayout().layout(doc)
         positioned.diagnostics = [
             DiagramDiagnostic(severity: .warning, message: "test", location: nil)
         ]
@@ -43,7 +43,7 @@ struct PositionedGraphDiagnosticsTests {
           end
         """
         let doc = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(doc)
+        let positioned = try _GraphLayout().layout(doc)
         // No recursion-limit warning for moderate input.
         #expect(positioned.diagnostics.allSatisfy { !$0.message.contains("recursion depth exceeded") })
     }

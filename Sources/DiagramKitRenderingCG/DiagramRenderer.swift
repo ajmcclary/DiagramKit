@@ -122,11 +122,10 @@ public final class DiagramRenderer {
         var drawRect = rect
         drawRect.size.height = bounding.height
         drawRect.origin.y = rect.midY - bounding.height / 2
-        #if os(macOS)
-        attrStr.draw(in: drawRect)
-        #else
-        attrStr.draw(with: drawRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
-        #endif
+        // Route through LabelRenderer so the AppKit draw installs an
+        // NSGraphicsContext — without it, `draw(in:)` is a silent no-op
+        // on the raw bitmap CGContext (H1).
+        labelRenderer.drawAttributedString(attrStr, in: drawRect, context: context)
     }
 
     func _withFittedContext(

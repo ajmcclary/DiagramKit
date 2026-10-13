@@ -246,7 +246,7 @@ struct D2C4ExportMetadataTests {
         #expect(source.contains("# diagramkit:c4-technology=svc,Swift 6"))
         #expect(source.contains("# diagramkit:c4-description=svc,Auth API"))
         #expect(source.contains("# diagramkit:c4-sprite=svc,lock"))
-        #expect(source.contains("# diagramkit:c4-tag=svc,internal,v2"))
+        #expect(source.contains("# diagramkit:c4-tag=svc,b64:aW50ZXJuYWwsdjI="))
         #expect(source.contains("# diagramkit:c4-link=svc,https://example.com"))
         #expect(source.contains("# diagramkit:c4-color=svc,bg=#fff;font=#000;border=#888"))
     }

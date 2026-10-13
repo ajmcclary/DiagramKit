@@ -37,7 +37,9 @@ public struct PreparedDiagram: Sendable {
         self.diagnostics = importDiagnostics + positioned.diagnostics
     }
 
-    @MainActor
+    /// Renders into `context`. Not main-actor-isolated (M-CG-4): the call
+    /// is pure CGContext work (`DiagramRenderer.render` is nonisolated),
+    /// so large exports can rasterize off the UI thread.
     public func render(in context: CGContext, bounds renderBounds: CGRect) {
         DiagramRenderer(theme: theme).render(positioned, in: context, bounds: renderBounds)
     }

@@ -568,7 +568,7 @@ public func formatTreemapValue(_ value: Double, format: String) -> String {
     let positiveSign = fmt.hasPrefix("+")
 
     if fmt == "$" {
-        return _pos("$\(Int(value.rounded()))", positiveSign)
+        return _pos("$\(_safeInt(value.rounded(), default: 0))", positiveSign)
     }
     if fmt.hasPrefix("$") {
         let sub = String(fmt.dropFirst())
@@ -637,7 +637,7 @@ public func formatTreemapValue(_ value: Double, format: String) -> String {
         return _pos(String(format: "%.2f", value), positiveSign)
     }
     if fmt == "0" {
-        return _pos("\(Int(value.rounded()))", positiveSign)
+        return _pos("\(_safeInt(value.rounded(), default: 0))", positiveSign)
     }
 
     return _pos(_commaFormat(value), positiveSign)
@@ -705,7 +705,7 @@ private func _commaFormat(_ value: Double, decimals: Int? = nil) -> String {
         formatter.minimumFractionDigits = d
         formatter.maximumFractionDigits = d
     } else {
-        let intPart = Int64(number.rounded())
+        let intPart = _safeInt64(number.rounded(), default: 0)
         if Double(intPart) == number {
             formatter.minimumFractionDigits = 0
             formatter.maximumFractionDigits = 0
@@ -715,5 +715,5 @@ private func _commaFormat(_ value: Double, decimals: Int? = nil) -> String {
         }
     }
 
-    return formatter.string(from: NSNumber(value: number)) ?? "\(Int(value.rounded()))"
+    return formatter.string(from: NSNumber(value: number)) ?? "\(_safeInt(value.rounded(), default: 0))"
 }

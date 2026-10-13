@@ -122,11 +122,6 @@ enum PlantUMLClassExport {
     }
 
     private static func escape(_ s: String) -> String {
-        s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
+        PlantUMLHygiene.escapeQuotedBody(s)
     }
 }

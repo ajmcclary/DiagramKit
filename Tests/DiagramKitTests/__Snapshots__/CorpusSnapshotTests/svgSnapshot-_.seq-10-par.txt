@@ -136,12 +136,4 @@
 <rect x="482.539" y="299.0" width="116.94200000000001" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="541.01" y="331.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">OrderService</text>
 </g>
-<script type="text/javascript">
-function popupMenuToggle(popId) {
-  var pop = document.getElementById(popId);
-  if (!pop) return;
-  var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
-  pop.setAttribute('visibility', vis);
-}
-</script>
 </svg>

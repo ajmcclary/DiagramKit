@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 #if canImport(CoreGraphics)
 import CoreGraphics
@@ -372,7 +373,7 @@ public struct PositionedRadarTitle: Sendable, Equatable {
 
 // MARK: - Parser errors
 
-public enum RadarParserError: Error, LocalizedError {
+public enum RadarParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String, line: Int)
     case emptyAxisDeclaration(line: Int)
     case nonCommaSeparatedAxes(String, line: Int)

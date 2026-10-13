@@ -555,8 +555,8 @@ private class XYChartTokenParser {
             chart.titleText = XYText(text: sanitized)
             chart.title = sanitized
         default:
-            // Put back if not a text token
-            pos -= 1
+            // Put back if not a text token and we actually consumed one.
+            if case .eof = tok.type {} else { pos -= 1 }
         }
     }
 
@@ -1000,8 +1000,7 @@ private func _formatNumber(_ d: Double) -> String {
 
 // MARK: - Public API
 
-public func parseXYChart(_ lines: [String]) throws -> (XYChart, [DiagramDiagnostic]) {
-    let source = lines.joined(separator: "\n")
+private func _parseXYChartSource(_ source: String) throws -> (XYChart, [DiagramDiagnostic]) {
     let tokens = try _tokenizeXYChart(source)
     let parser = XYChartTokenParser(tokens: tokens)
     let chart = try parser.parse()
@@ -1014,14 +1013,10 @@ public func parseXYChart(_ lines: [String]) throws -> (XYChart, [DiagramDiagnost
     return (chart, [])
 }
 
+public func parseXYChart(_ lines: [String]) throws -> (XYChart, [DiagramDiagnostic]) {
+    try _parseXYChartSource(lines.joined(separator: "\n"))
+}
+
 public func parseXYChart(_ source: String) throws -> (XYChart, [DiagramDiagnostic]) {
-    let tokens = try _tokenizeXYChart(source)
-    let parser = XYChartTokenParser(tokens: tokens)
-    let chart = try parser.parse()
-
-    if chart.series.isEmpty {
-        throw XYChartParserError.noPlotData
-    }
-
-    return (chart, [])
+    try _parseXYChartSource(source)
 }

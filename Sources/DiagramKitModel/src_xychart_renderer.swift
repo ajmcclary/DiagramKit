@@ -30,19 +30,21 @@ private enum TIP {
 // MARK: - Color resolution helpers
 
 private func _resolveColor(_ themeColor: String?, _ fallback: String) -> String {
-    if let c = themeColor, !c.isEmpty { return c }
+    if let c = themeColor, !c.isEmpty, _isSafeCSSColor(c) { return c }
     return fallback
 }
 
 private func _resolvePlotColor(_ index: Int, _ theme: XYChartThemeConfig, _ accentHex: String?, _ bgHex: String?) -> String {
     if let palette = theme.plotColorPalette, !palette.isEmpty {
         let colors = palette.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        if !colors.isEmpty {
-            return colors[index % colors.count]
+        let safeColors = colors.filter(_isSafeCSSColor)
+        if !safeColors.isEmpty {
+            return safeColors[index % safeColors.count]
         }
     }
-    if index == 0 { return accentHex ?? CHART_ACCENT_FALLBACK }
-    return getSeriesColor(index, accentHex ?? CHART_ACCENT_FALLBACK, bgHex)
+    let safeAccent = (accentHex != nil && _isSafeCSSColor(accentHex!)) ? accentHex! : CHART_ACCENT_FALLBACK
+    if index == 0 { return safeAccent }
+    return getSeriesColor(index, safeAccent, bgHex)
 }
 
 // MARK: - Public entry point
@@ -186,15 +188,19 @@ public func renderXYChartSvg(
     // 4. Dots (native only)
     var dotOverlay: [String] = []
     if native && (interactive || sparse) {
-        var columns: [String: [(x: Double, y: Double, value: Double, label: String?, seriesIndex: Int, colorIndex: Int)]] = [:]
+        var columns: [Double: [(x: Double, y: Double, value: Double, label: String?, seriesIndex: Int, colorIndex: Int)]] = [:]
         for line in chart.lines {
             for p in line.points {
-                let key = _r(p.x)
+                // Group on the same rounded value the output uses, but keep
+                // the key numeric so columns emit in left-to-right order
+                // instead of dictionary hash order (M-SVG-2).
+                let key = Double(_r(p.x)) ?? p.x
                 columns[key, default: []].append((p.x, p.y, p.value, p.label, line.seriesIndex, line.colorIndex))
             }
         }
 
-        for entries in columns.values {
+        for key in columns.keys.sorted() {
+            let entries = columns[key] ?? []
             guard let first = entries.first else { continue }
 
             if !interactive {
@@ -349,7 +355,7 @@ private func _chartStyles(
     _ chart: PositionedXYChart, _ interactive: Bool, _ sparse: Bool,
     _ themeAccent: String?, _ bgColor: String?
 ) -> (style: String, defs: String) {
-    let accentHex = themeAccent ?? CHART_ACCENT_FALLBACK
+    let accentHex = (themeAccent != nil && _isSafeCSSColor(themeAccent!)) ? themeAccent! : CHART_ACCENT_FALLBACK
 
     var colorIndices = Set<Int>()
     for b in chart.bars { colorIndices.insert(b.colorIndex) }
@@ -586,11 +592,6 @@ private func _formatTipValue(_ v: Double) -> String {
 }
 
 private func _r(_ n: Double) -> String {
-    let rounded = (n * 10).rounded() / 10
-    if rounded.isFinite && abs(rounded) < 1e15 && rounded == rounded.rounded() {
-        return String(Int(rounded))
-    }
-    if !rounded.isFinite { return "0" }
-    return String(format: "%.1f", rounded)
+    _svgNum(n)
 }
 

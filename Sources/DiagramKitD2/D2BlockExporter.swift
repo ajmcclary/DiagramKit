@@ -220,8 +220,6 @@ public enum D2BlockExporter {
     }
 
     private static func escape(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
+        D2Hygiene.escapeString(text)
     }
 }

@@ -1,5 +1,6 @@
 // Ported from original/src/ascii/ansi.ts
 import Foundation
+import DiagramKitCommon
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -164,10 +165,13 @@ private func escapeHtml(_ text: String) -> String {
         .replacingOccurrences(of: "&", with: "&amp;")
         .replacingOccurrences(of: "<", with: "&lt;")
         .replacingOccurrences(of: ">", with: "&gt;")
+        .replacingOccurrences(of: "\"", with: "&quot;")
+        .replacingOccurrences(of: "'", with: "&#39;")
 }
 
 private func htmlSpan(_ hex: String, _ text: String) -> String {
-    "<span style=\"color:\(hex)\">\(escapeHtml(text))</span>"
+    let safeHex = _isSafeCSSColor(hex) ? hex : "#000000"
+    return "<span style=\"color:\(SVG.escapeAttribute(safeHex))\">\(escapeHtml(text))</span>"
 }
 
 private func getRoleColor(_ role: CharRole, _ theme: AsciiTheme) -> String {
@@ -343,7 +347,3 @@ public func colorizeText(_ text: String, _ hex: String, _ mode: ColorMode) -> St
     return "\(colorCode)\(text)\(RESET)"
 }
 
-final class original_src_ascii_ansi {
-    public init() {}
-    public static let DEFAULT_ASCII_THEME = DEFAULT_ASCII_THEME_ANSI
-}

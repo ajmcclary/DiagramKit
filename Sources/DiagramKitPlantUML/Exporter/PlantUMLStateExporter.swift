@@ -127,9 +127,6 @@ enum PlantUMLStateExport {
     }
 
     private static func escape(_ s: String) -> String {
-        s
-            .replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
+        PlantUMLHygiene.collapseAllNewlines(s)
     }
 }

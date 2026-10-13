@@ -61,23 +61,23 @@
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="366.331,58.45 390.331,58.45 390.331,58.45 414.331,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="D" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="492.59000000000003,58.45 516.59,58.45 516.59,58.45 540.59,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Step 1" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 113.81299999999999 40.0 L 113.81299999999999 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 113.81 40 L 113.81 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="76.9065" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Step 1</text>
 </g>
 <g class="node" data-id="B" data-label="Step 2" data-shape="rectangle">
-  <path d="M 161.813 40.0 L 240.072 40.0 L 240.072 76.9 L 161.813 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 161.81 40 L 240.07 40 L 240.07 76.90 L 161.81 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="200.9425" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Step 2</text>
 </g>
 <g class="node" data-id="C" data-label="Step 3" data-shape="rectangle">
-  <path d="M 288.072 40.0 L 366.331 40.0 L 366.331 76.9 L 288.072 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 288.07 40 L 366.33 40 L 366.33 76.90 L 288.07 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="327.2015" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Step 3</text>
 </g>
 <g class="node" data-id="D" data-label="Step 4" data-shape="rectangle">
-  <path d="M 414.331 40.0 L 492.59000000000003 40.0 L 492.59000000000003 76.9 L 414.331 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 414.33 40 L 492.59 40 L 492.59 76.90 L 414.33 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="453.4605" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Step 4</text>
 </g>
 <g class="node" data-id="E" data-label="Step 5" data-shape="rectangle">
-  <path d="M 540.59 40.0 L 618.849 40.0 L 618.849 76.9 L 540.59 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 540.59 40 L 618.85 40 L 618.85 76.90 L 540.59 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="579.7195" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Step 5</text>
 </g>
 </svg>

@@ -245,7 +245,7 @@ public func parseRadarDiagram(
 
     var curves: [RadarCurve] = []
     for raw in rawCurves {
-        let entries = try computeCurveEntries(raw.entries, axes: axes, curveName: raw.name)
+        let entries = try _computeCurveEntries(raw.entries, axes: axes, curveName: raw.name)
         curves.append(RadarCurve(name: raw.name, label: raw.label, entries: entries))
     }
     diagram.curves = curves
@@ -255,14 +255,19 @@ public func parseRadarDiagram(
 
 // MARK: - Entry types
 
-public enum RadarRawEntry {
+public enum RadarRawEntry: Sendable {
     case numeric(Double)
     case detailed(axisId: String, value: Double)
 }
 
 // MARK: - computeCurveEntries
 
+@available(*, deprecated, renamed: "_computeCurveEntries", message: "SPI; not part of the supported public API.")
 public func computeCurveEntries(_ entries: [RadarRawEntry], axes: [RadarAxis], curveName: String) throws -> [Double] {
+    try _computeCurveEntries(entries, axes: axes, curveName: curveName)
+}
+
+public func _computeCurveEntries(_ entries: [RadarRawEntry], axes: [RadarAxis], curveName: String) throws -> [Double] {
     if entries.isEmpty { return [] }
     switch entries[0] {
     case .numeric:

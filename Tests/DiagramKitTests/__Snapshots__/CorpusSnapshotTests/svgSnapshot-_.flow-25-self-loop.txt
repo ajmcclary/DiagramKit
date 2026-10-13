@@ -58,7 +58,7 @@
 </style>
 <polyline data-from="A" data-to="A" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="147.899,58.45 93.9495,58.45 93.9495,58.45 40.0,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Retry Node" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 147.899 40.0 L 147.899 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 147.90 40 L 147.90 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="93.9495" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Retry Node</text>
 </g>
 </svg>

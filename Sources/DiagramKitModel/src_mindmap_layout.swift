@@ -181,7 +181,11 @@ private func _measureMindmapLabelSize(text: String, fontSize: Double, fontFamily
 private func _measureTextSize(text: String, fontSize: Double, fontFamily: String) -> (width: Double, height: Double) {
     #if canImport(UIKit) || canImport(AppKit)
     let nsString = text as NSString
-    let font = BMFont(name: fontFamily, size: CGFloat(fontSize)) ?? BMFont.systemFont(ofSize: CGFloat(fontSize))
+    // Route through DiagramFontResolver's lock-protected factory (M-CG-11):
+    // parallel `BMFont(name:)` calls contend on the CoreText font-provider
+    // XPC service — the same reason every other resolver call site locks.
+    let font = DiagramFontResolver._lockedBMFont(name: fontFamily, size: CGFloat(fontSize))
+        ?? BMFont.systemFont(ofSize: CGFloat(fontSize))
 
     let attrs: [NSAttributedString.Key: Any] = [.font: font]
     let size = nsString.boundingRect(with: CGSize(width: 1000, height: 1000), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil)

@@ -1,3 +1,12 @@
+/// UNSUPPORTED TOOLING PRODUCT — not part of DiagramKit's supported public
+/// API and exempt from semver stability. This product owns the corpus schema
+/// (`CorpusEntry`, `CorpusFile`, `ExpectedDiagnostic`, `CorpusEntryError`)
+/// and the single canonical `test-diagrams.json` fixture. It exists so
+/// DiagramKit's corpus-driven test suites (and the workspace's
+/// path-dependency app) share one decoder and one data file; the surface may
+/// change or be withdrawn in any release without a deprecation cycle.
+/// Consumers outside this repository should not take a dependency on it.
+
 import Foundation
 
 /// Single-source accessor for the canonical diagram corpus fixture

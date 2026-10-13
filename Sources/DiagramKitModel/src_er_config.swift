@@ -63,6 +63,3 @@ public struct ErDiagramConfig: Sendable {
     }
 }
 
-final class original_src_er_config {
-    public init() {}
-}

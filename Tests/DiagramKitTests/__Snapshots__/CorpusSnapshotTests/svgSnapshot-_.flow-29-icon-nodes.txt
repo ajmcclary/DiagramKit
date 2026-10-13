@@ -58,11 +58,11 @@
 </style>
 <polyline data-from="U" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="75.795,76.9 75.795,100.9 77.277,100.9 77.277,124.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="U" data-label="User" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 111.59 40.0 L 111.59 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 111.59 40 L 111.59 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="75.795" y="88.9" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">User</text>
 </g>
 <g class="node" data-id="D" data-label="Store" data-shape="rectangle">
-  <path d="M 40.0 124.9 L 114.554 124.9 L 114.554 161.8 L 40.0 161.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 124.90 L 114.55 124.90 L 114.55 161.80 L 40 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="77.277" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Store</text>
 </g>
 </svg>

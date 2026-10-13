@@ -15,7 +15,7 @@ enum DOTStateProbe {
         if DOTClassProbe.detectsClassDiagram(document) { return false }
         for stmt in document.statements {
             if case .nodeStatement(let node) = stmt {
-                let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 let shape = attrs["shape"]
                 if shape == "point" || shape == "doublecircle" { return true }
             }
@@ -24,12 +24,12 @@ enum DOTStateProbe {
     }
 
     static func isStateStartNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         return attrs["shape"] == "point"
     }
 
     static func isStateEndNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         return attrs["shape"] == "doublecircle"
     }
 }
@@ -88,11 +88,12 @@ struct DOTStateMapper {
             switch stmt {
             case .nodeStatement(let node):
                 ensureNode(node.id, ctx: &ctx)
+                applyDisplayLabel(node, ctx: &ctx)
                 appendUnique(node.id, to: &collector)
             case .edgeStatement(let edge):
                 ensureNode(edge.source, ctx: &ctx)
                 ensureNode(edge.target, ctx: &ctx)
-                let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 ctx.edges.append(original_src_types.MermaidEdge(
                     source: edge.source,
                     target: edge.target,
@@ -148,11 +149,12 @@ struct DOTStateMapper {
             switch stmt {
             case .nodeStatement(let node):
                 ensureNode(node.id, ctx: &ctx)
+                applyDisplayLabel(node, ctx: &ctx)
                 appendUnique(node.id, to: &localIDs)
             case .edgeStatement(let edge):
                 ensureNode(edge.source, ctx: &ctx)
                 ensureNode(edge.target, ctx: &ctx)
-                let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 ctx.edges.append(original_src_types.MermaidEdge(
                     source: edge.source,
                     target: edge.target,
@@ -194,6 +196,16 @@ struct DOTStateMapper {
         }
         ctx.nodesById[id] = original_src_types.MermaidNode(id: id, label: id, shape: shape)
         ctx.nodeOrder.append(id)
+    }
+
+    /// Restores a state node's display label from its `label` attribute so
+    /// `s [label="Working"]` round-trips instead of collapsing to the id.
+    private func applyDisplayLabel(_ node: DOTNodeStatement, ctx: inout MapContext) {
+        guard ctx.nodesById[node.id] != nil else { return }
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
+        if let label = attrs["label"], !label.isEmpty {
+            ctx.nodesById[node.id]?.label = label
+        }
     }
 
     private func appendUnique(_ id: String, to list: inout [String]) {
@@ -249,37 +261,65 @@ enum DOTStateExport {
         }
 
         var nameRewrite: [String: String] = [:]
+        var displayLabels: [String: String] = [:]
         for entry in graph.nodesInOrder {
             let id = entry.id
             switch entry.node.shape {
             case .stateStart:
                 nameRewrite[id] = "_start"
-                lines.append("  _start [shape=point, style=filled, fillcolor=black];")
             case .stateEnd:
                 nameRewrite[id] = "_end"
+            default:
+                nameRewrite[id] = DOTClassExport.sanitizeDOTID(id)
+            }
+            let label = entry.node.label
+            if !label.isEmpty && label != id {
+                displayLabels[id] = label
+            }
+        }
+
+        for entry in graph.nodesInOrder {
+            switch entry.node.shape {
+            case .stateStart:
+                lines.append("  _start [shape=point, style=filled, fillcolor=black];")
+            case .stateEnd:
                 lines.append("  _end [shape=doublecircle, style=filled, fillcolor=black];")
             default:
                 break
             }
         }
 
-        // Composite states surface as `subgraph cluster_<id> { … }` blocks.
-        // Membership comes from MermaidSubgraph.nodeIds. Each member node
-        // is declared inside the cluster body so re-import can recover the
-        // parent relationship; nodes that the cluster references but
-        // weren't yet declared get a bare declaration line.
-        var declaredInCluster: Set<String> = []
-        for sub in graph.subgraphs {
-            lines.append("  subgraph cluster_\(DOTClassExport.sanitizeDOTID(sub.id)) {")
-            lines.append("    label=\(DOTClassExport.quoted(sub.label));")
+        // Composite states surface as `subgraph cluster_<id> { … }` blocks,
+        // nested composites as nested cluster blocks (Graphviz supports
+        // cluster nesting natively). Membership comes from
+        // MermaidSubgraph.nodeIds. Each member node is declared inside the
+        // cluster body — with its display label when it has one — so
+        // re-import can recover both the parent relationship and the label.
+        var declaredNodes: Set<String> = []
+        func emitCluster(_ sub: original_src_types.MermaidSubgraph, depth: Int) {
+            let outerIndent = String(repeating: "  ", count: depth)
+            let innerIndent = String(repeating: "  ", count: depth + 1)
+            lines.append("\(outerIndent)subgraph cluster_\(DOTClassExport.sanitizeDOTID(sub.id)) {")
+            lines.append("\(innerIndent)label=\(DOTClassExport.quoted(sub.label));")
             for nid in sub.nodeIds {
                 let canonical = nameRewrite[nid] ?? DOTClassExport.sanitizeDOTID(nid)
-                lines.append("    \(canonical);")
-                declaredInCluster.insert(nid)
+                if let label = displayLabels[nid] {
+                    lines.append("\(innerIndent)\(canonical) [label=\(DOTClassExport.quoted(label))];")
+                } else {
+                    lines.append("\(innerIndent)\(canonical);")
+                }
+                declaredNodes.insert(nid)
             }
-            lines.append("  }")
+            for child in sub.children {
+                emitCluster(child, depth: depth + 1)
+            }
+            lines.append("\(outerIndent)}")
+        }
+        for sub in graph.subgraphs {
+            emitCluster(sub, depth: 1)
         }
 
+        var edgeReferenced: Set<String> = []
         for edge in graph.edges {
             let src = nameRewrite[edge.source] ?? DOTClassExport.sanitizeDOTID(edge.source)
             let tgt = nameRewrite[edge.target] ?? DOTClassExport.sanitizeDOTID(edge.target)
@@ -287,6 +327,22 @@ enum DOTStateExport {
                 lines.append("  \(src) -> \(tgt) [label=\(DOTClassExport.quoted(label))];")
             } else {
                 lines.append("  \(src) -> \(tgt);")
+            }
+            edgeReferenced.insert(edge.source)
+            edgeReferenced.insert(edge.target)
+        }
+
+        // Isolated states — no edges, no cluster membership — still need a
+        // declaration or they drop silently.
+        for entry in graph.nodesInOrder {
+            let id = entry.id
+            guard !declaredNodes.contains(id), !edgeReferenced.contains(id),
+                  entry.node.shape != .stateStart, entry.node.shape != .stateEnd else { continue }
+            let canonical = nameRewrite[id] ?? DOTClassExport.sanitizeDOTID(id)
+            if let label = displayLabels[id] {
+                lines.append("  \(canonical) [label=\(DOTClassExport.quoted(label))];")
+            } else {
+                lines.append("  \(canonical);")
             }
         }
 

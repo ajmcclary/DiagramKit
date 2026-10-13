@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Error types
 
-public enum PieChartParserError: Error, LocalizedError {
+public enum PieChartParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case negativeValue(String, Double)
     case invalidValue(String, String)

@@ -6,9 +6,17 @@ import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitRenderingCG
 
-/// A value-type model that manages the diagram pipeline.
+/// An observable model object that manages the diagram pipeline.
+///
+/// A reference type on purpose (M-CG-5): a `mutating` `prepare()` on the
+/// former value type was an exclusivity trap — two overlapping `prepare()`
+/// calls on copies of the struct could each mutate their own copy and lose
+/// updates. `DiagramViewModel` is now a `@MainActor` class so `prepare()`
+/// mutates one shared instance. This is a source-breaking change for
+/// callers that relied on value semantics (copying, `let` vs `var` is now
+/// irrelevant); the initializer and property surface are unchanged.
 @MainActor
-public struct DiagramViewModel {
+public final class DiagramViewModel {
     public var source: String
     public var theme: DiagramTheme
     public var layoutConfig: LayoutConfig
@@ -36,7 +44,7 @@ public struct DiagramViewModel {
     /// 8 MB-stack worker thread. The actual parse/layout therefore runs
     /// off the main actor; only the result publication happens on the
     /// main actor.
-    public mutating func prepare() async {
+    public func prepare() async {
         parseError = nil
 
         guard !source.isEmpty else {
@@ -82,7 +90,7 @@ public struct DiagramViewModel {
 @available(*, deprecated, renamed: "DiagramViewModel", message: "Will be removed in the next major version.")
 public typealias MermaidDiagram = DiagramViewModel
 
-// MARK: - DiagramView convenience init for the value-type model
+// MARK: - DiagramView convenience init for the model
 
 #if canImport(UIKit)
 import UIKit

@@ -234,21 +234,3 @@ private func _layoutErDiagramSyncEntry(
     return _extractErLayout(result, diagram, built.entitySizes, effectiveConfig)
 }
 
-final class original_src_er_layout {
-    public init() {}
-
-    public static func layoutErDiagramSync(
-        _ diagram: ErDiagram,
-        options: RenderOptions = RenderOptions()
-    ) throws -> PositionedErDiagram {
-        try _layoutErDiagramSyncEntry(diagram, options: options, config: nil)
-    }
-
-    public static func layoutErDiagramSync(
-        _ diagram: ErDiagram,
-        options: RenderOptions = RenderOptions(),
-        config: ErDiagramConfig? = nil
-    ) throws -> PositionedErDiagram {
-        try _layoutErDiagramSyncEntry(diagram, options: options, config: config)
-    }
-}

@@ -43,7 +43,7 @@ enum PlantUMLSequenceExport {
                 // PlantUML. Previously only `\n` was escaped, leaving the
                 // line vulnerable to corruption when labels contained
                 // `\` or `"`.
-                lines.append("\(from) \(arrow) \(to): \(escape(msg.label))")
+                lines.append("\(from) \(arrow) \(to): \(escapeFreeText(msg.label))")
                 if msg.deactivate {
                     lines.append("deactivate \(to)")
                 }
@@ -52,7 +52,7 @@ enum PlantUMLSequenceExport {
                 let actorList = note.actorIds.map { participantAlias($0) }.joined(separator: ", ")
                 let rawPosition = note.position.isEmpty ? "over" : note.position.lowercased()
                 let position = rawPosition == "left" ? "left of" : (rawPosition == "right" ? "right of" : rawPosition)
-                let text = escape(note.text)
+                let text = escapeFreeText(note.text)
                 lines.append("note \(position) \(actorList): \(text)")
 
             case .activationStart(let actorId):
@@ -66,18 +66,18 @@ enum PlantUMLSequenceExport {
                     if label.isEmpty {
                         lines.append("group")
                     } else {
-                        lines.append("group \(escape(label))")
+                        lines.append("group \(escapeFreeText(label))")
                     }
                 } else {
                     if label.isEmpty {
                         lines.append("\(type)")
                     } else {
-                        lines.append("\(type) \(escape(label))")
+                        lines.append("\(type) \(escapeFreeText(label))")
                     }
                 }
 
             case .blockDivider(_, let label):
-                lines.append("else \(escape(label))")
+                lines.append("else \(escapeFreeText(label))")
 
             case .blockEnd:
                 lines.append("end")
@@ -93,13 +93,15 @@ enum PlantUMLSequenceExport {
             case .boxEnd:
                 lines.append("end box")
 
-            case .autonumberEvent(let start, let step, let visible):
+            case .autonumberEvent(_, _, let visible):
                 if visible {
-                    lines.append("autonumber \(Int(start)) \(Int(step))")
+                    // Bare form — the one `PlantUMLSequenceParser` accepts.
+                    // Start/step are PlantUML's 1/1 defaults on re-import.
+                    lines.append("autonumber")
                 }
 
             case .title(let t):
-                lines.append("title \(escape(t))")
+                lines.append("title \(escapeFreeText(t))")
 
             case .accTitle, .accDescr:
                 // PlantUML doesn't have accTitle/accDescr equivalents
@@ -191,23 +193,24 @@ enum PlantUMLSequenceExport {
     }
 
     private static func quoted(_ text: String) -> String {
-        "\"\(escape(text))\""
+        "\"\(PlantUMLHygiene.escapeSequenceString(text))\""
     }
 
     private static func normalizeColor(_ color: String) -> String {
         color.hasPrefix("#") ? color : "#\(color)"
     }
 
+    /// Free text after `:` / in block headers: only newlines need
+    /// collapsing — PlantUML renders `\"` literally (no escape processing),
+    /// so backslash-escaping quotes corrupted round-tripped labels.
+    private static func escapeFreeText(_ text: String) -> String {
+        PlantUMLHygiene.escapeSequenceFreeText(text)
+    }
+
     private static func escape(_ text: String) -> String {
         // Multiline title/note/group/box/else labels must collapse into
         // PlantUML's inline-newline escape (`\n` in source) — otherwise the
         // line-oriented @startuml/@enduml model gets corrupt extra lines.
-        // CR/LF/CRLF are all normalised to `\n` so editor-origin variants do
-        // not leak through.
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\n")
-            .replacingOccurrences(of: "\n", with: "\\n")
+        PlantUMLHygiene.escapeSequenceString(text)
     }
 }

@@ -40,8 +40,6 @@ Noto Sans Mono is DiagramKit's default monospace font, used for code-like labels
 
 Snapshot-image determinism depends on every host machine resolving identical glyph outlines for a given (family, size, weight, italic) tuple. Apple's system fonts (San Francisco, Menlo, etc.) drift across major OS updates: the same `UIFont.systemFont(ofSize: 14)` produces subtly different glyph paths between macOS 14 and macOS 15, breaking snapshot tests with no underlying code change. Bundling Noto Sans / Noto Sans Mono and registering them at process load gives `BMFont(name: "Noto Sans", …)` lookups a stable resolution across hosts, OS versions, and CI runners.
 
-This pattern mirrors the convention established in the sibling `MusicToolkit` package.
-
 ## Other dependencies
 
 Swift package dependencies are declared in [Package.swift](Package.swift). Their licenses live in their respective repositories:
@@ -49,6 +47,6 @@ Swift package dependencies are declared in [Package.swift](Package.swift). Their
 - [swift-custom-dump](https://github.com/pointfreeco/swift-custom-dump) — MIT
 - [xctest-dynamic-overlay](https://github.com/pointfreeco/xctest-dynamic-overlay) — MIT (provides `IssueReporting`)
 - [swift-crypto](https://github.com/apple/swift-crypto) — Apache-2.0 (Linux-only conditional dependency for `DiagramKitCommon.StableID.derive(...)`; Apple platforms use system `CryptoKit` directly)
-- [swift-snapshot-testing](https://github.com/pointfreeco/swift-snapshot-testing) — MIT (currently pinned to the fork at [ajmcclary/swift-snapshot-testing](https://github.com/ajmcclary/swift-snapshot-testing) branch `fix-swift-6.3-attachable`, carrying [pointfreeco/swift-snapshot-testing#1090](https://github.com/pointfreeco/swift-snapshot-testing/pull/1090) until it lands in a tagged upstream release)
+- [swift-snapshot-testing](https://github.com/pointfreeco/swift-snapshot-testing) — MIT (upstream release, pinned by version `from: "1.19.3"`; the former `ajmcclary/swift-snapshot-testing` fork pin was dropped 2026-07-14)
 
 These are SwiftPM-managed and not redistributed as resources.

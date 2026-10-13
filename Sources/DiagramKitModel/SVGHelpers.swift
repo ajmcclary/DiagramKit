@@ -70,19 +70,34 @@ public func _flattenKnownSvgTokens(_ svg: String, theme: DiagramTheme) -> String
 }
 
 public func _resolveSvgCssVariables(_ svg: String) -> String {
-    // 1. Collect `--name: value` definitions from <style> blocks.
+    // 1. Collect `--name: value` definitions from style scopes only — the
+    //    root/element `style="…"` attributes and `<style>` blocks. Scanning
+    //    the whole document would also match `--` sequences in escaped
+    //    label text (e.g. `A["--foo: red"]`).
     let ns = svg as NSString
-    let pattern = "--([a-zA-Z0-9_-]+)\\s*:\\s*([^;\\\"]+)"
-    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+    guard let scopeRegex = try? NSRegularExpression(pattern: "style=\"([^\"]*)\"|<style[^>]*>([\\s\\S]*?)</style>"),
+          let regex = try? NSRegularExpression(pattern: "--([a-zA-Z0-9_-]+)\\s*:\\s*([^;\\\"]+)") else {
         return svg
     }
-    let matches = regex.matches(in: svg, range: NSRange(location: 0, length: ns.length))
+    let styleText = scopeRegex.matches(in: svg, range: NSRange(location: 0, length: ns.length))
+        .compactMap { m -> String? in
+            if m.numberOfRanges >= 2, m.range(at: 1).location != NSNotFound {
+                return ns.substring(with: m.range(at: 1))
+            }
+            if m.numberOfRanges >= 3, m.range(at: 2).location != NSNotFound {
+                return ns.substring(with: m.range(at: 2))
+            }
+            return nil
+        }
+        .joined(separator: ";\n")
+    let styleNS = styleText as NSString
+    let matches = regex.matches(in: styleText, range: NSRange(location: 0, length: styleNS.length))
     if matches.isEmpty { return svg }
 
     var vars: [String: String] = [:]
     for m in matches where m.numberOfRanges >= 3 {
-        let name = ns.substring(with: m.range(at: 1))
-        let value = ns.substring(with: m.range(at: 2)).trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = styleNS.substring(with: m.range(at: 1))
+        let value = styleNS.substring(with: m.range(at: 2)).trimmingCharacters(in: .whitespacesAndNewlines)
         vars[name] = value
     }
 

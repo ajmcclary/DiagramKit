@@ -1,4 +1,4 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 154.554 246.70000000000002" width="154.554" height="246.70000000000002" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 560.007 116.9" width="560.007" height="116.9" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
@@ -56,16 +56,35 @@
   to { stroke-dashoffset: -24; }
 }
 </style>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="true" data-arrow-end="true" data-label="sync" class="edge" points="114.554,58.45 138.554,58.45 138.554,58.45 162.554,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-start)" />
+<polyline data-from="B" data-to="C" data-style="dotted" data-arrow-start="true" data-arrow-end="true" data-label="heartbeat" class="edge" points="247.482,58.45 271.48199999999997,58.45 271.48199999999997,58.45 295.48199999999997,58.45" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-start)" />
+<polyline data-from="C" data-to="D" data-style="thick" data-arrow-start="true" data-arrow-end="true" data-label="data" class="edge" points="382.633,58.45 406.633,58.45 406.633,58.45 430.633,58.45" fill="none" stroke="#939394" stroke-width="2.0" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-start)" />
+<g class="edge-label" data-from="A" data-to="B" data-label="sync">
+  <rect x="117.849" y="43.300000000000004" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="138.554" y="58.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">sync</text>
+</g>
+<g class="edge-label" data-from="B" data-to="C" data-label="heartbeat">
+  <rect x="240.08499999999998" y="43.300000000000004" width="62.794000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="271.48199999999997" y="58.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">heartbeat</text>
+</g>
+<g class="edge-label" data-from="C" data-to="D" data-label="data">
+  <rect x="387.71" y="43.300000000000004" width="37.846000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="406.633" y="58.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">data</text>
+</g>
 <g class="node" data-id="A" data-label="Client" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 114.554 40.0 L 114.554 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 114.55 40 L 114.55 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="77.277" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Client</text>
 </g>
-<g class="node" data-id="B" data-label="B" data-shape="rectangle">
-  <path d="M 40.0 104.9 L 100.0 104.9 L 100.0 141.8 L 40.0 141.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="70.0" y="123.35000000000001" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">B</text>
+<g class="node" data-id="B" data-label="Server" data-shape="rectangle">
+  <path d="M 162.55 40 L 247.48 40 L 247.48 76.90 L 162.55 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="205.018" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Server</text>
 </g>
-<g class="node" data-id="C" data-label="C" data-shape="rectangle">
-  <path d="M 40.0 169.8 L 100.0 169.8 L 100.0 206.70000000000002 L 40.0 206.70000000000002 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <text x="70.0" y="188.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">C</text>
+<g class="node" data-id="C" data-label="Monitor" data-shape="rectangle">
+  <path d="M 295.48 40 L 382.63 40 L 382.63 76.90 L 295.48 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="339.05749999999995" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Monitor</text>
+</g>
+<g class="node" data-id="D" data-label="Storage" data-shape="rectangle">
+  <path d="M 430.63 40 L 520.01 40 L 520.01 76.90 L 430.63 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <text x="475.32" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Storage</text>
 </g>
 </svg>

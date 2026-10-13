@@ -8,7 +8,7 @@ import CustomDump
 @testable import DiagramKitModel
 @testable import DiagramKitRenderingCG
 
-final class BeautifulMermaidSwiftTests: XCTestCase {
+final class DiagramEngineSmokeTests: XCTestCase {
     func testVersionIsNonEmpty() {
         XCTAssertFalse(DiagramEngine.version.isEmpty)
     }
@@ -203,7 +203,10 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
         XCTAssertGreaterThan(nodeA.y, nodeC.y, "In graph BT, source A should be below target C (higher y)")
     }
 
-    func testFlow14NestedSubgraphDebug() async throws {
+    /// Regression bar for the cross-subgraph edge fix: edges from an
+    /// outside node into nodes nested two subgraph levels deep must survive
+    /// layout with routable geometry (previously silently dropped).
+    func testFlow14NestedSubgraphCrossSubgraphEdges() async throws {
         let source = """
         graph TD
           subgraph Cloud
@@ -221,43 +224,64 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
         let nodes = pos.flowchartNodes!
         let edges = pos.flowchartEdges!
         let groups = pos.flowchartGroups!
-        print("=== FLOW-14 DEBUG ===")
-        print("  graphSize: \(pos.width) x \(pos.height)")
-        for n in nodes { print("  Node \(n.id)(\(n.label)): x=\(n.x) y=\(n.y) w=\(n.width) h=\(n.height)") }
-        for e in edges { print("  Edge \(e.source)->\(e.target) pts=\(e.points.map { "(\(Int($0.x)),\(Int($0.y)))" })") }
-        func printGroups(_ gs: [_PositionedGroupPayload], indent: String = "  ") {
-            for g in gs {
-                print("\(indent)Group \(g.id)(\(g.label)): x=\(g.x) y=\(g.y) w=\(g.width) h=\(g.height)")
-                printGroups(g.children, indent: indent + "  ")
+
+        expectNoDifference(nodes.map(\.id).sorted(), ["A", "B", "C", "D", "E"])
+
+        // Both cross-subgraph edges (E → nested-in-Cloud members) survive.
+        for (from, to) in [("E", "A"), ("E", "C")] {
+            let edge = edges.first { $0.source == from && $0.target == to }
+            XCTAssertNotNil(edge, "cross-subgraph edge \(from)→\(to) was dropped")
+            guard let points = edge?.points else { continue }
+            XCTAssertGreaterThanOrEqual(points.count, 2, "\(from)→\(to) has no routable geometry")
+            for p in points {
+                XCTAssertTrue(p.x.isFinite && p.y.isFinite, "\(from)→\(to) point not finite: \(p)")
             }
         }
-        printGroups(groups)
+
+        // Nesting structure survived: Cloud contains the two regions.
+        let cloud = groups.first { $0.id == "Cloud" }
+        XCTAssertNotNil(cloud)
+        expectNoDifference(
+            cloud?.children.map(\.id).sorted(), ["us-east", "us-west"])
+
+        // Every node landed with positive, finite geometry.
+        for n in nodes {
+            XCTAssertTrue(n.width.isFinite && n.height.isFinite && n.width > 0 && n.height > 0,
+                          "node \(n.id) has degenerate geometry")
+        }
     }
 
-    func testFlow6PortOrderDebug() async throws {
-        // Test as graph TD (has GraphTransformer rotation)
-        let sourceTD = "graph TD\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let posTD = try await DiagramEngine.layout(sourceTD)
-        let nodesTD = posTD.flowchartNodes!
-        let edgesTD = posTD.flowchartEdges!
-        print("=== FLOW-6 TD ===")
-        for n in nodesTD { print("  Node \(n.label): x=\(n.x) y=\(n.y) w=\(n.width) h=\(n.height)") }
-        for e in edgesTD {
-            let lp = e.labelPosition.map { "(\($0.x),\($0.y))" } ?? "nil"
-            print("  Edge \(e.source)->\(e.target) label=\(e.label ?? "nil") labelPos=\(lp) pts=\(e.points.map { "(\(Int($0.x)),\(Int($0.y)))" })")
+    /// Styled fan-out edges (solid / dotted / thick) keep full geometry in
+    /// both orientations (graph TD goes through the GraphTransformer
+    /// rotation; graph LR does not). Labeled `-->|text|` variants are covered
+    /// by `LabeledEdgeParsingTests` and the corpus structural sweep; this
+    /// suite pins port-order geometry on the unlabeled forms.
+    func testFlow6PortOrder() async throws {
+        func assertStyledFanOut(_ source: String, orientation: String) async throws {
+            let pos = try await DiagramEngine.layout(source)
+            let nodes = pos.flowchartNodes!
+            let edges = pos.flowchartEdges!
+            expectNoDifference(nodes.map(\.id).sorted(), ["A", "B", "C", "D"])
+            expectNoDifference(edges.map { "\($0.source)->\($0.target)" }.sorted(),
+                               ["A->B", "A->C", "A->D"])
+            for edge in edges {
+                XCTAssertGreaterThanOrEqual(edge.points.count, 2,
+                                            "\(orientation) \(edge.source)->\(edge.target) has no routable geometry")
+                for p in edge.points {
+                    XCTAssertTrue(p.x.isFinite && p.y.isFinite,
+                                  "\(orientation) \(edge.source)->\(edge.target) point not finite: \(p)")
+                }
+            }
         }
 
-        // Test as graph LR (no rotation)
-        let sourceLR = "graph LR\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let posLR = try await DiagramEngine.layout(sourceLR)
-        let nodesLR = posLR.flowchartNodes!
-        let edgesLR = posLR.flowchartEdges!
-        print("=== FLOW-6 LR ===")
-        for n in nodesLR { print("  Node \(n.label): x=\(n.x) y=\(n.y)") }
-        for e in edgesLR {
-            let lp = e.labelPosition.map { "(\($0.x),\($0.y))" } ?? "nil"
-            print("  Edge \(e.source)->\(e.target) label=\(e.label ?? "nil") labelPos=\(lp) pts=\(e.points.map { "(\(Int($0.x)),\(Int($0.y)))" })")
-        }
+        // graph TD (has GraphTransformer rotation)
+        try await assertStyledFanOut(
+            "graph TD\n  A[Source] --> B[Target 1]\n  A -.-> C[Target 2]\n  A ==> D[Target 3]",
+            orientation: "TD")
+        // graph LR (no rotation)
+        try await assertStyledFanOut(
+            "graph LR\n  A[Source] --> B[Target 1]\n  A -.-> C[Target 2]\n  A ==> D[Target 3]",
+            orientation: "LR")
     }
 }
 #endif

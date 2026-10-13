@@ -181,7 +181,7 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     let theme = frontmatter?.perDiagram.packet.theme ?? PacketThemeConfig.default
 
     // Normalize blocks (contiguity, defaults, row splitting)
-    let rows = try normalizePacketBlocks(rawBlocks, config: config)
+    let rows = try _normalizePacketBlocks(rawBlocks, config: config)
 
     // Frontmatter title does not override source title
     if diagramTitle == nil, let fmTitle = frontmatter?.shared.diagramTitle, frontmatter?.shared.title != nil {
@@ -300,14 +300,7 @@ private func _parseQuotedLabel(_ raw: String) throws -> String {
 }
 
 private func _unquoteString(_ s: String) -> String {
-    let trimmed = s.trimmingCharacters(in: .whitespaces)
-    if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
-       (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {
-        let start = trimmed.index(after: trimmed.startIndex)
-        let end = trimmed.index(before: trimmed.endIndex)
-        return String(trimmed[start..<end])
-    }
-    return trimmed
+    _unquote(s.trimmingCharacters(in: .whitespaces))
 }
 
 // MARK: - Whitespace-flexible keyword matchers
@@ -358,7 +351,15 @@ private func _valueAfterKeyword(_ s: String, len: Int) -> String {
 
 // MARK: - Normalization
 
+@available(*, deprecated, renamed: "_normalizePacketBlocks", message: "SPI; not part of the supported public API.")
 public func normalizePacketBlocks(
+    _ blocks: [RawPacketBlock],
+    config: PacketDiagramConfig
+) throws -> [PacketRow] {
+    try _normalizePacketBlocks(blocks, config: config)
+}
+
+public func _normalizePacketBlocks(
     _ blocks: [RawPacketBlock],
     config: PacketDiagramConfig
 ) throws -> [PacketRow] {
@@ -391,17 +392,21 @@ public func normalizePacketBlocks(
             start = lastBit + 1
         }
 
-        // Compute end and bits
+        // Compute end and bits, guarding against Int overflow on hostile ranges.
         var end: Int
         var bits: Int
         if let b = raw.bits {
             // +count form
             bits = b
-            end = start + bits - 1
+            let (sum, sumOverflow) = start.addingReportingOverflow(bits)
+            let (result, resultOverflow) = sum.subtractingReportingOverflow(1)
+            end = sumOverflow || resultOverflow ? Int.max : result
         } else if let e = raw.end {
             // explicit range
             end = e
-            bits = end - start + 1
+            let (diff, diffOverflow) = end.subtractingReportingOverflow(start)
+            let (result, resultOverflow) = diff.addingReportingOverflow(1)
+            bits = diffOverflow || resultOverflow ? Int.max : result
         } else {
             // single bit
             end = start

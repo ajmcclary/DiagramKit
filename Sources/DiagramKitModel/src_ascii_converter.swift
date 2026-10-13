@@ -282,8 +282,6 @@ open class original_src_ascii_converter {
         }
     }
 
-
-
     // MARK: - TS parity utilities
 
     public static func gridCoordEquals(_ lhs: GridCoord, _ rhs: GridCoord) -> Bool {

@@ -13,9 +13,12 @@ public enum DiagramExportLoader {
     ///     This is authoritative — it selects the exact exporter.
     ///   - registry: The exporter registry to search.
     /// - Returns: `DiagramExportResult` with the generated source and any
-    ///   diagnostics.
-    /// - Throws: `DiagramExportError` when no exporter is registered for the
-    ///   format, or when the matched exporter throws a fatal error.
+    ///   diagnostics. An unregistered format, or a registered exporter whose
+    ///   `supportedDiagramTypes` excludes the document's type, is NOT an
+    ///   error: the result carries a `.diagramFamilyUnsupported` diagnostic
+    ///   and empty source so callers can degrade gracefully.
+    /// - Throws: `DiagramExportError` only when the matched exporter itself
+    ///   throws; no shipped exporter throws for unregistered families.
     public static func export(
         _ document: DiagramDocument,
         to formatID: DiagramFormatID,

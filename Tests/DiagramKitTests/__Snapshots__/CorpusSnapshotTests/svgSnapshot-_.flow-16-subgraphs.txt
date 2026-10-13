@@ -68,21 +68,21 @@
 </g>
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="106.9855,120.9 106.9855,144.9 119.953,144.9 119.953,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="297.8555,120.9 297.8555,144.9 293.039,144.9 293.039,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
-
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="183.906,187.35000000000002 213.906,187.35000000000002 213.906,102.45 243.906,102.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="React App" data-shape="rectangle">
-  <path d="M 56.0 84.0 L 157.971 84.0 L 157.971 120.9 L 56.0 120.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 56 84 L 157.97 84 L 157.97 120.90 L 56 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="106.9855" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">React App</text>
 </g>
 <g class="node" data-id="B" data-label="State Manager" data-shape="rectangle">
-  <path d="M 56.0 168.9 L 183.906 168.9 L 183.906 205.8 L 56.0 205.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 56 168.90 L 183.91 168.90 L 183.91 205.80 L 56 205.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="119.953" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">State Manager</text>
 </g>
 <g class="node" data-id="C" data-label="API Server" data-shape="rectangle">
-  <path d="M 243.906 84.0 L 351.805 84.0 L 351.805 120.9 L 243.906 120.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 243.91 84 L 351.81 84 L 351.81 120.90 L 243.91 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="297.8555" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">API Server</text>
 </g>
 <g class="node" data-id="D" data-label="Database" data-shape="rectangle">
-  <path d="M 243.906 168.9 L 342.172 168.9 L 342.172 205.8 L 243.906 205.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 243.91 168.90 L 342.17 168.90 L 342.17 205.80 L 243.91 205.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="293.039" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Database</text>
 </g>
 </svg>

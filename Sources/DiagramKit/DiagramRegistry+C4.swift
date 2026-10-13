@@ -11,6 +11,13 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _c4 = DiagramDescriptor(
         type: .c4,
+        // Case-sensitive on purpose, matching Mermaid's actual casing rule:
+        // C4 keywords require the capital `C4` prefix (`C4Context`,
+        // `C4Container`, …). Lowercase `c4context` must fall through to the
+        // flowchart fallback — pinned by
+        // `C4ParserTests.lowercaseHeaderNotRoutedAsC4`. This is a deliberate
+        // divergence from the other matchers, which route through
+        // `DiagramHeader.startsWithToken` (case-insensitive).
         matches: { $0.raw.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil },
         parse: { source, frontmatter in
             let (diagram, diagnostics) = try parseC4Diagram(

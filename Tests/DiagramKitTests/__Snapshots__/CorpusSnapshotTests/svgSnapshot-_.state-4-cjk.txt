@@ -114,22 +114,22 @@
   <text x="146.09" y="219.35000000000002" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">重试</text>
 </g>
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
-  <path d="M 60.5 54.0 A 14.0 14.0 0 1 1 88.5 54.0 A 14.0 14.0 0 1 1 60.5 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
+  <path d="M 60.50 54 A 14 14 0 1 1 88.50 54 A 14 14 0 1 1 60.50 54 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="空闲" data-label="空闲" data-shape="rounded">
-  <path d="M 66.5 116.0 L 126.09 116.0 Q 132.09 116.0 132.09 122.0 L 132.09 146.9 Q 132.09 152.9 126.09 152.9 L 66.5 152.9 Q 60.5 152.9 60.5 146.9 L 60.5 122.0 Q 60.5 116.0 66.5 116.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 66.50 116 L 126.09 116 Q 132.09 116 132.09 122 L 132.09 146.90 Q 132.09 152.90 126.09 152.90 L 66.50 152.90 Q 60.50 152.90 60.50 146.90 L 60.50 122 Q 60.50 116 66.50 116 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="96.295" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">空闲</text>
 </g>
 <g class="node statediagram-state" data-id="处理中" data-label="处理中" data-shape="rounded">
-  <path d="M 66.5 200.9 L 140.91 200.9 Q 146.91 200.9 146.91 206.9 L 146.91 231.8 Q 146.91 237.8 140.91 237.8 L 66.5 237.8 Q 60.5 237.8 60.5 231.8 L 60.5 206.9 Q 60.5 200.9 66.5 200.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 66.50 200.90 L 140.91 200.90 Q 146.91 200.90 146.91 206.90 L 146.91 231.80 Q 146.91 237.80 140.91 237.80 L 66.50 237.80 Q 60.50 237.80 60.50 231.80 L 60.50 206.90 Q 60.50 200.90 66.50 200.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="103.705" y="219.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">处理中</text>
 </g>
 <g class="node statediagram-state" data-id="完成" data-label="完成" data-shape="rounded">
-  <path d="M 66.5 285.8 L 126.09 285.8 Q 132.09 285.8 132.09 291.8 L 132.09 316.70000000000005 Q 132.09 322.70000000000005 126.09 322.70000000000005 L 66.5 322.70000000000005 Q 60.5 322.70000000000005 60.5 316.70000000000005 L 60.5 291.8 Q 60.5 285.8 66.5 285.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 66.50 285.80 L 126.09 285.80 Q 132.09 285.80 132.09 291.80 L 132.09 316.70 Q 132.09 322.70 126.09 322.70 L 66.50 322.70 Q 60.50 322.70 60.50 316.70 L 60.50 291.80 Q 60.50 285.80 66.50 285.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="96.295" y="304.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">完成</text>
 </g>
 <g class="node statediagram-state" data-id="错误" data-label="错误" data-shape="rounded">
-  <path d="M 166.09 285.8 L 225.68 285.8 Q 231.68 285.8 231.68 291.8 L 231.68 316.70000000000005 Q 231.68 322.70000000000005 225.68 322.70000000000005 L 166.09 322.70000000000005 Q 160.09 322.70000000000005 160.09 316.70000000000005 L 160.09 291.8 Q 160.09 285.8 166.09 285.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 166.09 285.80 L 225.68 285.80 Q 231.68 285.80 231.68 291.80 L 231.68 316.70 Q 231.68 322.70 225.68 322.70 L 166.09 322.70 Q 160.09 322.70 160.09 316.70 L 160.09 291.80 Q 160.09 285.80 166.09 285.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="195.885" y="304.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">错误</text>
 </g>
 <g class="node statediagram-state" data-id="root_end" data-label="" data-shape="state-end">

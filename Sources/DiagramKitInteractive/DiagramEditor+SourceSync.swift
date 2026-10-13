@@ -15,16 +15,22 @@ import DiagramKitRenderingCG
 extension DiagramEditor {
     /// Re-export the current document via `preferredExportFormat`.
     ///
-    /// Hops to a fresh 8 MB worker thread; sets `source` to the exported
-    /// source text and `lastExportDiagnostics` to any non-fatal
-    /// diagnostics on success.
+    /// Routed through the mutation chain (`_enqueueChainedMutation`) so
+    /// a sync issued while a mutation is mid-export reads the committed
+    /// document, not the pre-mutation one. The chain task installs
+    /// synchronously and awaits the previously installed task, so the
+    /// export below always runs against the settled document state.
+    /// Sets `source` to the exported source text and
+    /// `lastExportDiagnostics` to any non-fatal diagnostics on success.
     ///
     /// - Throws: `DiagramExportError` if no exporter is registered for
     ///   `preferredExportFormat`, or if the exporter throws a fatal error.
     public func syncSource() async throws {
-        let result = try await _exportAsync(document)
-        _commitSource(result.source)
-        _commitDiagnostics(result.diagnostics)
+        try await _enqueueChainedMutation { editor in
+            let result = try await editor._exportAsync(editor.document)
+            editor._commitSource(result.source)
+            editor._commitDiagnostics(result.diagnostics)
+        }
     }
 
     /// Internal helper: export without mutating state, off MainActor.

@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 extension TreeViewNode: AsciiTreeNode {
@@ -9,7 +10,7 @@ public func renderTreeViewAscii(_ model: TreeViewDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     // The TreeView parser uses a synthetic level=-1 root; render children
     // as siblings under no shared root when that's the case.

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public struct C4FrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.c4."]
@@ -17,9 +18,15 @@ public struct C4FrontmatterBinding: FrontmatterBinding {
             case "width":            guard let v = value.double else { return false }; config.width = v
             case "height":           guard let v = value.double else { return false }; config.height = v
             case "boxMargin":        guard let v = value.double else { return false }; config.boxMargin = v
-            case "c4ShapeInRow":     config.c4ShapeInRow = value.int ?? Int(value.double ?? 0); return true
+            case "c4ShapeInRow":
+                let raw = value.double ?? Double(value.int ?? 0)
+                config.c4ShapeInRow = _clampedInt(raw, min: 1, max: 1000, default: 4)
+                return true
             case "nextLinePaddingX": guard let v = value.double else { return false }; config.nextLinePaddingX = v
-            case "c4BoundaryInRow":  config.c4BoundaryInRow = value.int ?? Int(value.double ?? 0); return true
+            case "c4BoundaryInRow":
+                let raw = value.double ?? Double(value.int ?? 0)
+                config.c4BoundaryInRow = _clampedInt(raw, min: 1, max: 1000, default: 4)
+                return true
             case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
             case "wrap":             guard let v = value.bool else { return false }; config.wrap = v
             case "wrapPadding":      guard let v = value.double else { return false }; config.wrapPadding = v

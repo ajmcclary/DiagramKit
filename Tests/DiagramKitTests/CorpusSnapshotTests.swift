@@ -31,7 +31,7 @@ struct CorpusSnapshotTests {
     // MARK: - Helpers
 
     static func projectRoot() -> URL {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        var url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {
@@ -44,9 +44,9 @@ struct CorpusSnapshotTests {
 
     static func loadDiagrams() throws -> [CorpusEntry] {
         // Pin the Gantt today-marker to a fixed date so SVG snapshots are
-        // deterministic regardless of when the suite runs. Honored by
-        // `_ganttReferenceToday()` in `src_gantt_layout.swift`.
-        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+        // deterministic regardless of when the suite runs (see
+        // `GanttTodayEnv`; never unset — parallel suites read it).
+        GanttTodayEnv.set()
 
         let diagrams = try DiagramCorpus.load()
         for entry in diagrams {
@@ -84,7 +84,6 @@ struct CorpusSnapshotTests {
 
     @Test("ASCII snapshot", arguments: try loadDiagrams())
     func asciiSnapshot(_ diagram: CorpusEntry) async throws {
-        guard !diagram.shouldSkipSnapshot(for: "ascii") else { return }
         let ascii = try await DiagramEngine.renderASCII(source: diagram.source).text
         assertSnapshot(of: ascii, as: .lines, named: diagram.id + "-ascii")
     }

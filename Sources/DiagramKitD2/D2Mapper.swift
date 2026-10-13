@@ -25,7 +25,9 @@ public struct D2Mapper {
 
         func recordInCurrentSubgraph(_ id: String) {
             guard !subgraphStack.isEmpty else { return }
-            appendUnique(id, to: &subgraphStack[subgraphStack.count - 1].nodeIds)
+            var current = subgraphStack[subgraphStack.count - 1]
+            appendUnique(id, to: &current.nodeIds)
+            subgraphStack[subgraphStack.count - 1] = current
         }
 
         func ensureNode(id: String) {
@@ -193,17 +195,19 @@ public struct D2Mapper {
 
             case .containerClose:
                 guard !subgraphStack.isEmpty else { break }
-                let closed = subgraphStack.removeLast()
+                var closed = subgraphStack.removeLast()
                 closed.subgraph.nodeIds = closed.nodeIds
 
                 if subgraphStack.isEmpty {
                     subgraphs.append(closed.subgraph)
                 } else {
                     let parentIndex = subgraphStack.count - 1
-                    subgraphStack[parentIndex].subgraph.children.append(closed.subgraph)
+                    var parent = subgraphStack[parentIndex]
+                    parent.subgraph.children.append(closed.subgraph)
                     for nodeId in closed.nodeIds {
-                        appendUnique(nodeId, to: &subgraphStack[parentIndex].nodeIds)
+                        appendUnique(nodeId, to: &parent.nodeIds)
                     }
+                    subgraphStack[parentIndex] = parent
                 }
             }
         }

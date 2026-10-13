@@ -1,4 +1,4 @@
 My Diagram
 ==========
 Participants: A, B
-• asyncMessage
+• A-->B: hello

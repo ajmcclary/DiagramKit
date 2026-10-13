@@ -53,7 +53,7 @@ final class WardleyMapFrontmatterTests: XCTestCase {
         XCTAssertEqual(diagram.theme?.evolutionStroke, "#00ff00")
         XCTAssertEqual(diagram.theme?.evolutionColor, "#00ff00")
 
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         XCTAssertEqual(positioned.wardleyMapData?.width, 1024)
         XCTAssertTrue(positioned.wardleyMapData?.showGrid ?? false)
     }

@@ -77,14 +77,6 @@ private struct AsciiPlacedEntity {
     var height: Int
 }
 
-private func splitAsciiErLines(_ text: String) -> [String] {
-    text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-}
-
-private func erClassifyBoxChar(_ ch: Character) -> CharRole {
-    let chars: Set<Character> = ["┌", "┐", "└", "┘", "├", "┤", "┬", "┴", "┼", "│", "─", "╭", "╮", "╰", "╯", "+", "-", "|"]
-    return chars.contains(ch) ? .border : .text
-}
 
 private func formatErAttribute(_ attr: AsciiErAttribute) -> String {
     let keyStr = attr.keys.isEmpty ? "   " : "\(attr.keys.joined(separator: ",")) "
@@ -92,7 +84,7 @@ private func formatErAttribute(_ attr: AsciiErAttribute) -> String {
 }
 
 private func buildEntitySections(_ entity: AsciiErEntity) -> [[String]] {
-    let header = splitAsciiErLines(entity.label)
+    let header = splitLines(entity.label)
     let attrs = entity.attributes.map(formatErAttribute)
     if attrs.isEmpty {
         return [header]
@@ -206,7 +198,7 @@ public func renderErAscii(
     _ colorMode: ColorMode? = nil,
     _ theme: AsciiTheme? = nil
 ) throws -> String {
-    let lines = splitAsciiErLines(text)
+    let lines = splitLines(text)
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
     let (parsed, _) = try parseErDiagram(lines)
@@ -340,7 +332,7 @@ public func renderErAsciiDiagram(
                 let cx = p.x + bx
                 let cy = p.y + by
                 if cx < totalW, cy < totalH {
-                    setC(cx, cy, ch, erClassifyBoxChar(ch))
+                    setC(cx, cy, ch, classifyAsciiBoxChar(ch))
                 }
             }
         }
@@ -398,7 +390,7 @@ public func renderErAsciiDiagram(
             }
 
             if let label = rel.label, !label.isEmpty {
-                let lines = splitAsciiErLines(label)
+                let lines = splitLines(label)
                 let gapMid = Int(floor(Double(startX + endX) / 2.0))
 
                 for (lineIdx, line) in lines.enumerated() {
@@ -464,7 +456,7 @@ public func renderErAsciiDiagram(
             }
 
             if let label = rel.label, !label.isEmpty {
-                let lines = splitAsciiErLines(label)
+                let lines = splitLines(label)
                 let midY = Int(floor(Double(startY + endY) / 2.0))
                 let startLabelY = midY - Int(floor(Double(lines.count - 1) / 2.0))
 
@@ -491,6 +483,3 @@ public func renderErAsciiDiagram(
     )
 }
 
-final class original_src_ascii_er_diagram {
-    public init() {}
-}

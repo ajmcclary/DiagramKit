@@ -1,6 +1,13 @@
 import Foundation
 import DiagramKitCommon
 
+private func _ganttHasKeyword(_ line: String, keyword: String) -> Bool {
+    let lower = line.lowercased()
+    guard lower.hasPrefix(keyword) else { return false }
+    let endIndex = lower.index(lower.startIndex, offsetBy: keyword.count)
+    return endIndex == lower.endIndex || lower[endIndex].isWhitespace
+}
+
 // MARK: - Errors
 
 public enum GanttParserError: Error, LocalizedError, _RecoverableDiagramError {
@@ -168,7 +175,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // title
-            if lower.hasPrefix("title") {
+            if _ganttHasKeyword(trimmed, keyword: "title") {
                 let value = _extractAfterKeyword(trimmed, keyword: "title")
                 diagram.title = value
                 continue
@@ -220,7 +227,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // section
-            if lower.hasPrefix("section") {
+            if _ganttHasKeyword(trimmed, keyword: "section") {
                 let value = _extractAfterKeyword(trimmed, keyword: "section")
                 currentSection = value
                 let section = GanttSection(name: value, index: sections.count)
@@ -229,7 +236,7 @@ private func _parseGanttDiagramEntry(
             }
 
             // click statement
-            if lower.hasPrefix("click") {
+            if _ganttHasKeyword(trimmed, keyword: "click") {
                 _parseClickStatement(trimmed, rawTasks: &rawTasks, taskIdLookup: taskIdLookup)
                 continue
             }
@@ -453,6 +460,25 @@ public func _ganttDateFormatter() -> DateFormatter {
     return formatter
 }
 
+// Shared read-only formatters used by the hot `_isInvalidDate` path.
+private let _ganttDateOnlyFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.calendar = _ganttCalendar
+    formatter.timeZone = _ganttTimeZone
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter
+}()
+
+private let _ganttWeekdayNameFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.calendar = _ganttCalendar
+    formatter.timeZone = _ganttTimeZone
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "EEEE"
+    return formatter
+}()
+
 /// Today as the user experiences it — the wall-clock date in their own time
 /// zone — placed at midnight on the Gantt (UTC) timeline.
 func _ganttToday(now: Date = Date()) -> Date {
@@ -618,13 +644,13 @@ private func _addDuration(to date: Date, value: Double, unit: String) -> Date {
     case "w":
         return date.addingTimeInterval(value * 86400 * 7)
     case "M":
-        let wholeMonths = Int(value)
+        let wholeMonths = _safeInt(value, default: 0)
         let fractionalDays = (value - Double(wholeMonths)) * 30
         var d = cal.date(byAdding: .month, value: wholeMonths, to: date) ?? date
         d = d.addingTimeInterval(fractionalDays * 86400)
         return d
     case "y":
-        let wholeYears = Int(value)
+        let wholeYears = _safeInt(value, default: 0)
         let fractionalDays = (value - Double(wholeYears)) * 365
         var d = cal.date(byAdding: .year, value: wholeYears, to: date) ?? date
         d = d.addingTimeInterval(fractionalDays * 86400)
@@ -676,10 +702,7 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
     let df = _dateFormatter(for: dateFormat)
     let formattedDate = df.string(from: date)
 
-    let dateOnlyFmt = _ganttDateFormatter()
-    dateOnlyFmt.locale = Locale(identifier: "en_US_POSIX")
-    dateOnlyFmt.dateFormat = "yyyy-MM-dd"
-    let dateOnly = dateOnlyFmt.string(from: date)
+    let dateOnly = _ganttDateOnlyFormatter.string(from: date)
 
     if includes.contains(formattedDate) || includes.contains(dateOnly) {
         return false
@@ -697,9 +720,7 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
         }
     }
 
-    let weekDayNameFormatter = _ganttDateFormatter()
-    weekDayNameFormatter.dateFormat = "EEEE"
-    let dayName = weekDayNameFormatter.string(from: date).lowercased()
+    let dayName = _ganttWeekdayNameFormatter.string(from: date).lowercased()
     if excludes.contains(dayName) {
         return true
     }
@@ -720,7 +741,11 @@ private func _checkTaskDates(_ rawTask: inout GanttRawTask, dateFormat: String, 
     var renderEndTime: Date? = nil
     var previousDateWasInvalid = false
 
+    // Bound the exclusion walk so hostile durations (e.g. 1e9d) cannot hang.
+    let maxWalkDays = 10_000
+    var walkedDays = 0
     while checkDate <= adjustedEnd {
+        guard walkedDays < maxWalkDays else { break }
         if !previousDateWasInvalid {
             renderEndTime = adjustedEnd
         }
@@ -729,7 +754,10 @@ private func _checkTaskDates(_ rawTask: inout GanttRawTask, dateFormat: String, 
             adjustedEnd = cal.date(byAdding: .day, value: 1, to: adjustedEnd) ?? adjustedEnd
         }
         previousDateWasInvalid = currentDateIsInvalid
-        checkDate = cal.date(byAdding: .day, value: 1, to: checkDate) ?? checkDate
+        let nextCheckDate = cal.date(byAdding: .day, value: 1, to: checkDate) ?? checkDate
+        guard nextCheckDate > checkDate else { break }
+        checkDate = nextCheckDate
+        walkedDays += 1
     }
 
     rawTask.endTime = adjustedEnd

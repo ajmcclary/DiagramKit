@@ -9,7 +9,7 @@ enum PlantUMLC4Export {
 
     static func emit(_ model: C4Diagram) throws -> DiagramExportResult {
         var lines: [String] = []
-        let diagnostics: [DiagramDiagnostic] = []
+        var diagnostics: [DiagramDiagnostic] = []
 
         lines.append("@startuml")
         lines.append(includeDirective(for: model.kind))
@@ -18,12 +18,23 @@ enum PlantUMLC4Export {
             lines.append("title \(escape(title))")
         }
 
+        // PlantUML's C4 standard library has no Boundary macro; authored
+        // boundaries drop with a typed diagnostic (the next import
+        // re-derives view-scope boundaries, but authored labels do not
+        // survive).
+        for boundary in model.boundaries where boundary.origin == .authored {
+            diagnostics.append(.lossyTransform(
+                .boundaryFlatten,
+                message: "Boundary '\(boundary.alias)' ('\(boundary.label)') dropped — PlantUML C4 has no boundary syntax"
+            ))
+        }
+
         for shape in model.shapes {
-            lines.append(shapeLine(shape))
+            lines.append(shapeLine(shape, diagnostics: &diagnostics))
         }
 
         for rel in model.relationships {
-            lines.append(relationshipLine(rel))
+            lines.append(relationshipLine(rel, diagnostics: &diagnostics))
         }
 
         lines.append("@enduml")
@@ -44,7 +55,7 @@ enum PlantUMLC4Export {
         }
     }
 
-    private static func shapeLine(_ shape: C4Shape) -> String {
+    private static func shapeLine(_ shape: C4Shape, diagnostics: inout [DiagramDiagnostic]) -> String {
         let macro = macroName(for: shape.typeC4Shape)
         var args = [shape.alias, quoted(shape.label)]
         // PlantUML's C4 standard library macros mirror the Mermaid grammar:
@@ -65,20 +76,39 @@ enum PlantUMLC4Export {
             if !desc.isEmpty {
                 args.append(quoted(desc))
             }
-            // technology drops on Person/System macros — there's no positional
-            // slot for it. Caller can detect by re-parsing or by counting
-            // diagnostics on the Mermaid emit; we don't surface one here so as
-            // to keep the PlantUML emit diagnostics-free, matching the rest
-            // of this slice.
+            if !tech.isEmpty {
+                // technology has no positional slot on Person/System macros.
+                diagnostics.append(.lossyTransform(
+                    .c4SlotDrop,
+                    message: "Technology '\(tech)' on '\(shape.alias)' dropped — PlantUML \(macro) has no technology slot"
+                ))
+            }
         }
         return "\(macro)(\(args.joined(separator: ", ")))"
     }
 
-    private static func relationshipLine(_ rel: C4Relationship) -> String {
+    private static func relationshipLine(_ rel: C4Relationship, diagnostics: inout [DiagramDiagnostic]) -> String {
         let macro = relationshipMacroName(for: rel.kind)
+        if rel.kind != .rel {
+            // PlantUML directional macros do exist (Rel_Up etc.) — only the
+            // BiRel/Rel_Back pair lacks a slot in the subset this importer
+            // parses back, so flag anything that would not re-import.
+            diagnostics.append(.lossyTransform(
+                .c4SlotDrop,
+                message: "Relationship kind '\(rel.kind.rawValue)' emitted as '\(macro)'; PlantUML re-import maps it back to plain Rel"
+            ))
+        }
         var args = [rel.from, rel.to, quoted(rel.label)]
         if let technology = rel.technology, !technology.isEmpty {
             args.append(quoted(technology))
+        }
+        if let description = rel.description, !description.isEmpty, description != rel.label {
+            // PlantUML Rel macros carry a single label slot; a distinct
+            // description field has nowhere to go.
+            diagnostics.append(.lossyTransform(
+                .c4SlotDrop,
+                message: "Relationship description '\(description)' on \(rel.from) -> \(rel.to) dropped — PlantUML Rel has a single label slot"
+            ))
         }
         return "\(macro)(\(args.joined(separator: ", ")))"
     }
@@ -121,13 +151,7 @@ enum PlantUMLC4Export {
     }
 
     private static func quoted(_ s: String) -> String {
-        let escaped = s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
-        return "\"\(escaped)\""
+        PlantUMLHygiene.quoted(s)
     }
 
     private static func escape(_ s: String) -> String {

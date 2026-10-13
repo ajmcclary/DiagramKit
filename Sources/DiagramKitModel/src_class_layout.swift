@@ -452,17 +452,3 @@ private func _memberToStringEntry(_ m: ClassMember) -> String {
     m.text
 }
 
-final class original_src_class_layout {
-    public init() {}
-
-    public static func layoutClassDiagramSync(
-        _ diagram: ClassDiagram,
-        options: RenderOptions = RenderOptions()
-    ) throws -> PositionedClassDiagram {
-        try _layoutClassDiagramSyncEntry(diagram, options: options)
-    }
-
-    public static func memberToString(_ member: ClassMember) -> String {
-        _memberToStringEntry(member)
-    }
-}

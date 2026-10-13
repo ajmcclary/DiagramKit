@@ -69,28 +69,28 @@ final class ClassSlice1Tests: XCTestCase {
     }
 
     func test_parseGenericTypes_helper() {
-        XCTAssertEqual(parseGenericTypes("List~T~"), "List<T>")
-        XCTAssertEqual(parseGenericTypes("Map~K,V~"), "Map<K, V>")
-        XCTAssertEqual(parseGenericTypes("Int"), "Int")
+        XCTAssertEqual(_parseGenericTypes("List~T~"), "List<T>")
+        XCTAssertEqual(_parseGenericTypes("Map~K,V~"), "Map<K, V>")
+        XCTAssertEqual(_parseGenericTypes("Int"), "Int")
     }
 
     func test_splitClassNameAndType_helper() {
-        let (name1, type1) = splitClassNameAndType("Box~T~")
+        let (name1, type1) = _splitClassNameAndType("Box~T~")
         XCTAssertEqual(name1, "Box")
         XCTAssertEqual(type1, "T")
 
-        let (name2, type2) = splitClassNameAndType("Animal")
+        let (name2, type2) = _splitClassNameAndType("Animal")
         XCTAssertEqual(name2, "Animal")
         XCTAssertNil(type2)
 
-        let (name3, type3) = splitClassNameAndType("`My Class~T~`")
+        let (name3, type3) = _splitClassNameAndType("`My Class~T~`")
         XCTAssertEqual(name3, "My Class~T~")
         XCTAssertNil(type3)
     }
 
     func test_cleanupLabel_helper() {
-        XCTAssertEqual(cleanupLabel(": Animal"), "Animal")
-        XCTAssertEqual(cleanupLabel("\"Animal\""), "Animal")
+        XCTAssertEqual(_cleanupLabel(": Animal"), "Animal")
+        XCTAssertEqual(_cleanupLabel("\"Animal\""), "Animal")
     }
 
     // MARK: - End-to-end

@@ -121,12 +121,3 @@ func _layoutGraphWithDiagnosticsSyncFromLayoutEngine(
 ) throws -> PositionedGraph {
     try _layoutGraphSyncFromLayoutEngine(graph, options)
 }
-
-private func _convertToElkFormat(
-    _ graph: DiagramDocument,
-    _ options: RenderOptions
-) throws {
-    _ = graph
-    _ = options
-    // Intentionally a no-op adapter until full layout-engine parity lands.
-}

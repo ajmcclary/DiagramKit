@@ -178,22 +178,21 @@ public struct D2Importer: DiagramSourceImporter {
                 cd.classes[idx].annotations.append(stereotype)
             }
         }
-        cd.classMap = Dictionary(uniqueKeysWithValues: cd.classes.map { ($0.id, $0) })
+        cd.classMap = Dictionary(cd.classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     }
 
     /// Apply er-cardinality recovery markers to the built `ErDiagram`. Each
     /// marker overwrites the `relSpec.cardA` / `cardB` of the relationship
     /// whose synthesized id `"\(entity1)_\(entity2)"` matches the marker's
-    /// `relationshipId`. Silent drop when no relationship matches.
+    /// `relationshipId`; duplicate pairs carry an occurrence suffix (`A_B_2`
+    /// targets the second A→B relationship), matching the exporter.
     private func applyERCardinalityMarkers(
         _ ed: inout ErDiagram,
         markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
     ) {
         for marker in markers {
             guard case .erCardinality(let relationshipId, let sourceCard, let targetCard) = marker.kind else { continue }
-            guard let idx = ed.relationships.firstIndex(where: {
-                "\($0.entity1)_\($0.entity2)" == relationshipId
-            }) else { continue }
+            guard let idx = Self.resolveERRelationshipIndex(in: ed.relationships, relationshipID: relationshipId) else { continue }
             guard let cardA = ErCardinality(rawValue: sourceCard),
                   let cardB = ErCardinality(rawValue: targetCard) else { continue }
             ed.relationships[idx].relSpec = ErRelSpec(
@@ -202,6 +201,31 @@ public struct D2Importer: DiagramSourceImporter {
                 relType: ed.relationships[idx].relSpec.relType
             )
         }
+    }
+
+    /// Resolves an emitted marker relationship id to a relationship index.
+    /// `A_B` resolves to the first A→B relationship; `A_B_2` (exporter's
+    /// duplicate disambiguation) to the second. A trailing `_<n>` that no
+    /// pair key claims falls back to a whole-string match.
+    static func resolveERRelationshipIndex(
+        in relationships: [ErRelationship],
+        relationshipID: String
+    ) -> Int? {
+        if let range = relationshipID.range(of: #"_(\d+)$"#, options: .regularExpression) {
+            let prefix = String(relationshipID[..<range.lowerBound])
+            let occurrence = Int(relationshipID[range].dropFirst()) ?? 0
+            if occurrence > 1,
+               relationships.contains(where: { "\($0.entity1)_\($0.entity2)" == prefix }) {
+                var seen = 0
+                for (index, rel) in relationships.enumerated()
+                where "\(rel.entity1)_\(rel.entity2)" == prefix {
+                    seen += 1
+                    if seen == occurrence { return index }
+                }
+                return nil
+            }
+        }
+        return relationships.firstIndex { "\($0.entity1)_\($0.entity2)" == relationshipID }
     }
 
     private static func documentTitleMetadata(in source: String) -> String? {

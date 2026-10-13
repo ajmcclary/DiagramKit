@@ -30,12 +30,14 @@ struct CorpusRenderTests {
         }
     }
 
-    /// Must render without throwing. Output may legitimately be empty for
-    /// degenerate entries (e.g. `packet-5-empty`, `pie-11-all-zero`), whose
-    /// Apple ASCII snapshots are empty too.
+    /// Renders the entry's primary (Mermaid) source to ASCII. Unlike the
+    /// SVG test above, this does not iterate `availableFormats` — the
+    /// multi-format ASCII surface is covered by the Apple-side corpus
+    /// snapshots instead. Output may legitimately be empty for degenerate
+    /// entries (e.g. `packet-5-empty`, `pie-11-all-zero`), whose Apple
+    /// ASCII snapshots are empty too.
     @Test("ASCII", arguments: corpus)
     func rendersASCII(_ entry: CorpusEntry) async throws {
-        guard !entry.shouldSkipSnapshot(for: "ascii") else { return }
         _ = try await DiagramEngine.renderASCII(source: entry.source)
     }
 }

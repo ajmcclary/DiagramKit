@@ -1,5 +1,10 @@
 import Foundation
 
+private let _plantUMLBodyRegex = try! NSRegularExpression(
+    pattern: "@start(uml|mindmap|gantt|wbs|json|yaml)(.*?)@end(uml|mindmap|gantt|wbs|json|yaml)",
+    options: [.dotMatchesLineSeparators]
+)
+
 /// Outer probe: returns `true` when source is PlantUML format.
 ///
 /// Detection requires `@startuml` or `@startxxx` with a corresponding
@@ -16,12 +21,8 @@ public func isPlantUMLSource(_ source: String) -> Bool {
 /// Returns (body, startTagKind) where startTagKind is "uml", "mindmap",
 /// "gantt", "wbs", "json", or "yaml".
 public func extractPlantUMLBody(_ source: String) -> (body: String, startKind: String)? {
-    let pattern = try? NSRegularExpression(
-        pattern: "@start(uml|mindmap|gantt|wbs|json|yaml)(.*?)@end(uml|mindmap|gantt|wbs|json|yaml)",
-        options: [.dotMatchesLineSeparators]
-    )
     let nsRange = NSRange(source.startIndex..<source.endIndex, in: source)
-    guard let match = pattern?.firstMatch(in: source, options: [], range: nsRange),
+    guard let match = _plantUMLBodyRegex.firstMatch(in: source, options: [], range: nsRange),
           match.numberOfRanges >= 4,
           let kindRange = Range(match.range(at: 1), in: source),
           let endKindRange = Range(match.range(at: 3), in: source),

@@ -301,7 +301,7 @@ open class original_src_types {
         case diamond
     }
 
-    public final class MermaidSubgraph: @unchecked Sendable {
+    public struct MermaidSubgraph: Sendable {
         public var id: String
         public var label: String
         public var nodeIds: [String]

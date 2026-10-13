@@ -24,7 +24,7 @@ enum DOTClassProbe {
     }
 
     static func isClassRecordNode(_ node: DOTNodeStatement) -> Bool {
-        let attrs = Dictionary(uniqueKeysWithValues: node.attributes.map { ($0.key, $0.value) })
+        let attrs = Dictionary(node.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
         guard attrs["shape"] == "record" else { return false }
         guard let label = attrs["label"], label.hasPrefix("{") else { return false }
         return labelLooksLikeClassRecord(label)
@@ -51,9 +51,10 @@ enum DOTClassProbe {
     }
 
     private static func splitRecordSection(_ s: String) -> [String] {
-        s.replacingOccurrences(of: "\\n", with: "\n")
-         .replacingOccurrences(of: "\\n", with: "\n")
-         .split(separator: "\n")
+        // The lexer already converted `\n` escapes in the quoted label to
+        // real newlines (and `\\n` doubled escapes to literal `\n` text, per
+        // real Graphviz). Split on actual newlines only — no un-doubling.
+        s.split(separator: "\n")
          .map { $0.trimmingCharacters(in: .whitespaces) }
          .filter { !$0.isEmpty }
     }
@@ -69,19 +70,20 @@ struct DOTClassMapper {
         let diagnostics: [DiagramDiagnostic] = []
 
         let nodeByID: [String: DOTNodeStatement] = Dictionary(
-            uniqueKeysWithValues: document.statements.compactMap { stmt -> (String, DOTNodeStatement)? in
+            document.statements.compactMap { stmt -> (String, DOTNodeStatement)? in
                 if case .nodeStatement(let node) = stmt, DOTClassProbe.isClassRecordNode(node) {
                     return (node.id, node)
                 }
                 return nil
-            }
+            },
+            uniquingKeysWith: { first, _ in first }
         )
 
         for stmt in document.statements {
             switch stmt {
             case .nodeStatement(let node):
                 guard let n = nodeByID[node.id] else { continue }
-                let attrs = Dictionary(uniqueKeysWithValues: n.attributes.map { ($0.key, $0.value) })
+                let attrs = Dictionary(n.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 guard let label = attrs["label"] else { continue }
                 let parsed = DOTClassProbe.parseRecordLabel(label)
                 let attributes = parsed.attributes.map { makeMember($0, isMethod: false) }
@@ -105,7 +107,7 @@ struct DOTClassMapper {
                     type2: ClassRelationType.none.rawValue,
                     lineType: ClassLineType.solid.rawValue
                 )
-                let edgeAttrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                let edgeAttrs = Dictionary(edge.attributes.map { ($0.key, $0.value) }, uniquingKeysWith: { first, _ in first })
                 let label = edgeAttrs["label"] ?? ""
                 relationships.append(ClassRelationship(
                     id1: edge.source,
@@ -123,7 +125,7 @@ struct DOTClassMapper {
             }
         }
 
-        let classMap = Dictionary(uniqueKeysWithValues: classes.map { ($0.id, $0) })
+        let classMap = Dictionary(classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         return (
             ClassDiagram(classes: classes, classMap: classMap, relationships: relationships),
             diagnostics
@@ -233,10 +235,10 @@ enum DOTClassExport {
             let attrLines = c.attributes.map { renderMember($0, isMethod: false) }
             let methodLines = c.methods.map { renderMember($0, isMethod: true) }
             let header = c.label.isEmpty ? c.id : c.label
-            let attrsSection = attrLines.joined(separator: "\\n") + (attrLines.isEmpty ? "" : "\\n")
-            let methodsSection = methodLines.joined(separator: "\\n") + (methodLines.isEmpty ? "" : "\\n")
+            let attrsSection = attrLines.joined(separator: "\n") + (attrLines.isEmpty ? "" : "\n")
+            let methodsSection = methodLines.joined(separator: "\n") + (methodLines.isEmpty ? "" : "\n")
             let labelBody = "{\(header)|\(attrsSection)|\(methodsSection)}"
-            lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quoted(labelBody))];")
+            lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quotedRecordLabel(labelBody))];")
             for stereotype in c.annotations where !stereotype.isEmpty {
                 lines.append("  " + DOTRecoveryMarker.emitClassStereotype(className: c.id, stereotype: stereotype))
             }
@@ -271,25 +273,20 @@ enum DOTClassExport {
     }
 
     static func sanitizeDOTID(_ id: String) -> String {
-        let allowedFirst = CharacterSet.letters.union(CharacterSet(charactersIn: "_"))
-        let allowedTail = allowedFirst.union(.decimalDigits)
-        guard let first = id.unicodeScalars.first,
-              allowedFirst.contains(first),
-              id.unicodeScalars.dropFirst().allSatisfy({ allowedTail.contains($0) }) else {
-            return quoted(id)
-        }
-        return id
+        DOTHygiene.quoteBarewordID(id)
     }
 
     static func quoted(_ s: String) -> String {
-        let escaped = s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-        return "\"\(escaped)\""
+        DOTHygiene.quoted(s)
+    }
+
+    /// Quotes a DOT record-shape label (line breaks emitted as real `\n`
+    /// escapes — see `DOTHygiene.quotedRecordLabel`).
+    static func quotedRecordLabel(_ s: String) -> String {
+        DOTHygiene.quotedRecordLabel(s)
     }
 
     static func singleLineTitle(_ title: String) -> String {
-        title.replacingOccurrences(of: "\n", with: " ")
-             .replacingOccurrences(of: "\r", with: " ")
+        DOTHygiene.singleLine(title)
     }
 }

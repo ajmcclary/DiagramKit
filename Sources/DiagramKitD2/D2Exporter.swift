@@ -69,25 +69,11 @@ enum D2FlowchartExport {
     }
 
     fileprivate static func sanitizeD2ID(_ raw: String) -> String {
-        var result = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { result.append("_") }
-                result.append(ch)
-            case " ", "-", ".":
-                result.append("_")
-            default: break
-            }
-        }
-        return result.isEmpty ? "node" : result
+        D2Hygiene.mangleID(raw)
     }
 
     fileprivate static func escapeD2String(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "")
+        D2Hygiene.escapeString(text)
     }
 
     /// Map a Mermaid `NodeShape` to a D2 shape name. `lossy == true`
@@ -116,11 +102,7 @@ enum D2FlowchartExport {
     }
 
     fileprivate static func singleLineTitle(_ title: String) -> String {
-        title
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .joined(separator: " ")
+        D2Hygiene.singleLine(title)
     }
 }
 
@@ -129,6 +111,7 @@ enum D2FlowchartExport {
 private struct D2FlowchartExportSink: FlowchartExportSink {
     var lines: [String] = []
     var diagnostics: [DiagramDiagnostic] = []
+    var formatName: String { "D2" }
 
     mutating func begin(title: String?) {
         if let title, !title.isEmpty {
@@ -170,6 +153,21 @@ private struct D2FlowchartExportSink: FlowchartExportSink {
             lines.append("\(sanitizedSrc) -> \(sanitizedTgt): \"\(D2FlowchartExport.escapeD2String(label))\"")
         } else {
             lines.append("\(sanitizedSrc) -> \(sanitizedTgt)")
+        }
+        // D2 has edge-style syntax the bundled D2Parser cannot re-import
+        // (`a -> b: { style: dotted }` parses as a garbage label), so styles
+        // surface as typed drops rather than corrupting the label channel.
+        if edge.style != .solid {
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "Edge '\(edge.source)' -> '\(edge.target)' style '\(edge.style.rawValue)' dropped — DiagramKit's D2 import cannot restore D2 edge-style syntax"
+            ))
+        }
+        if edge.arrowHeadStart != .none {
+            diagnostics.append(.lossyTransform(
+                .styleDrop,
+                message: "Edge '\(edge.source)' -> '\(edge.target)' start arrowhead dropped — bidirectional D2 edges do not round-trip through this importer"
+            ))
         }
     }
 

@@ -581,4 +581,39 @@ final class SequenceParserTests: XCTestCase {
         XCTAssertNil(pos.accTitle)
         XCTAssertNil(pos.accDescr)
     }
+
+    // MARK: - Review remediation: C2 / H4
+
+    func testApostropheInMessageDoesNotSwallowNextMessage() throws {
+        let (diagram, _) = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            Alice->>Bob: I'm here
+            Bob->>Alice: ok
+        """))
+        XCTAssertEqual(diagram.messages.count, 2)
+        XCTAssertEqual(diagram.messages[0].label, "I'm here")
+        XCTAssertEqual(diagram.messages[1].label, "ok")
+    }
+
+    func testActorNamesStartingWithBlockKeywordsParseAsMessages() throws {
+        let (diagram, _) = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            participant parser
+            participant android
+            loop retry
+              parser->>Lexer: next()
+              android->>Lexer: ping
+            end
+        """))
+        XCTAssertEqual(diagram.actors.count, 3)
+        let actorIds = Set(diagram.actors.map { $0.id })
+        XCTAssertTrue(actorIds.contains("parser"))
+        XCTAssertTrue(actorIds.contains("android"))
+        XCTAssertTrue(actorIds.contains("Lexer"))
+        XCTAssertEqual(diagram.blocks.count, 1)
+        XCTAssertEqual(diagram.messages.count, 2)
+        let texts = diagram.messages.map { $0.label }
+        XCTAssertTrue(texts.contains("next()"))
+        XCTAssertTrue(texts.contains("ping"))
+    }
 }

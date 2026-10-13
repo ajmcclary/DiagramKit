@@ -25,7 +25,11 @@ is_allowed() {
   return 1
 }
 
-while read -r lines file; do
+# Parse per file so any whitespace inside a path survives (a plain
+# `wc -l | sort -rn | read lines file` pipeline mangles paths containing
+# whitespace runs, tabs, or newlines).
+while IFS= read -r -d '' file; do
+  lines=$(wc -l < "$file" | tr -d '[:space:]')
   if is_allowed "$file"; then
     continue
   fi
@@ -36,6 +40,6 @@ while read -r lines file; do
   elif [[ "$lines" -gt "$WARN_LIMIT" ]]; then
     printf 'WARNING: %s is %d lines (limit: %d)\n' "$file" "$lines" "$WARN_LIMIT"
   fi
-done < <(find Sources Tests -name "*.swift" -exec wc -l {} \; | sort -rn)
+done < <(find Sources Tests -name "*.swift" -print0 | LC_ALL=C sort -z)
 
 exit "$STATUS"

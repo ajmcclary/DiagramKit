@@ -21,8 +21,8 @@ public func renderArchitectureSvg(
     let iconSize = positioned.config.iconSize
     let arrowSize = iconSize / 6
 
-    let w = Int(ceil(positioned.width))
-    let h = Int(ceil(positioned.height))
+    let w = _safeInt(ceil(positioned.width), default: 0)
+    let h = _safeInt(ceil(positioned.height), default: 0)
 
     var svg = ""
     let _builder = SVGDocumentBuilder(

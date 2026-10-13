@@ -149,6 +149,48 @@ public struct DOTLexer {
             c.isLetter || c.isNumber || c == "_" || c == "."
         }
 
+        // DOT numerals: `[-]?(.[0-9]+ | [0-9]+(.[0-9]*)?)( [eE] [-]?[0-9]+)?`.
+        // Emitted as `.identifier` so they flow through every consumer that
+        // accepts bareword IDs (numeric node ids `1 -> 2`, attribute values
+        // `[fontsize=12]`, `[penwidth=2]`, `[width=1.5]`).
+        func lexNumeral() {
+            var numeral = ""
+            if i < end, source[i] == "-" {
+                numeral.append(source[i])
+                advance()
+            }
+            while i < end, source[i].isNumber {
+                numeral.append(source[i])
+                advance()
+            }
+            if i < end, source[i] == "." {
+                numeral.append(".")
+                advance()
+                while i < end, source[i].isNumber {
+                    numeral.append(source[i])
+                    advance()
+                }
+            }
+            // Optional exponent — only consumed when a digit follows the
+            // (optionally signed) exponent marker so `2e` in a bareword
+            // context keeps its `e`.
+            if i < end, source[i] == "e" || source[i] == "E" {
+                var j = source.index(after: i)
+                if j < end, source[j] == "+" || source[j] == "-" {
+                    j = source.index(after: j)
+                }
+                if j < end, source[j].isNumber {
+                    numeral.append(source[i])
+                    i = j
+                    while i < end, source[i].isNumber {
+                        numeral.append(source[i])
+                        advance()
+                    }
+                }
+            }
+            tokens.append(.identifier(numeral))
+        }
+
         while i < end {
             let c = source[i]
 
@@ -202,6 +244,12 @@ public struct DOTLexer {
                     tokens.append(.undirectedEdge)
                     advance() // -
                     advance() // -
+                    continue
+                }
+                // Negative numeral (e.g. `penwidth=-1`) — `-` followed by a
+                // digit can never be an edge operator, so lex it as a number.
+                if let next = peekAhead(1), next.isNumber {
+                    lexNumeral()
                     continue
                 }
                 // Lone '-' — treat as identifier for now (lenient)
@@ -264,6 +312,13 @@ public struct DOTLexer {
                     advance()
                 }
                 tokens.append(.htmlString(value))
+                continue
+            }
+
+            // Numeral (int / decimal / exponent, per the DOT spec) — feeds
+            // identifiers and attribute values alike.
+            if c.isNumber {
+                lexNumeral()
                 continue
             }
 

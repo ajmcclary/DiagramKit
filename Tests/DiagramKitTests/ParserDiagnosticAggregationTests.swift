@@ -25,7 +25,7 @@ struct ParserDiagnosticAggregationTests {
     @Test("PreparedDiagram aggregates import then layout diagnostics in order")
     func aggregationOrderIsImportThenLayout() throws {
         let doc = try DiagramPipeline.parse("pie\n  \"a\" : 1")
-        var positioned = try GraphLayout().layout(doc)
+        var positioned = try _GraphLayout().layout(doc)
         positioned.diagnostics = [
             DiagramDiagnostic(severity: .warning, message: "layout-warn", location: nil)
         ]

@@ -19,6 +19,12 @@ public enum _HTMLEntities {
         "gt": ">",
     ]
 
+    /// Longest supported entity body is `nbsp`/`#39` (4 chars); the scan
+    /// bound keeps a bare `&` (no `;` anywhere after it) from rescanning
+    /// the whole remaining string — the previous unbounded loop was O(n²)
+    /// in the number of bare `&`s.
+    private static let maxEntityBodyLength = 32
+
     public static func decode(_ text: String) -> String {
         var result = ""
         var i = text.startIndex
@@ -28,7 +34,8 @@ public enum _HTMLEntities {
                 let start = i
                 i = text.index(after: i)
                 var entity = ""
-                while i < text.endIndex && text[i] != ";" {
+                while i < text.endIndex, text[i] != ";",
+                      entity.count < maxEntityBodyLength {
                     entity.append(text[i])
                     i = text.index(after: i)
                 }
@@ -46,7 +53,8 @@ public enum _HTMLEntities {
                     let start = i
                     i = nextIdx
                     var entity = ""
-                    while i < text.endIndex && text[i] != ";" {
+                    while i < text.endIndex, text[i] != ";",
+                          entity.count < maxEntityBodyLength {
                         entity.append(text[i])
                         i = text.index(after: i)
                     }

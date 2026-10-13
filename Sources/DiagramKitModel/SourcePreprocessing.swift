@@ -97,66 +97,83 @@ private func _parseFrontMatterAndStrippedSlow(_ normalized: String, originalSour
         return (source, nil)
     }
 
-    let initProcessed = _stripAndApplyInitDirectives(from: strippedSource, frontmatter: frontmatter)
-    if consumedFrontmatter || initProcessed.source != strippedSource || initProcessed.frontmatter != nil {
-        return initProcessed
+    var nextFrontmatter = frontmatter
+    let strippedSource2 = _stripAndApplyInitDirectives(from: strippedSource, frontmatter: &nextFrontmatter)
+    if consumedFrontmatter || strippedSource2 != strippedSource || nextFrontmatter != nil {
+        return (strippedSource2, nextFrontmatter)
     }
     return (source, nil)
 }
 
+@inline(never)
 private func _stripAndApplyInitDirectives(
     from source: String,
-    frontmatter: DiagramFrontmatter?
-) -> _PreprocessResult {
+    frontmatter: inout DiagramFrontmatter?
+) -> String {
     let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     var strippedLines: [String] = []
-    var nextFrontmatter = frontmatter
     var removedDirective = false
 
-    for line in lines {
-        guard let payload = _initDirectivePayload(from: line) else {
-            strippedLines.append(line)
+    var i = 0
+    while i < lines.count {
+        let line = lines[i]
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+        // Single-line directive.
+        if let payload = InitDirectiveParser.payload(from: trimmed) {
+            if _mutateFrontmatter(&frontmatter, payload: payload) {
+                removedDirective = true
+            }
+            i += 1
             continue
         }
 
-        removedDirective = true
-        var fm = nextFrontmatter ?? DiagramFrontmatter()
-        if _applyInitDirectivePayload(payload, to: &fm) {
-            nextFrontmatter = fm
+        // Multi-line directive opener.
+        if trimmed.hasPrefix("%%{"), InitDirectiveParser.payload(from: trimmed) == nil {
+            var foundClose = false
+            var j = i
+            while j < lines.count {
+                if lines[j].trimmingCharacters(in: .whitespaces).hasSuffix("}%%") {
+                    foundClose = true
+                    break
+                }
+                j += 1
+            }
+            if foundClose {
+                let block = (i...j).map { lines[$0] }.joined(separator: "\n")
+                if let payload = InitDirectiveParser.payload(from: block) {
+                    if _mutateFrontmatter(&frontmatter, payload: payload) {
+                        removedDirective = true
+                    }
+                }
+                i = j + 1
+                continue
+            }
         }
+
+        strippedLines.append(line)
+        i += 1
     }
 
     if removedDirective {
-        if var fm = nextFrontmatter {
-            _propagateGlobalErConfig(into: &fm)
-            nextFrontmatter = fm
+        if frontmatter != nil {
+            _propagateGlobalErConfig(into: &frontmatter!)
         }
-        return (strippedLines.joined(separator: "\n"), nextFrontmatter)
+        return strippedLines.joined(separator: "\n")
     }
-    return (source, nextFrontmatter)
+    return source
 }
 
-private func _initDirectivePayload(from line: String) -> String? {
-    let trimmed = line.trimmingCharacters(in: .whitespaces)
-    guard trimmed.hasPrefix("%%{"), trimmed.hasSuffix("}%%") else {
-        return nil
+@inline(never)
+@discardableResult
+private func _mutateFrontmatter(_ frontmatter: inout DiagramFrontmatter?, payload: String) -> Bool {
+    if frontmatter == nil {
+        frontmatter = DiagramFrontmatter()
     }
-
-    let contentStart = trimmed.index(trimmed.startIndex, offsetBy: 3)
-    let contentEnd = trimmed.index(trimmed.endIndex, offsetBy: -3)
-    let content = String(trimmed[contentStart..<contentEnd]).trimmingCharacters(in: .whitespaces)
-    guard let colon = content.firstIndex(of: ":") else {
-        return nil
-    }
-
-    let directiveName = String(content[..<colon]).trimmingCharacters(in: .whitespacesAndNewlines)
-    guard directiveName.caseInsensitiveCompare("init") == .orderedSame else {
-        return nil
-    }
-
-    return String(content[content.index(after: colon)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    return _applyInitDirectivePayload(payload, to: &frontmatter!)
 }
 
+@inline(never)
 @discardableResult
 private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout DiagramFrontmatter) -> Bool {
     // New path: use InitDirectiveParser + FrontmatterBinding for diagram-specific config.
@@ -178,6 +195,7 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
 /// Registry of active `FrontmatterBinding` implementations. Each binding
 /// receives every key-value pair; it returns `true` if it consumed the key.
+@inline(never)
 private func _activeBindings() -> [any FrontmatterBinding] {
     [
         SequenceFrontmatterBinding(),
@@ -213,6 +231,7 @@ private func _activeBindings() -> [any FrontmatterBinding] {
 /// Apply flattened key-value pairs through all registered bindings.
 /// Normalizes paths so bindings receive both `config.X.Y` and `X.Y` forms,
 /// enabling parity between YAML frontmatter and JSON init directive paths.
+@inline(never)
 private func _applyBindings(
     _ pairs: [(path: String, value: FrontmatterValue)],
     to frontmatter: inout DiagramFrontmatter

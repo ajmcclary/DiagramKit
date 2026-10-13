@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `WardleyMapDiagram` as a coordinate table: each
@@ -7,7 +8,7 @@ public func renderWardleyAscii(_ model: WardleyMapDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
     if !model.nodes.isEmpty {

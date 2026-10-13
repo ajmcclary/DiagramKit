@@ -5,7 +5,7 @@ import Testing
 @testable import DiagramKitModel
 @testable import DiagramKitRenderingCG
 
-@Suite("Mermaid pipeline concurrency")
+@Suite("Diagram pipeline concurrency")
 struct DiagramPipelineConcurrencyTests {
     struct Snapshot: Equatable, Sendable {
         var index: Int

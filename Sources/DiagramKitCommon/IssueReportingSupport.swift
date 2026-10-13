@@ -6,21 +6,27 @@ import IssueReporting
 /// `IssueReporting` reporter. `_reportDiagramIssueIfNeeded` skips
 /// reporting for any `Error` adopting this protocol.
 ///
-/// Adoption is auditable by grepping `: _RecoverableDiagramError` — the
-/// full list as of the latest review:
+/// Adoption is auditable by grepping `: _RecoverableDiagramError`. The
+/// full adopter set as of 2026-10-13 (28 types):
 ///
 /// - `DiagramError` (`Sources/DiagramKitModel/Types.swift`)
-/// - `DiagramEditorError` (`Sources/DiagramKitInteractive/DiagramEditorError.swift`)
 /// - `DiagramExportError` (`Sources/DiagramKitExport/DiagramExportError.swift`)
-/// - `MermaidImporterError` (`Sources/DiagramKit/MermaidImporter.swift`)
-/// - `D2ImporterError` (`Sources/DiagramKitD2/D2Importer.swift`)
-/// - `GraphvizImporterError` (`Sources/DiagramKitGraphviz/GraphvizImporter.swift`)
-/// - `StructurizrImporterError` (`Sources/DiagramKitStructurizr/StructurizrImporter.swift`)
-/// - `PlantUMLImporterError` (`Sources/DiagramKitPlantUML/PlantUMLImporter.swift`)
-/// - `ClassParserError`, `SequenceParserError`, `ErParserError`,
-///   `GanttParserError`, `PacketParserError`,
-///   `RequirementParserError`, `TreemapParserError`,
-///   `_ParserEntryError` (parser-tier errors in `DiagramKitModel`)
+/// - Every `DiagramKitModel` parser-tier error enum adopts:
+///   `_ParserEntryError`, `ClassParserError`, `SequenceParserError`,
+///   `ErParserError`, `GanttParserError`, `JourneyParserError`,
+///   `TimelineParserError`, `GitGraphParserError`, `GitGraphDBError`,
+///   `BlockParserError`, `PacketParserError`, `RequirementParserError`,
+///   `TreemapParserError`, `SankeyParserError`, `IshikawaParserError`,
+///   `ArchitectureParserError`, `EventModelingParserError`,
+///   `MindmapParserError`, `VennParserError`, `KanbanParserError`,
+///   `PieChartParserError`, `QuadrantChartParserError`, `RadarParserError`,
+///   `WardleyMapParserError`, `TreeViewParserError`, `XYChartParserError`
+///
+/// The importer error enums (`MermaidImporterError`, `D2ImporterError`,
+/// `GraphvizImporterError`, `StructurizrImporterError`,
+/// `PlantUMLImporterError`) and `DiagramEditorError` deliberately do NOT
+/// adopt this protocol: importer/ editor failures reach the diagnostic
+/// surface instead of being silently swallowed.
 ///
 /// New adopters should be added to this list when they land.
 public protocol _RecoverableDiagramError: Error {}

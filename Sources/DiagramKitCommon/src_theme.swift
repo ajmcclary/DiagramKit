@@ -307,15 +307,18 @@ public final class original_src_theme {
         viewBoxY: Double = 0
     ) -> String {
         var styleVarParts: [String] = []
-        styleVarParts.append("--bg:\(colors.bg)")
-        styleVarParts.append("--fg:\(colors.fg)")
-        if let line = colors.line { styleVarParts.append("--line:\(line)") }
-        if let accent = colors.accent { styleVarParts.append("--accent:\(accent)") }
-        if let muted = colors.muted { styleVarParts.append("--muted:\(muted)") }
-        if let surface = colors.surface { styleVarParts.append("--surface:\(surface)") }
-        if let border = colors.border { styleVarParts.append("--border:\(border)") }
-        if let noteBkg = colors.noteBkg { styleVarParts.append("--note-bkg:\(noteBkg)") }
-        if let noteBorder = colors.noteBorder { styleVarParts.append("--note-border:\(noteBorder)") }
+        // Colors are interpolated into an attribute value; escape them so a
+        // theme color containing quotes or markup cannot break out of the
+        // style attribute (same policy as every other color emission).
+        styleVarParts.append("--bg:\(SVG.escapeAttribute(colors.bg))")
+        styleVarParts.append("--fg:\(SVG.escapeAttribute(colors.fg))")
+        if let line = colors.line { styleVarParts.append("--line:\(SVG.escapeAttribute(line))") }
+        if let accent = colors.accent { styleVarParts.append("--accent:\(SVG.escapeAttribute(accent))") }
+        if let muted = colors.muted { styleVarParts.append("--muted:\(SVG.escapeAttribute(muted))") }
+        if let surface = colors.surface { styleVarParts.append("--surface:\(SVG.escapeAttribute(surface))") }
+        if let border = colors.border { styleVarParts.append("--border:\(SVG.escapeAttribute(border))") }
+        if let noteBkg = colors.noteBkg { styleVarParts.append("--note-bkg:\(SVG.escapeAttribute(noteBkg))") }
+        if let noteBorder = colors.noteBorder { styleVarParts.append("--note-border:\(SVG.escapeAttribute(noteBorder))") }
         let styleVars = styleVarParts.joined(separator: ";")
 
         let bgStyle = (transparent ?? false) ? "" : ";background:var(--bg)"
@@ -329,8 +332,8 @@ public final class original_src_theme {
     }
 
     private static func _formatNumber(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
+        if let v = _safeIntegralInt(value) {
+            return String(v)
         }
         return String(value)
     }

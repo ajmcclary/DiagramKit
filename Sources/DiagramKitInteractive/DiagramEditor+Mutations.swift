@@ -17,28 +17,19 @@ extension DiagramEditor {
     /// Perform a core mutation on the document.
     ///
     /// Derives the new document, exports it on a fresh worker thread,
-    /// and commits state + undo atomically. Concurrent calls serialize:
-    /// each caller awaits the previous mutation's task before starting
-    /// its own, so commits land in registration order and each gets its
-    /// own undo entry.
+    /// and commits state + undo atomically. Concurrent calls serialize
+    /// through the chained-Task queue (`_enqueueChainedMutation`): each
+    /// caller's task installs synchronously and awaits the previously
+    /// installed task inside the task body, so commits land in
+    /// registration order and each gets its own undo entry.
     ///
     /// - Parameter mutation: The mutation to apply.
     /// - Throws: `DiagramEditorError` if the mutation cannot be applied
     ///   or source sync fails.
     public func perform(_ mutation: DiagramMutation) async throws {
-        _enterMutationChain()
-        defer { _exitMutationChain() }
-
-        await _awaitPendingMutation()
-
-        let task = Task { @MainActor [weak self] in
-            guard let self else { return }
-            try await self._performInner(mutation)
+        try await _enqueueChainedMutation { editor in
+            try await editor._performInner(mutation)
         }
-        let generation = _setPendingMutation(task)
-        defer { _clearPendingMutationIfCurrent(generation: generation) }
-
-        try await task.value
     }
 
     /// Inner commit body. Always runs on `MainActor`. Atomic: a throw
@@ -197,12 +188,13 @@ extension DiagramEditor {
                 graph.edges.remove(at: index)
             } else if id.hasPrefix("group:") {
                 let groupID = String(id.dropFirst(6))
-                var forest = Self._copySubgraphForest(graph.subgraphs)
-                guard let removed = Self._extractSubgraph(groupID, from: &forest) else {
+                let forest = Self._copySubgraphForest(graph.subgraphs)
+                let (nextForest, removed) = Self._extractSubgraph(groupID, from: forest)
+                guard let removed else {
                     throw DiagramEditorError.elementNotFound(id: groupID, kind: "subgraph")
                 }
                 let memberIDs = Self._allMemberNodeIDs(in: removed)
-                graph.subgraphs = forest
+                graph.subgraphs = nextForest
                 graph.nodesInOrder.removeAll { memberIDs.contains($0.id) }
                 graph.edges.removeAll {
                     memberIDs.contains($0.source) || memberIDs.contains($0.target)

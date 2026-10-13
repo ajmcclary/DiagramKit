@@ -96,8 +96,8 @@ public func renderEventModelingSvg(
 }
 
 private func emFmt(_ value: Double) -> String {
-    if value.rounded() == value {
-        return String(Int(value))
+    if let v = _safeIntegralInt(value) {
+        return String(v)
     }
     var text = String(format: "%.3f", value)
     while text.last == "0" { text.removeLast() }

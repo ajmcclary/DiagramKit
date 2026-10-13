@@ -406,50 +406,37 @@ private func _findParent(nodes: [MindmapNode], level: Int) -> MindmapNode? {
 
 private func _buildTree(nodes: [MindmapNode]) -> MindmapNode? {
     guard let root = nodes.first else { return nil }
+
+    // One forward pass with a level stack: each node's parent is the nearest
+    // preceding node with a strictly lower level. The stack holds the most
+    // recent node per open level, so parent lookup is amortized O(1) and the
+    // whole tree assembles in O(n) (the previous find-per-node filter chain
+    // was O(n³)).
+    var parentOf: [Int] = .init(repeating: -1, count: nodes.count)
+    var stack: [Int] = []
+    for i in nodes.indices {
+        let level = nodes[i].level
+        while let top = stack.last, nodes[top].level >= level {
+            stack.removeLast()
+        }
+        parentOf[i] = stack.last ?? -1
+        stack.append(i)
+    }
+
+    var childIndices: [Int: [Int]] = [:]
+    for i in nodes.indices.dropFirst() where parentOf[i] != -1 {
+        childIndices[parentOf[i], default: []].append(i)
+    }
+
+    func assembleAt(_ index: Int) -> MindmapNode {
+        var n = nodes[index]
+        n.children = (childIndices[index] ?? []).map { assembleAt($0) }
+        return n
+    }
+
     var result = root
-    var children: [MindmapNode] = []
-
-    for node in nodes.dropFirst() {
-        let parentId = _findParentIndex(nodes: nodes, for: node)
-        if let pi = parentId {
-            if pi == 0 {
-                var n = node
-                n.children = _collectChildren(nodes: nodes, parentId: node.id)
-                children.append(n)
-            }
-        }
-    }
-
-    result.children = children.filter { c in
-        _findParentIndex(nodes: nodes, for: c) == 0
-    }.map { _attachChildren(nodes: nodes, node: $0) }
-
+    result.children = (childIndices[nodes.startIndex] ?? []).map { assembleAt($0) }
     return result
-}
-
-private func _findParentIndex(nodes: [MindmapNode], for node: MindmapNode) -> Int? {
-    guard let nodeIdx = nodes.firstIndex(where: { $0.id == node.id }) else { return nil }
-    for idx in stride(from: nodeIdx - 1, through: 0, by: -1) {
-        let candidate = nodes[idx]
-        if candidate.level < node.level {
-            return idx
-        }
-    }
-    return nil
-}
-
-private func _collectChildren(nodes: [MindmapNode], parentId: Int) -> [MindmapNode] {
-    nodes.filter { n in
-        let pi = _findParentIndex(nodes: nodes, for: n)
-        return pi != nil && nodes[pi!].id == parentId
-    }
-}
-
-private func _attachChildren(nodes: [MindmapNode], node: MindmapNode) -> MindmapNode {
-    var n = node
-    let children = _collectChildren(nodes: nodes, parentId: n.id)
-    n.children = children.map { _attachChildren(nodes: nodes, node: $0) }
-    return n
 }
 
 private func _paddingForType(_ type: MindmapNodeType, config: MindmapConfig) -> Double {

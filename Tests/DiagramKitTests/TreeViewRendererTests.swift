@@ -40,6 +40,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 
@@ -55,6 +56,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 
@@ -68,6 +70,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 
@@ -81,6 +84,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 
@@ -94,6 +98,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 
@@ -115,6 +120,7 @@ struct TreeViewRendererTests {
         #expect(context != nil)
         if let ctx = context {
             DiagramRenderer().render(positionedGraph, in: ctx, bounds: CGRect(x: 0, y: 0, width: 400, height: 200))
+            CGInkAssertions.assertInk(in: ctx)
         }
     }
 

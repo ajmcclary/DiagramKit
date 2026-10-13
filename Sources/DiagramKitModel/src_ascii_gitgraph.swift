@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `GitGraphDiagram` as an ASCII commit log. Commits are
@@ -8,7 +9,7 @@ public func renderGitGraphAscii(_ model: GitGraphDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     let sorted = model.commits.sorted { $0.seq < $1.seq }
     for (idx, commit) in sorted.enumerated() {

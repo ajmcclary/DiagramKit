@@ -95,10 +95,10 @@
 <polyline data-from="Idle" data-to="Idle----note" data-style="dotted" data-arrow-start="false" data-arrow-end="false" class="edge transition note-edge" points="71.34899999999999,164.9 71.34899999999999,188.9 99.13649999999998,188.9 99.13649999999998,212.9" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" />
 <polyline data-from="Idle----note" data-to="Idle" data-style="dotted" data-arrow-start="false" data-arrow-end="false" class="edge transition note-edge" points="99.13649999999998,212.9 99.13649999999998,188.9 71.34899999999999,188.9 71.34899999999999,164.9" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="4 4" />
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
-  <path d="M 40.0 54.0 A 14.0 14.0 0 1 1 68.0 54.0 A 14.0 14.0 0 1 1 40.0 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
+  <path d="M 40 54 A 14 14 0 1 1 68 54 A 14 14 0 1 1 40 54 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="Idle" data-label="Idle" data-shape="rounded">
-  <path d="M 46.0 128.0 L 96.698 128.0 Q 102.698 128.0 102.698 134.0 L 102.698 158.9 Q 102.698 164.9 96.698 164.9 L 46.0 164.9 Q 40.0 164.9 40.0 158.9 L 40.0 134.0 Q 40.0 128.0 46.0 128.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 46 128 L 96.70 128 Q 102.70 128 102.70 134 L 102.70 158.90 Q 102.70 164.90 96.70 164.90 L 46 164.90 Q 40 164.90 40 158.90 L 40 134 Q 40 128 46 128 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="71.34899999999999" y="146.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Idle</text>
 </g>
 <g class="node statediagram-note" data-id="Idle----note" data-label="This is a note" data-shape="state-note">

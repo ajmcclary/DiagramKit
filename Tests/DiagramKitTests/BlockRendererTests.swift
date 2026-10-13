@@ -16,7 +16,7 @@ final class BlockRendererTests: XCTestCase {
           a b c
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         guard case .block = positioned.content else {
             XCTFail("Expected block content")
             return
@@ -124,7 +124,7 @@ final class BlockRendererTests: XCTestCase {
           class A red
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         guard case .block(let diagram) = positioned.content else {
             XCTFail("Expected block content")
             return
@@ -170,7 +170,7 @@ final class BlockRendererTests: XCTestCase {
           class A red
         """
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
 
         let width = Int(ceil(positioned.width))
         let height = Int(ceil(positioned.height))
@@ -222,7 +222,7 @@ final class BlockRendererTests: XCTestCase {
 
     private func renderBlockPixels(_ source: String) throws -> (pixels: [UInt8], width: Int, height: Int) {
         let graph = try DiagramPipeline.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try _GraphLayout().layout(graph)
         let width = Int(ceil(positioned.width))
         let height = Int(ceil(positioned.height))
         var pixels = [UInt8](repeating: 0, count: width * height * 4)

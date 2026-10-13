@@ -1,6 +1,7 @@
 #if canImport(CoreGraphics)
 import Foundation
 import CoreGraphics
+import DiagramKitCommon
 import DiagramKitModel
 #if canImport(UIKit)
 import UIKit
@@ -22,7 +23,11 @@ import AppKit
 /// Before this helper, each path duplicated that setup verbatim. Any
 /// drift between them silently produced different images for the same
 /// prepared diagram. Both call sites now route through `render(...)`.
-@MainActor
+///
+/// Not main-actor-isolated (M-CG-4): the AppKit path is raw CGContext +
+/// `NSImage(cgImage:size:)` and the UIKit path is `UIGraphicsImageRenderer`
+/// — both documented thread-safe — so large bitmaps never need the UI
+/// thread.
 public enum DiagramBitmapRenderer {
 
     /// Render a bitmap by invoking `draw` against a CGContext that is:
@@ -52,9 +57,17 @@ public enum DiagramBitmapRenderer {
             draw(ctx)
         }
         #elseif canImport(AppKit)
-        let pixelWidth = Int(size.width * scale)
-        let pixelHeight = Int(size.height * scale)
+        guard size.width.isFinite, size.height.isFinite,
+              size.width > 0, size.height > 0,
+              size.width <= 32767, size.height <= 32767,
+              size.width * size.height <= 100_000_000 else {
+            return nil
+        }
+        let pixelWidth = _safeInt(size.width * scale, default: 0)
+        let pixelHeight = _safeInt(size.height * scale, default: 0)
         guard pixelWidth > 0, pixelHeight > 0,
+              pixelWidth <= 32767 * 4, pixelHeight <= 32767 * 4,
+              pixelWidth * pixelHeight <= 400_000_000,
               let ctx = CGContext(
                   data: nil,
                   width: pixelWidth,

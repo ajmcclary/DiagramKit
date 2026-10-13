@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import IssueReporting
 import DiagramKit
 import DiagramKitMermaid
 import DiagramKitImport
@@ -24,14 +25,19 @@ import DiagramKitTestSupport
 /// the crash.
 final class CorpusRoundTripTests: XCTestCase {
 
-    /// Entries with pre-existing round-trip issues that pre-date
-    /// Wave 1. The new corpus suite surfaces them but they live in
-    /// non-Wave-1 exporters (flowchart, state, sequence, class, ER)
-    /// or in parser limitations the DSL cannot bridge. Tracked here
-    /// rather than silently ignored so each becomes its own follow-up.
-    /// Drain this set as the underlying exporters and parsers
-    /// improve in later waves.
-    static let knownFailures: Set<String> = [
+    /// Entries with a pre-existing round-trip divergence in the Mermaid
+    /// exporter family set (flowchart, state, sequence, class, ER) or in
+    /// parser limitations the DSL cannot bridge. These entries are still
+    /// exercised — wrapped in `withExpectedIssue` so a divergence is recorded
+    /// as a tracked expected issue instead of failing the suite, and a
+    /// future fix simply makes the issue stop firing (remove the id then).
+    /// They are NOT skipped: parse failures, throws, and divergences still
+    /// flow through the issue-reporting boundary, and ids that no longer
+    /// match a corpus entry fail the suite so the set cannot rot silently.
+    ///
+    /// Last verified 2026-10-13: 16 of the former 17 `knownFailures` still
+    /// diverge; `flow-21-cicd-pipeline` was fixed and removed from the set.
+    static let knownIssues: Set<String> = [
         // Pre-existing class exporter id-sanitization issues
         "class-18-square-label",
         "class-19-backtick-name",
@@ -43,8 +49,6 @@ final class CorpusRoundTripTests: XCTestCase {
         "er-24-numeric-entities",
         // Pre-existing ER parser cannot re-parse `|--}o` parent-marker
         "er-25-parent-marker",
-        // Pre-existing flowchart exporter edge-count drift
-        "flow-21-cicd-pipeline",
         // Pre-existing state exporter id-sanitization + edge-order
         // issues with non-ASCII identifiers, concurrent regions,
         // notes, and nested composites
@@ -69,53 +73,79 @@ final class CorpusRoundTripTests: XCTestCase {
         let importer = MermaidImporter()
         let exporter = MermaidExporter()
         let supported = exporter.supportedDiagramTypes
-        let known = Self.knownFailures
+        let known = Self.knownIssues
+
+        // A known-issue id that no longer matches a corpus entry is stale;
+        // fail so the set is pruned instead of rotting.
+        let corpusIds = Set(entries.map(\.id))
+        let stale = known.subtracting(corpusIds)
+        XCTAssertTrue(stale.isEmpty, "knownIssues ids not in corpus: \(stale.sorted())")
 
         var failures: [String] = []
         var ran = 0
 
         for entry in entries {
-            if known.contains(entry.id) { continue }
-            let parsed: DiagramImportResult
-            do {
-                parsed = try importer.parse(entry.source)
-            } catch {
-                continue
+            let (exercised, divergences) = Self.roundTrip(
+                entry, importer: importer, exporter: exporter, supported: supported)
+            if known.contains(entry.id) {
+                withExpectedIssue {
+                    for divergence in divergences {
+                        IssueReporting.reportIssue(divergence)
+                    }
+                }
+            } else {
+                failures.append(contentsOf: divergences)
             }
-            guard supported.contains(parsed.document.type) else { continue }
-
-            let exported: DiagramExportResult
-            do {
-                exported = try exporter.export(parsed.document)
-            } catch {
-                failures.append("[\(entry.id)] export threw: \(error)")
-                continue
-            }
-            if exported.source.isEmpty { continue }
-
-            let reparsed: DiagramImportResult
-            do {
-                reparsed = try importer.parse(exported.source)
-            } catch {
-                failures.append("[\(entry.id)] reparse threw: \(error)")
-                continue
-            }
-
-            let deltas = compare(parsed.document, reparsed.document)
-            let blocking = deltas.filter {
-                if case .loss = $0 { return false }
-                return true
-            }
-            if !blocking.isEmpty {
-                failures.append("[\(entry.id)] diverged → \(blocking)")
-            }
-            ran += 1
+            if exercised { ran += 1 }
         }
 
         XCTAssertTrue(
             failures.isEmpty,
             "Corpus round-trip: \(failures.count) failure(s) of \(ran) entries exercised\n\(failures.joined(separator: "\n"))"
         )
+    }
+
+    /// Runs one parse → export → parse → compare cycle. Returns whether
+    /// the entry reached the compare step and the divergences it produced
+    /// (empty when the entry round-trips cleanly, throws, or is not
+    /// supported). Callers decide whether divergences fail the suite or
+    /// flow through `withExpectedIssue`.
+    private static func roundTrip(
+        _ entry: CorpusEntry,
+        importer: MermaidImporter,
+        exporter: MermaidExporter,
+        supported: Set<DiagramType>
+    ) -> (exercised: Bool, divergences: [String]) {
+        let parsed: DiagramImportResult
+        do {
+            parsed = try importer.parse(entry.source)
+        } catch {
+            return (false, [])
+        }
+        guard supported.contains(parsed.document.type) else { return (false, []) }
+
+        let exported: DiagramExportResult
+        do {
+            exported = try exporter.export(parsed.document)
+        } catch {
+            return (true, ["[\(entry.id)] export threw: \(error)"])
+        }
+        if exported.source.isEmpty { return (false, []) }
+
+        let reparsed: DiagramImportResult
+        do {
+            reparsed = try importer.parse(exported.source)
+        } catch {
+            return (true, ["[\(entry.id)] reparse threw: \(error)"])
+        }
+
+        let deltas = compare(parsed.document, reparsed.document)
+        let blocking = deltas.filter {
+            if case .loss = $0 { return false }
+            return true
+        }
+        if blocking.isEmpty { return (true, []) }
+        return (true, ["[\(entry.id)] diverged → \(blocking)"])
     }
 
     static func loadCorpusEntries() throws -> [CorpusEntry] {

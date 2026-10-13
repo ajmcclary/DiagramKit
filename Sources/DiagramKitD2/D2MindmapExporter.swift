@@ -31,7 +31,7 @@ enum D2MindmapExport {
                 diagnostics: diagnostics
             )
         }
-        lines.append(D2RecoveryMarker.emitTreeRoot(root.nodeId))
+        lines.append(D2RecoveryMarker.emitTreeRoot(sanitize(root.nodeId)))
 
         emitNode(root, lines: &lines, diagnostics: &diagnostics)
         emitEdges(parent: root, lines: &lines)
@@ -50,7 +50,7 @@ enum D2MindmapExport {
             lines.append("\(id).shape: \(s)")
         }
         if needsMarker {
-            lines.append(D2RecoveryMarker.emitMindmapIcon(nodeID: node.nodeId, iconKey: node.type.type2Str))
+            lines.append(D2RecoveryMarker.emitMindmapIcon(nodeID: id, iconKey: node.type.type2Str))
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
                 message: "Mindmap node '\(node.nodeId)' shape '\(node.type.type2Str)' approximated; marker preserves shape"
@@ -82,32 +82,14 @@ enum D2MindmapExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default:
-                break
-            }
-        }
-        return out.isEmpty ? "node" : out
+        D2Hygiene.mangleID(raw)
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        D2Hygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        D2Hygiene.singleLine(s)
     }
 }

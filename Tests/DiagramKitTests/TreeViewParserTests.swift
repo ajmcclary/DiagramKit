@@ -454,4 +454,19 @@ struct TreeViewParserTests {
         let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].cssClass == "my-class")
     }
+
+    @Test("Frontmatter theme is wired through to diagram")
+    func frontmatterThemeWiredThrough() throws {
+        let source = """
+        treeView-beta
+            file.js
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var frontmatter = DiagramFrontmatter()
+        var theme = TreeViewThemeVariables()
+        theme.labelColor = "#ff0000"
+        frontmatter.perDiagram.treeView.theme = theme
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
+        #expect(result.theme?.labelColor == "#ff0000")
+    }
 }

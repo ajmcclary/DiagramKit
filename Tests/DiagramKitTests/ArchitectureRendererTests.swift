@@ -35,6 +35,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testCgRenderEdgeDiagram() throws {
@@ -62,6 +63,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testCgRenderWithGroups() throws {
@@ -89,6 +91,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testCgRenderWithJunctions() throws {
@@ -116,6 +119,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testCgRenderEmptyDiagram() throws {
@@ -142,6 +146,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
         let renderer = DiagramRenderer()
         renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        CGInkAssertions.assertInk(in: context)
     }
 
     func testCgRenderPreservesPlacement() throws {

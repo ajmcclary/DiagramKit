@@ -202,14 +202,14 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
         }
 
         // --- Block dividers: else, and, option (must be before block start to catch 'option' before 'opt') ---
-        if let m = _match(#"^(else|and|option)\s*(.*)$"#, line, caseInsensitive: true), !openBlocks.isEmpty {
+        if let m = _match(#"^(else|and|option)(?:\s+(.*))?$"#, line, caseInsensitive: true), !openBlocks.isEmpty {
             let label = _extractWrapDecode(m[2].trimmingCharacters(in: .whitespacesAndNewlines)).cleanedText
             items.append(.blockDivider(type: openBlocks.last!.type, label: label))
             continue
         }
 
         // --- Block start: loop, alt, opt, par, par_over, critical, break, rect ---
-        if let m = _match(#"^(loop|alt|opt|par|par_over|critical|break|rect)\s*(.*)$"#, line, caseInsensitive: true) {
+        if let m = _match(#"^(loop|alt|opt|par|par_over|critical|break|rect)(?:\s+(.*))?$"#, line, caseInsensitive: true) {
             let blockType = m[1].lowercased()
             let label = _extractWrapDecode(m[2].trimmingCharacters(in: .whitespacesAndNewlines)).cleanedText
             openBlocks.append((type: blockType, label: label))
@@ -770,9 +770,39 @@ private func _brTagsToNewlines(_ text: String) -> String {
 
 // MARK: - Regex Helper
 
+private let _sequenceRegexCache = _SequenceRegexCache()
+
+// Concurrency Contract: sequence-parser regex lookups go through a
+// lock-guarded dictionary cache. `NSRegularExpression` instances are
+// thread-safe once constructed, the lock makes get-or-insert atomic, and
+// the key set is the parser's own fixed pattern vocabulary (no
+// user-controllable unbounded growth). All parser entry points run on the
+// 8 MB worker thread, but the cache is safe under arbitrary concurrency.
+private final class _SequenceRegexCache: @unchecked Sendable {
+    private var storage: [String: NSRegularExpression] = [:]
+    private let lock = NSLock()
+
+    func regex(for pattern: String, options: NSRegularExpression.Options) -> NSRegularExpression? {
+        let key = "\(pattern)\(options.rawValue)"
+        lock.lock()
+        if let cached = storage[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        lock.lock()
+        storage[key] = regex
+        lock.unlock()
+        return regex
+    }
+}
+
 private func _match(_ pattern: String, _ text: String, caseInsensitive: Bool = true) -> [String]? {
     let options: NSRegularExpression.Options = caseInsensitive ? [.caseInsensitive] : []
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+    guard let regex = _sequenceRegexCache.regex(for: pattern, options: options) else {
         return nil
     }
     let range = NSRange(text.startIndex..<text.endIndex, in: text)
@@ -794,10 +824,3 @@ private func _match(_ pattern: String, _ text: String, caseInsensitive: Bool = t
 
 // MARK: - Legacy class
 
-final class original_src_sequence_parser {
-    public init() {}
-
-    public static func parseSequenceDiagram(_ lines: [String]) throws -> SequenceDiagram {
-        try _parseSequenceDiagramEntry(lines)
-    }
-}

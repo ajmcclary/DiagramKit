@@ -38,78 +38,78 @@ public enum PlantUMLRecoveryMarker {
         if let args = stripPrefix("activity-partition=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .activityPartition(originalId: String(fields[0]), partition: String(fields[1]))
+            return .activityPartition(originalId: RecoveryMarkerSyntax.decodeField(String(fields[0])), partition: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("activity-original-id=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .activityOriginalId(syntheticId: String(fields[0]), originalId: String(fields[1]))
+            return .activityOriginalId(syntheticId: RecoveryMarkerSyntax.decodeField(String(fields[0])), originalId: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("sequence-participant-link=", rest) {
             let fields = args.split(separator: ",", maxSplits: 2, omittingEmptySubsequences: false)
             guard fields.count == 3 else { return nil }
             return .sequenceParticipantLink(
-                participantId: String(fields[0]),
-                label: String(fields[1]),
-                url: String(fields[2])
+                participantId: RecoveryMarkerSyntax.decodeField(String(fields[0])),
+                label: RecoveryMarkerSyntax.decodeField(String(fields[1])),
+                url: RecoveryMarkerSyntax.decodeField(String(fields[2]))
             )
         }
         if let args = stripPrefix("sequence-participant-links=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, fields[1].hasPrefix("b64:") else { return nil }
-            return .sequenceParticipantLinks(participantId: String(fields[0]), base64Json: String(fields[1].dropFirst(4)))
+            return .sequenceParticipantLinks(participantId: RecoveryMarkerSyntax.decodeField(String(fields[0])), base64Json: String(fields[1].dropFirst(4)))
         }
         if let args = stripPrefix("sequence-participant-properties=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, fields[1].hasPrefix("b64:") else { return nil }
-            return .sequenceParticipantProperties(participantId: String(fields[0]), base64Json: String(fields[1].dropFirst(4)))
+            return .sequenceParticipantProperties(participantId: RecoveryMarkerSyntax.decodeField(String(fields[0])), base64Json: String(fields[1].dropFirst(4)))
         }
         if let args = stripPrefix("sequence-participant-details=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .sequenceParticipantDetails(participantId: String(fields[0]), elementId: String(fields[1]))
+            return .sequenceParticipantDetails(participantId: RecoveryMarkerSyntax.decodeField(String(fields[0])), elementId: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-service-stereotype=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .deploymentServiceStereotype(serviceId: String(fields[0]), stereotype: String(fields[1]))
+            return .deploymentServiceStereotype(serviceId: RecoveryMarkerSyntax.decodeField(String(fields[0])), stereotype: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-service-color=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .deploymentServiceColor(serviceId: String(fields[0]), color: String(fields[1]))
+            return .deploymentServiceColor(serviceId: RecoveryMarkerSyntax.decodeField(String(fields[0])), color: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-group-kind=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .deploymentGroupKind(groupId: String(fields[0]), kindRawValue: String(fields[1]))
+            return .deploymentGroupKind(groupId: RecoveryMarkerSyntax.decodeField(String(fields[0])), kindRawValue: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-group-stereotype=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .deploymentGroupStereotype(groupId: String(fields[0]), stereotype: String(fields[1]))
+            return .deploymentGroupStereotype(groupId: RecoveryMarkerSyntax.decodeField(String(fields[0])), stereotype: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-group-color=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2 else { return nil }
-            return .deploymentGroupColor(groupId: String(fields[0]), color: String(fields[1]))
+            return .deploymentGroupColor(groupId: RecoveryMarkerSyntax.decodeField(String(fields[0])), color: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-edge-style=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let edgeIndex = Int(fields[0]) else { return nil }
-            return .deploymentEdgeStyle(edgeIndex: edgeIndex, style: String(fields[1]))
+            return .deploymentEdgeStyle(edgeIndex: edgeIndex, style: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-edge-stereotype=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let edgeIndex = Int(fields[0]) else { return nil }
-            return .deploymentEdgeStereotype(edgeIndex: edgeIndex, stereotype: String(fields[1]))
+            return .deploymentEdgeStereotype(edgeIndex: edgeIndex, stereotype: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("deployment-note=", rest) {
             let fields = args.split(separator: ",", maxSplits: 2, omittingEmptySubsequences: false)
             guard fields.count == 3, fields[2].hasPrefix("b64:") else { return nil }
             return .deploymentNote(
-                serviceId: String(fields[0]),
-                position: String(fields[1]),
+                serviceId: RecoveryMarkerSyntax.decodeField(String(fields[0])),
+                position: RecoveryMarkerSyntax.decodeField(String(fields[1])),
                 base64Body: String(fields[2].dropFirst(4))
             )
         }
@@ -130,12 +130,12 @@ public enum PlantUMLRecoveryMarker {
         if let args = stripPrefix("treeview-node-icon=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let nodeId = Int(fields[0]) else { return nil }
-            return .treeViewNodeIcon(nodeId: nodeId, iconId: String(fields[1]))
+            return .treeViewNodeIcon(nodeId: nodeId, iconId: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         if let args = stripPrefix("treeview-node-cssclass=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
             guard fields.count == 2, let nodeId = Int(fields[0]) else { return nil }
-            return .treeViewNodeCssClass(nodeId: nodeId, cssClass: String(fields[1]))
+            return .treeViewNodeCssClass(nodeId: nodeId, cssClass: RecoveryMarkerSyntax.decodeField(String(fields[1])))
         }
         return nil
     }
@@ -224,16 +224,10 @@ public enum PlantUMLRecoveryMarker {
         "' diagramkit:treeview-node-cssclass=\(nodeId),\(sanitize(cssClass))"
     }
 
+    /// Comma-safe single-line field encoding (shared base64 codec): values
+    /// carrying the field separator or quote/newline characters travel as
+    /// `b64:…` so the comma-separated arg grammar stays parseable.
     private static func sanitize(_ value: String) -> String {
-        var out = ""
-        for ch in value {
-            switch ch {
-            case "\n", "\r", "\"":
-                out.append(" ")
-            default:
-                out.append(ch)
-            }
-        }
-        return out
+        RecoveryMarkerSyntax.encodeField(value)
     }
 }

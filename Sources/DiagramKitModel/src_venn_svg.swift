@@ -1,6 +1,8 @@
 import Foundation
 import DiagramKitCommon
 
+private func _vi(_ value: Double) -> Int { _safeInt(value, default: 0) }
+
 public func renderVennSvg(
     _ positioned: PositionedVennDiagram,
     diagramId: String,
@@ -33,10 +35,10 @@ public func renderVennSvg(
     let titleColor = positioned.themeVariables?["vennTitleTextColor"] ?? colors.fg
 
     if let title = positioned.title {
-        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(Int(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(Int(title.fontSize))px\" fill=\"\(titleColor)\">\(SVG.escapeText(title.text))</text>\n"
+        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(_vi(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(_vi(title.fontSize))px\" fill=\"\(titleColor)\">\(SVG.escapeText(title.text))</text>\n"
     }
 
-    svg += "<g transform=\"translate(0, \(Int(positioned.titleHeight)))\">\n"
+    svg += "<g transform=\"translate(0, \(_vi(positioned.titleHeight)))\">\n"
 
     for area in positioned.areas {
         svg += renderVennAreaSvg(area, font: font, isHandDrawn: isHandDrawn, handDrawnSeed: positioned.handDrawnSeed)
@@ -74,7 +76,8 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, isHan
     let fmt: (Double) -> String = { String(format: "%.2f", $0) }
 
     for (i, circle) in area.circles.enumerated() {
-        result += "<g class=\"venn-circle \(area.colorClass)\">\n"
+        let safeColorClass = _sanitizeSVGClassTokens(area.colorClass)
+        result += "<g class=\"venn-circle \(safeColorClass)\">\n"
 
         let fillOpacity = area.fillOpacity
         let strokeOpacity = 0.95
@@ -100,7 +103,7 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, isHan
 
         let labelText = area.label ?? area.sets.first ?? ""
         if !labelText.isEmpty {
-            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
+            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
         }
 
         result += "</g>\n"
@@ -136,7 +139,7 @@ private func renderVennIntersectionSvg(_ area: PositionedVennArea, font: String,
 
     let labelText = area.label ?? area.sets.joined(separator: " & ")
     if !labelText.isEmpty {
-        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
+        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
     }
 
     result += "</g>\n"
@@ -151,7 +154,7 @@ private func renderVennTextNodeSvg(_ node: PositionedVennTextNode, font: String,
     result += "<g class=\"venn-text-area\">\n"
 
     let displayText = node.label ?? node.id
-    let fontSize = Int(node.fontSize)
+    let fontSize = _vi(node.fontSize)
 
     result += "<foreignObject class=\"venn-text-node-fo\" width=\"\(fmt(node.width))\" height=\"\(fmt(node.height))\" x=\"\(fmt(node.x))\" y=\"\(fmt(node.y))\" overflow=\"visible\">\n"
     result += "<span xmlns=\"http://www.w3.org/1999/xhtml\" class=\"venn-text-node\" style=\"display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:\(node.textColor);font-family:\(font);font-size:\(fontSize)px;word-wrap:break-word;overflow-wrap:break-word;\">\(SVG.escapeText(displayText))</span>\n"

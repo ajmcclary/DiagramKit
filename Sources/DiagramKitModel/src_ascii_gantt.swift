@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `GanttDiagram` as a tabular ASCII chart: section header,
@@ -7,7 +8,7 @@ public func renderGanttAscii(_ model: GanttDiagram) -> String {
     var lines: [String] = []
     if let title = model.title, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     guard !model.tasks.isEmpty else { return lines.joined(separator: "\n") }
 
@@ -17,7 +18,7 @@ public func renderGanttAscii(_ model: GanttDiagram) -> String {
     let maxDuration = model.tasks.reduce(0.0) { acc, task in
         max(acc, task.endTime.timeIntervalSince(task.startTime))
     }
-    let maxTaskWidth = model.tasks.map(\.task.count).max() ?? 0
+    let maxTaskWidth = model.tasks.map { terminalDisplayWidth($0.task) }.max() ?? 0
 
     var currentSection: String? = nil
     for task in model.tasks {
@@ -31,7 +32,7 @@ public func renderGanttAscii(_ model: GanttDiagram) -> String {
         let scaled = maxDuration > 0 ? duration / maxDuration : 0
         let barWidth = max(1, Int((scaled * 40).rounded()))
         let bar = String(repeating: "#", count: barWidth)
-        let padded = task.task.padding(toLength: maxTaskWidth, withPad: " ", startingAt: 0)
+        let padded = _padToTerminalWidth(task.task, toWidth: maxTaskWidth)
         let start = iso(task.startTime, calendar: calendar)
         let end = iso(task.endTime, calendar: calendar)
         lines.append("\(padded) | \(start) → \(end) | \(bar)")

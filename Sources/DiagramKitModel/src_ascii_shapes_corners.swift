@@ -93,6 +93,3 @@ public func getCorners(_ shape: AsciiNodeShape, _ useAscii: Bool) -> CornerChars
     return useAscii ? corners.ascii : corners.unicode
 }
 
-final class original_src_ascii_shapes_corners {
-    public init() {}
-}

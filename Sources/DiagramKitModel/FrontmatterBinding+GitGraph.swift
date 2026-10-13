@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 /// Maps `config.gitGraph.*` and `config.themeVariables.gitGraph.*`
 /// to `GitGraphConfig` and `GitGraphThemeConfig`.
@@ -53,10 +54,13 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
             return true
         }
         switch key {
-        case "titleTopMargin":       guard let v = value.double else { return false }; config.titleTopMargin = v
-        case "diagramPadding":       guard let v = value.double else { return false }; config.diagramPadding = v
+        case "titleTopMargin":       guard let v = value.double, v.isFinite else { return false }; config.titleTopMargin = max(0, v)
+        case "diagramPadding":
+            guard let v = value.double, v.isFinite else { return false }
+            config.diagramPadding = max(0, min(v, 1e6))
+            return true
         case "mainBranchName":       config.mainBranchName = value.string
-        case "mainBranchOrder":      guard let v = value.int else { return false }; config.mainBranchOrder = v
+        case "mainBranchOrder":      guard let v = value.int else { return false }; config.mainBranchOrder = max(0, v)
         case "showCommitLabel":      guard let v = value.bool else { return false }; config.showCommitLabel = v
         case "showBranches":         guard let v = value.bool else { return false }; config.showBranches = v
         case "rotateCommitLabel":    guard let v = value.bool else { return false }; config.rotateCommitLabel = v

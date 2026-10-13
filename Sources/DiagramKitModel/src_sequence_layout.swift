@@ -261,21 +261,35 @@ private func _layoutSequenceDiagramEntry(
         positionedActors[i].y = max(actorY, positionedMessages[createMessageIndex].y - positionedActors[i].height / 2)
     }
 
-    // Close remaining activation stacks
+    // Close remaining activation stacks. Iterate in deterministic document
+    // order (activation start position, then actor declaration order) —
+    // dictionary iteration order is hash-based and leaked into the SVG
+    // element order and the `activation\(idx % 3)` class rotation (M-SVG-1).
+    var unclosedActivations: [(actorId: String, startY: Double, depth: Int)] = []
     for (actorId, stack) in activationStacks {
         for item in stack {
-            let idx = actorIndex[actorId] ?? 0
-            let xOffset = Double(item.depth) * nestingOffset
-            positionedActivations.append(
-                SequenceActivation(
-                    actorId: actorId,
-                    x: actorCenterX[idx] - cfg.activationWidth / 2 + xOffset,
-                    topY: item.startY,
-                    bottomY: messageY - cfg.messageMargin / 2,
-                    width: cfg.activationWidth
-                )
-            )
+            unclosedActivations.append((actorId: actorId, startY: item.startY, depth: item.depth))
         }
+    }
+    unclosedActivations.sort { a, b in
+        if a.startY != b.startY { return a.startY < b.startY }
+        let aActor = actorIndex[a.actorId] ?? 0
+        let bActor = actorIndex[b.actorId] ?? 0
+        if aActor != bActor { return aActor < bActor }
+        return a.depth < b.depth
+    }
+    for item in unclosedActivations {
+        let idx = actorIndex[item.actorId] ?? 0
+        let xOffset = Double(item.depth) * nestingOffset
+        positionedActivations.append(
+            SequenceActivation(
+                actorId: item.actorId,
+                x: actorCenterX[idx] - cfg.activationWidth / 2 + xOffset,
+                topY: item.startY,
+                bottomY: messageY - cfg.messageMargin / 2,
+                width: cfg.activationWidth
+            )
+        )
     }
 
     // ---- Blocks ----
@@ -620,13 +634,3 @@ private func _sequenceLifecycleMessageIndices(_ diagram: SequenceDiagram) -> (cr
 
 // MARK: - Legacy class
 
-final class original_src_sequence_layout {
-    public init() {}
-
-    public static func layoutSequenceDiagram(
-        _ diagram: SequenceDiagram,
-        _ options: RenderOptions = RenderOptions()
-    ) throws -> PositionedSequenceDiagram {
-        try _layoutSequenceDiagramEntry(diagram, .default)
-    }
-}

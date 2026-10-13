@@ -105,7 +105,7 @@ enum DOTArchitectureExport {
         }
 
         if !mapped.native && effectiveKind != .service {
-            lines.append("\(indent)\(DOTRecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: effectiveKind.rawValue))")
+            lines.append("\(indent)\(DOTRecoveryMarker.emitArchIcon(serviceID: id, kindRawValue: effectiveKind.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
                 message: "Service '\(service.id)' kind '\(effectiveKind.rawValue)' approximated to DOT shape '\(mapped.shape ?? "box")'; recovery marker preserves kind"
@@ -131,32 +131,14 @@ enum DOTArchitectureExport {
     }
 
     private static func sanitize(_ raw: String) -> String {
-        var out = ""
-        for (i, ch) in raw.enumerated() {
-            switch ch {
-            case "a"..."z", "A"..."Z", "0"..."9", "_":
-                if i == 0, ch.isNumber { out.append("_") }
-                out.append(ch)
-            case " ", "-", ".":
-                out.append("_")
-            default:
-                break
-            }
-        }
-        return out.isEmpty ? "node" : out
+        DOTHygiene.mangleID(raw)
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
-         .replacingOccurrences(of: "\r", with: "")
+        DOTHygiene.escapeString(s)
     }
 
     private static func singleLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\r\n", with: "\n")
-         .replacingOccurrences(of: "\r", with: "\n")
-         .split(separator: "\n", omittingEmptySubsequences: false)
-         .joined(separator: " ")
+        DOTHygiene.singleLine(s)
     }
 }

@@ -2,6 +2,80 @@
 
 All notable changes to DiagramKit are documented in this file.
 
+## [Unreleased]
+
+Remediation cycle following the 2026-10 full code review. No tag yet.
+
+### Fixed
+
+- **Hostile diagram text can no longer crash or hang the engine.** The
+  single-quote/unquote parser family and other index traps (fatal traps
+  reachable from diagram text) are closed; the infinite loops reachable from
+  diagram text are closed.
+- **SVG injection hardening.** Sequence SVG embeds `<script>` only for
+  interactive rendering (never in static output); ER class tokens are
+  sanitized; theme variables are validated against a CSS color allow-list
+  (`Sources/DiagramKitCommon/CSSColorSafety.swift`).
+- **Flowchart edges crossing a subgraph boundary now render** (previously
+  silently dropped).
+- **Sequence ASCII** renders loop blocks and notes with correct indices
+  (message-index vs item-index fix).
+- **`A-->B` (no-space arrow) parses as an edge** instead of a node named
+  `A--`; actor names starting with a block keyword no longer corrupt
+  sequence diagrams; apostrophes no longer swallow the rest of the diagram.
+- **CG renderer draws parser-authored requirement text and icon/image nodes**
+  (requirement diagrams no longer render empty on macOS); rasterization no
+  longer blocks the main actor.
+- **Interactive editor**: the mutation chain no longer loses updates under
+  concurrent `perform`; `editor.undo()`/`redo()` respect `canUndo`/`canRedo`
+  gating.
+- **DOT importer** accepts ordinary Graphviz output (numerals, braced
+  endpoint sets, chain-wide attributes); exporters emit typed diagnostics
+  instead of silently dropping structure.
+- **README** no longer calls `DiagramEngine.bootstrap()` inside
+  `View.init`; the example now bootstraps once at startup.
+- **Docs re-baselined** against the tree: corpus path
+  (`Sources/DiagramKitCorpus/Resources/test-diagrams.json`), measured counts
+  (435 corpus entries, 1,335 tracked snapshot files, 387 test files),
+  macOS 27 / iOS 27 floors, iOS-only platform sweep, truthful CI
+  description, upstream `swift-snapshot-testing` pin, and removal of the
+  dead `docs/archive/` links (history removed in `e88a7a09`; preserved in
+  the workspace superproject).
+
+### Changed
+
+- Mindmap tree construction is O(n) (was O(n³)).
+- `GraphLayout` is SPI (`_GraphLayout`, deprecated typealias kept);
+  `DiagramViewModel` is a `@MainActor` class.
+- Around 2,600 lines of dead code removed (`src_renderer` shape helpers and
+  friends); the file-size allowlist is down to 8 entries.
+- `CorpusRoundTripTests`: the 17 permanently-skipped `knownFailures` entries
+  are now exercised — `flow-21-cicd-pipeline` passes and was unskipped; the
+  16 still-diverging entries run under `withExpectedIssue` so regressions
+  and fixes both surface. Gantt tests pin `DIAGRAMKIT_GANTT_TODAY` through a
+  shared helper and use the production UTC calendar for expectations.
+- `DiagramKitTests` declares all the modules it imports (`DiagramKitImport`,
+  `DiagramKitViews` were previously reached through transitive visibility).
+- `DiagramKitTestSupport` and `DiagramKitCorpus` are documented as
+  **unsupported tooling products** (doc-comment banners; exempt from semver
+  stability).
+
+### Known issues
+
+- **Bundled Noto fonts never register under SwiftPM.** The resource bundle
+  carries the fonts flattened at the root (`NotoSans-Regular.otf`) while
+  `DiagramFontRegistry.registerBundledFontsIfNeeded()` probes
+  `Fonts/noto-sans/…` and `Resources/Fonts/noto-sans/…`, so every lookup
+  misses and rendering silently uses system-font fallbacks. All image
+  baselines were recorded in that state, so fixing the lookup would
+  invalidate them; deferred deliberately.
+
+### Correction (added 2026-10-13)
+
+- The README shipped with beta.3–beta.5 claimed a macOS 14 / iOS 17 floor;
+  the actual floor since beta.3 is **macOS 27 / iOS 27** (Swift 6 language
+  mode). The README is corrected in this cycle.
+
 ## [0.1.0-beta.5] - 2026-10-08
 
 ### Added
@@ -111,3 +185,9 @@ First documented prerelease.
 - 1,298 snapshot baselines (437 image + 437 SVG + 424 ASCII) across 424
   corpus entries; builds under Swift 6 strict concurrency
   (`swift-tools-version: 6.3`).
+
+> **Correction (2026-10-13):** those counts were wrong at tag time. The
+> tree tagged `0.1.0-beta.1` actually carried **1,320** snapshot baselines
+> (445 image + 445 SVG + 430 ASCII; 445 PNG + 875 `.txt` on disk) across
+> 430 corpus entries. (The corpus has since grown to 435 entries; see
+> [Unreleased].)

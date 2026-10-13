@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public enum MindmapNodeType: Int, Sendable, Equatable, CaseIterable {
     case `default` = 0
@@ -511,7 +512,7 @@ public struct PositionedMindmapDiagram: Sendable, Equatable {
     }
 }
 
-public enum MindmapParserError: Error, LocalizedError {
+public enum MindmapParserError: Error, LocalizedError, _RecoverableDiagramError {
     case missingHeader
     case multipleRoots(nodeDescription: String)
     case invalidShapeSyntax(String)

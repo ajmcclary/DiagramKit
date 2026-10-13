@@ -496,7 +496,7 @@ private func parseGwtEntity(from line: String, lineNumber: Int) throws -> EventM
     let whenBlock: String?
     let thenBlock: String
 
-    if let whenIdx = whenRange?.lowerBound {
+    if let whenIdx = whenRange?.lowerBound, whenIdx < thenIdx {
         // given ... when ... then ...
         let givenStart = lowerRest.index(givenIdx, offsetBy: "given".count)
         let givenEnd = whenIdx

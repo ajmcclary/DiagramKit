@@ -57,12 +57,17 @@
 }
 </style>
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="110.108,58.45 134.108,58.45 134.108,58.45 158.108,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="label" class="edge" points="110.108,58.45 134.108,58.45 134.108,58.45 158.108,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="A" data-to="B" data-label="label">
+  <rect x="113.99700000000001" y="43.300000000000004" width="40.221999999999994" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="134.108" y="58.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">label</text>
+</g>
 <g class="node" data-id="A" data-label="Start" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 110.108 40.0 L 110.108 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 110.11 40 L 110.11 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="75.054" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Start</text>
 </g>
 <g class="node" data-id="B" data-label="End" data-shape="rectangle">
-  <path d="M 158.108 40.0 L 223.77 40.0 L 223.77 76.9 L 158.108 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 158.11 40 L 223.77 40 L 223.77 76.90 L 158.11 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="190.93900000000002" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">End</text>
 </g>
 </svg>

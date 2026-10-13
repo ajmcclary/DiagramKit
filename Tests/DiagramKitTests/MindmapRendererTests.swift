@@ -17,7 +17,7 @@ final class MindmapRendererTests: XCTestCase {
     }
 
     private static func projectRoot() -> String {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        var url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {
@@ -75,7 +75,7 @@ final class MindmapRendererTests: XCTestCase {
         // Default layout resolves to tidy-tree; no frontmatter needed.
         let source = "mindmap\n  root\n    A"
         let graph = try DiagramPipeline.parse(source)
-        let layout = GraphLayout()
+        let layout = _GraphLayout()
         let positioned = try layout.layout(graph)
         XCTAssertEqual(positioned.diagram.type, .mindmap)
     }

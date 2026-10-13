@@ -17,18 +17,20 @@ public struct StructurizrRecoveryMarker: Sendable, Equatable {
 }
 
 public struct StructurizrPreLexerScanResult: Sendable, Equatable {
-    public struct ElementDeclaration: Sendable, Equatable {
+    public struct ElementDeclaration: Sendable, Equatable, HasLineNumber {
         public let alias: String
         public let line: Int
+        public var lineNumber: Int { line }
         public init(alias: String, line: Int) {
             self.alias = alias
             self.line = line
         }
     }
 
-    public struct GroupDeclaration: Sendable, Equatable {
+    public struct GroupDeclaration: Sendable, Equatable, HasLineNumber {
         public let label: String
         public let line: Int
+        public var lineNumber: Int { line }
         public init(label: String, line: Int) {
             self.label = label
             self.line = line
