@@ -404,7 +404,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        let cal = Calendar.current
+        let cal = _ganttCalendar // production Gantt calendar (Gregorian/UTC)
         let expected = cal.date(byAdding: .day, value: 10, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
     }
@@ -418,7 +418,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 2w",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        let cal = Calendar.current
+        let cal = _ganttCalendar // production Gantt calendar (Gregorian/UTC)
         let expected = cal.date(byAdding: .day, value: 14, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
     }
@@ -432,7 +432,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 1M",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        let cal = Calendar.current
+        let cal = _ganttCalendar // production Gantt calendar (Gregorian/UTC)
         let expected = cal.date(byAdding: .month, value: 1, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
     }
@@ -472,7 +472,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 1.5d",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        let cal = Calendar.current
+        let cal = _ganttCalendar // production Gantt calendar (Gregorian/UTC)
         let expected = cal.date(byAdding: .day, value: 1, to: _date(2024, 1, 1))!
         let expectedEnd = expected.addingTimeInterval(43200)
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expectedEnd)) < 60)

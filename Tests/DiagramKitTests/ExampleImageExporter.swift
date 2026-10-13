@@ -169,7 +169,7 @@ final class ExampleImageExporter: XCTestCase {
         if let envDir = ProcessInfo.processInfo.environment["EXAMPLE_OUTPUT_DIR"] {
             outputDir = envDir
         } else {
-            let testFile = #file
+            let testFile = #filePath
             let testsDir = (testFile as NSString).deletingLastPathComponent
             let projectRoot = ((testsDir as NSString).deletingLastPathComponent as NSString).deletingLastPathComponent
             outputDir = (projectRoot as NSString).appendingPathComponent("assets/examples")

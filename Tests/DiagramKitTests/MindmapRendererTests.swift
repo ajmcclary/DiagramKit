@@ -17,7 +17,7 @@ final class MindmapRendererTests: XCTestCase {
     }
 
     private static func projectRoot() -> String {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        var url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {

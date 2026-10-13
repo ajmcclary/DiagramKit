@@ -4,13 +4,14 @@ Native Swift mermaid-js port that now ships a multi-format DiagramKit
 (Mermaid + D2 + Graphviz DOT + Structurizr + PlantUML). For invariants
 and conventions, read `CLAUDE.md` first. For architecture details, read
 [ARCHITECTURE.md](ARCHITECTURE.md). For current metrics, read
-[BASELINES.md](BASELINES.md). For historical context (completed phases,
-plans, and the shipped review-remediation cycle), see
-[docs/archive/](docs/archive/).
+[BASELINES.md](BASELINES.md). (The former `docs/archive/` history tree was
+removed from this repo in `e88a7a09`; preserved specs/plans live in the
+workspace superproject under `docs/archive/package/DiagramKit/`.)
 
-The package ships **14 layered SwiftPM library products** (plus the internal
-`DiagramKitCorpus` test/tooling product — corpus schema + canonical
-`test-diagrams.json`, not for external reuse). Imports flow
+The package ships **14 layered SwiftPM library products** (plus two
+**unsupported tooling products**, `DiagramKitTestSupport` and
+`DiagramKitCorpus` — round-trip harness + corpus schema/fixture; exempt
+from semver stability, not for external reuse). Imports flow
 strictly downward:
 
 ```text
@@ -27,9 +28,13 @@ DiagramKitViews            (Apple-only)
 DiagramKit                 (umbrella public API + re-exports)
 ```
 
-Apple-only edges to `DiagramKitRenderingCG`, `DiagramKitViews`, and
-`DiagramKitInteractive` are guarded in `Package.swift` with
-`condition: .when(platforms: [Apple])`.
+Apple-only targets (`DiagramKitRenderingCG`, `DiagramKitViews`,
+`DiagramKitInteractive`) are ordinary manifest dependencies; the platform
+restriction is enforced at the **source level** — their files are whole-file
+gated with `#if canImport(UIKit) || canImport(AppKit)` /
+`#if canImport(CoreGraphics)` and compile to empty on Linux. The only
+platform-conditioned manifest dependency in the package is `swift-crypto`
+(`condition: .when(platforms: [.linux])` in `DiagramKitCommon`).
 
 ## Commands
 
@@ -106,27 +111,26 @@ and a multiplatform `xcodebuild` sweep.
 
 ## Current Roadmap
 
-Feature-complete. Phases 0–10 plus the follow-on Phases 1–11 (DOT
-exporter, full PlantUML family coverage, ASCII renderers for all 28
-families) have landed. Format-neutral public names are primary;
-Mermaid-prefixed aliases carry deprecation annotations (Tier 1) or
-have been removed (Tier 2). Importers and exporters cover Mermaid,
-D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
-state/activity + mindmap + gantt + C4). The active backlog is currently
-empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHASES.md).
+Feature-complete and in maintenance. Importers and exporters cover
+Mermaid, D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
+state/activity + mindmap + gantt + C4). Format-neutral public names are
+primary; Mermaid-prefixed aliases have been removed. The active backlog
+is empty; [COVERAGE.md](COVERAGE.md) tracks the remaining deliberate
+non-coverage (`—`) cells.
 
 ## Testing
 
-- Test sources: 299 Swift files under `Tests/DiagramKitTests`
-  (301 total incl. `Tests/DiagramKitLinuxTests`). The XCUI bundle was
-  removed alongside the 2026-05-18 sample-app relocation.
-- Corpus: `Tests/DiagramKitTests/Resources/test-diagrams.json`
-  (424 entries: 397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, PlantUML sources).
-- Snapshot baselines:
-  - SVG: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)
-  - Image: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)
-  - ASCII: 424 (one per corpus entry — Phases 7–11 closed the renderer-coverage gap)
-- Total tracked: 1,298 files (437 PNG + 861 `.txt`;
+- Test sources: 387 Swift files under `Tests/` (383 in
+  `Tests/DiagramKitTests`, 4 in `Tests/DiagramKitLinuxTests`). The XCUI
+  bundle was removed alongside the 2026-05-18 sample-app relocation.
+- Corpus: `Sources/DiagramKitCorpus/Resources/test-diagrams.json`
+  (435 entries: 406 Mermaid-only + 29 multi-format with D2, DOT,
+  Structurizr, PlantUML sources).
+- Snapshot baselines (measured 2026-10-13):
+  - SVG: 435 (one per corpus entry) + 15 multi-format
+  - Image: 435 (one per corpus entry) + 15 multi-format
+  - ASCII: 435 (one per corpus entry)
+- Total tracked: **1,335 files** (450 PNG + 885 `.txt`;
   `swift-snapshot-testing` writes SVG and ASCII as `.txt`).
 - `CorpusMultiFormatSnapshotTests` renders every `(entry, format)` pair with
   format-suffixed snapshot names (`entry-id-format`), honoring `skipSnapshots`.

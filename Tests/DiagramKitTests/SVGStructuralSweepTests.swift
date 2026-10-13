@@ -13,7 +13,7 @@ final class SVGStructuralSweepTests: XCTestCase {
     // MARK: - Loaders (independent copy of CorpusSnapshotTests.loadDiagrams)
 
     private static func projectRoot() -> URL {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        var url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {
@@ -26,7 +26,7 @@ final class SVGStructuralSweepTests: XCTestCase {
 
     private static func loadCorpus() throws -> [CorpusEntry] {
         // Pin gantt today-marker the same way CorpusSnapshotTests does.
-        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+        GanttTodayEnv.set()
         let diagrams = try DiagramCorpus.load()
         for entry in diagrams {
             try entry.validate()

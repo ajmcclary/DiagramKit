@@ -17,7 +17,7 @@ final class CorpusEdgeCountStructuralTests: XCTestCase {
     // MARK: - Loaders (same shape as SVGStructuralSweepTests)
 
     private static func loadCorpus() throws -> [CorpusEntry] {
-        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+        GanttTodayEnv.set()
         return try DiagramCorpus.load()
     }
 

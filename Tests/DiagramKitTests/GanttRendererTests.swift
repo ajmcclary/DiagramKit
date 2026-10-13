@@ -132,7 +132,7 @@ struct GanttRendererTests {
 
     @Test("Excluded ranges have correct ID format")
     func excludedRangeIds() throws {
-        let cal = Calendar.current
+        let cal = _ganttCalendar // production Gantt calendar (Gregorian/UTC)
         let config = GanttDiagramConfig.default
         let start = _date(2024, 1, 1)
         let task = GanttTask(

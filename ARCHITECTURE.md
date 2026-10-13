@@ -1,6 +1,6 @@
 # Architecture
 
-DiagramKit is structured as a layered Swift package: a small portable foundation, a substantial parsing/layout core, two Apple-only rendering targets, an umbrella that re-exports the public API, and a thin test-support target. This document describes the layers, the rendering pipeline, the invariants worth defending, and the known drift hazards.
+DiagramKit is structured as a layered Swift package: a small portable foundation, a substantial parsing/layout core, Apple-only rendering/view/editor targets, an umbrella that re-exports the public API, and two unsupported tooling targets. This document describes the layers, the rendering pipeline, the invariants worth defending, and the known drift hazards. Last updated: 2026-10-13.
 
 ## High-level design goals
 
@@ -11,6 +11,8 @@ DiagramKit is structured as a layered Swift package: a small portable foundation
 
 ## Layered target map
 
+All 15 library products; platform floors are **macOS 27 / iOS 27**, Swift 6 language mode.
+
 ```
                            ┌─────────────────────┐
                            │   DiagramKitCommon  │  full Linux + Apple
@@ -18,37 +20,50 @@ DiagramKit is structured as a layered Swift package: a small portable foundation
                            └──────────┬──────────┘
                                       │
                            ┌──────────▼──────────┐
-                           │   DiagramKitModel   │  Linux + Apple (partial)
-                           │  parsers · layouts  │  CT-bound files compile to empty on Linux
+                           │   DiagramKitModel   │  full Linux + Apple
+                           │  parsers · layouts  │  (Stage 2.5 portable text shim)
                            │  SVG · ASCII · types│
                            └────┬─────────┬──────┘
                                 │         │
               ┌─────────────────▼┐       ┌▼──────────────────────┐
-              │ DiagramKitRenderingCG │  │ DiagramKitTestSupport │  full Linux + Apple
-              │      (Apple-only)     │  │  (no CG/CT/UI deps)   │
+              │ DiagramKitRenderingCG │  │ DiagramKitTestSupport │  unsupported tooling
+              │      (Apple-only)     │  │  + DiagramKitCorpus   │  (Linux + Apple)
               └─────────┬─────────────┘  └───────────────────────┘
                         │
-              ┌─────────▼──────────┐
-              │  DiagramKitViews   │  Apple-only views
-              └─────────┬──────────┘
+              ┌─────────▼──────────┐     ┌────────────────────┐
+              │  DiagramKitViews   │     │ DiagramKitImport / │  Linux + Apple
+              │  (Apple-only)      │     │ Export, D2/DOT/    │
+              └─────────┬──────────┘     │ Structurizr/       │
+                        │                │ PlantUML/Mermaid   │
+                        │                └────────────────────┘
+              ┌─────────▼──────────────────────────┐
+              │  DiagramKitInteractive (Apple-only)│
+              └─────────┬──────────────────────────┘
                         │
               ┌─────────▼──────────────────────────┐
               │            DiagramKit              │  umbrella: public API + re-exports
-              │  Apple-only edges to RenderingCG/  │
-              │  Views via condition:.when(Apple)  │
               └─────────────────────────────────────┘
 ```
 
-The package-wide `platforms:` floor in [Package.swift](Package.swift) is macOS 26 + iOS 26 (Catalyst, tvOS, and visionOS were dropped on 2026-05-18). Apple-only targets like `DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are gated at the source level via `#if canImport(CoreGraphics)`, `#if canImport(CoreText)`, and `#if canImport(UIKit) || canImport(AppKit)`.
+The package-wide `platforms:` floor in [Package.swift](Package.swift) is **macOS 27 + iOS 27**, declared with the string form (`.macOS("27.0")` / `.iOS("27.0")`) — the workspace-standard floor, not an API-derived one (the only API floor the package itself imposes is Observation's `@Observable`, macOS 14 / iOS 17). Platform verification: `swift build` / `swift test` for macOS, and an iOS-only `xcodebuild -destination 'generic/platform=iOS'` sweep (no visionOS/tvOS destinations are exercised). Apple-only targets (`DiagramKitRenderingCG`, `DiagramKitViews`, `DiagramKitInteractive`) are ordinary manifest dependencies; the restriction is enforced at the **source level** via whole-file `#if canImport(UIKit) || canImport(AppKit)` / `#if canImport(CoreGraphics)` gates, so they compile to empty on Linux. The only platform-conditioned manifest dependency is `swift-crypto` (`condition: .when(platforms: [.linux])` in `DiagramKitCommon`).
 
 | Target | What lives there | Linux | Apple |
 |---|---|---|---|
-| `DiagramKitCommon` | `SVG` primitives, `IssueReportingSupport`, `StableID` (CryptoKit / swift-crypto), text metrics, theme tokens, font-awesome / HTML-entity tables, multiline utilities, styles. | full | full |
-| `DiagramKitModel` | ~255 files: per-diagram-type `src_<type>_parser.swift`, `src_<type>_layout.swift`, `src_<type>_renderer.swift`, ASCII converters (`src_ascii_*.swift`), source-preprocessing quartet, `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor`/`BMFont`/`BMImage` shims), and 28 `FrontmatterBinding+<Type>.swift` adapters. | partial | full |
-| `DiagramKitRenderingCG` | Apple-only CG renderer: `DiagramRenderer+<Type>.swift` per diagram family, plus `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`DiagramFontRegistry`), `Version`. Bundled fonts under `Resources/Fonts/`. | none | full |
-| `DiagramKitTestSupport` | Linux-portable test helpers (no CG/CT/UI deps). | full | full |
-| `DiagramKitViews` | Apple-only SwiftUI/UIKit/AppKit wrappers: `DiagramNativeView`, `DiagramView`, `DiagramLayer`, `DiagramViewModel`. | none | full |
-| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `DiagramDescriptor.swift` (parser dispatch), `DiagramRegistry+<Type>.swift` (28 family descriptors), `Layout.swift`, `src_ascii_index.swift`. | partial | full |
+| `DiagramKitCommon` (32 files) | `SVG` primitives, `IssueReportingSupport`, `StableID` (CryptoKit / swift-crypto), text metrics, theme tokens, font-awesome / HTML-entity tables, multiline utilities, styles, `DiagramDiagnostic`, `CSSColorSafety`, `RecoveryMarker/` scanner scaffold. | full | full |
+| `DiagramKitModel` (249 files) | per-diagram-type `src_<type>_parser/layout/renderer.swift`, ASCII converters (`src_ascii_*.swift`), source-preprocessing quartet, `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor`/`BMFont`/`BMImage` shims), and 28 `FrontmatterBinding+<Type>.swift` adapters. | full | full |
+| `DiagramKitImport` (4 files) | importer protocol + registry boundary: `DiagramSourceImporter`, `ImporterRegistry`, `DiagramLoader`, `DiagramImportResult`. | full | full |
+| `DiagramKitExport` (6 files) | exporter protocol, registry, loader (`DiagramExporter`, `ExporterRegistry`, `DiagramExportLoader`, `DiagramExportResult`, `DiagramExportError`). | full | full |
+| `DiagramKitMermaid` (31 files) | Mermaid source exporter (`MermaidExporter` + per-family slices). | full | full |
+| `DiagramKitD2` (27 files) | D2 importer + exporter. | full | full |
+| `DiagramKitGraphviz` (27 files) | Graphviz DOT importer + exporter. | full | full |
+| `DiagramKitStructurizr` (11 files) | Structurizr DSL importer + exporter. | full | full |
+| `DiagramKitPlantUML` (63 files) | PlantUML importers + exporters (per-dialect parsers). | full | full |
+| `DiagramKitRenderingCG` (39 files) | Apple-only CG renderer: `DiagramRenderer+<Type>.swift`, `PreparedDiagram`, `DiagramWorkerThread`, `DiagramBitmapRenderer`, `DiagramViewPreparer`, `DiagramFontRegistry`, bundled fonts under `Resources/Fonts/`. | compiles empty | full |
+| `DiagramKitViews` (4 files) | Apple-only SwiftUI/UIKit/AppKit wrappers: `DiagramView`, `DiagramNativeView`, `DiagramLayer`, `DiagramViewModel`. | compiles empty | full |
+| `DiagramKitInteractive` (15 files) | Apple-only `DiagramEditor` + mutation/undo support. | compiles empty | full |
+| `DiagramKit` (43 files) | Umbrella: `DiagramEngine`, `DiagramPipeline`, `DiagramImageRenderer`, `DiagramDescriptor.swift` (parser dispatch), `DiagramRegistry+<Type>.swift` (28 family descriptors), `Layout.swift`, registries, `ReExports.swift`. | full | full |
+| `DiagramKitTestSupport` (36 files) | **Unsupported tooling product**: round-trip harness (`RoundTripHarness`, `RoundTripLoss`, `DiagramDocumentDiff`), fixture loader; re-exports `DiagramKitCorpus`. | full | full |
+| `DiagramKitCorpus` (2 files + resource) | **Unsupported tooling product**: corpus schema (`CorpusEntry`/`CorpusFile`) + the single canonical `test-diagrams.json`. | full | full |
 
 ## Three-stage pipeline
 
@@ -63,9 +78,9 @@ Source string
           │
           ▼
 ┌────────────────────┐
-│  GraphLayout       │   Layout: DiagramDocument → PositionedGraph
-│   .layout(...)     │   Pure-data; no CG/CT on the portable path
-└─────────┬──────────┘
+│  _GraphLayout      │   Layout: DiagramDocument → PositionedGraph
+│   .layout(...)     │   SPI (deprecated typealias `GraphLayout`); pure-data,
+└─────────┬──────────┘   no CG/CT on the portable path
           │
           ▼
 ┌────────────────────┐
@@ -97,7 +112,7 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 `DiagramImportResult.diagnostics` carries parse-tier warnings (currently emitted by the Mermaid C4 `$boundary` mismatch path and the Kanban duplicate-node check, plus every non-Mermaid importer). `PositionedGraph.diagnostics` carries layout-tier warnings (subgraph recursion truncations in `src_layout.swift`, Ishikawa recursion-depth overflow, gitgraph `parallelCommits` missing-position fallback). `PreparedDiagram.diagnostics` aggregates the two in `[parse, layout]` order. The ASCII path bypasses `PreparedDiagram` and returns `AsciiRenderOutput { text, diagnostics }`, where `diagnostics = renderRegistryDiagnostics` (parse-tier signals reach the ASCII path through the family parsers invoked inside the registry closure). Fatal conditions still `throw`; the diagnostic array carries only `.warning` and `.info` severities.
 
-Round-trip discipline (`DiagramKitTestSupport.RoundTripHarness`) cross-references this diagnostic surface: an exporter that introduces a structural loss without emitting a paired `.warning` or `.unsupported` diagnostic fails the round-trip gate. See `docs/archive/package/DiagramKit/superpowers/specs/2026-05-15-roundtrip-exporter-tests-design.md`.
+Round-trip discipline (`DiagramKitTestSupport.RoundTripHarness`) cross-references this diagnostic surface: an exporter that introduces a structural loss without emitting a paired `.warning` or `.unsupported` diagnostic fails the round-trip gate. The design spec survives in the workspace superproject at `docs/archive/package/DiagramKit/superpowers/specs/2026-05-15-roundtrip-exporter-tests-design.md`.
 
 Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)` / `.featureDropped(.<category>, ...)` / `.informational(.<category>, ...)` factories; raw `DiagramDiagnostic(severity:message:)` is deprecated. The harness pairs `RoundTripLoss` to diagnostics by typed `DiagnosticCategory` equality. See [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md) for the per-severity contract and category catalog, enforced by `Scripts/check-diagnostic-discipline.sh`.
 
@@ -109,7 +124,7 @@ Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)
 
 Scope. This invariant covers `Sources/DiagramKit*/` parse/layout/render code. It does **not** cover:
 
-- **Tests** — `Tests/DiagramKitTests/MermaidPipelineConcurrencyTests.swift` deliberately drives `DiagramEngine` from `withThrowingTaskGroup` to validate determinism under concurrent callers.
+- **Tests** — `Tests/DiagramKitTests/DiagramPipelineConcurrencyTests.swift` deliberately drives `DiagramEngine` from `withThrowingTaskGroup` to validate determinism under concurrent callers.
 - **The sample app** (formerly the in-package `DiagramKitSample` target, now external at `apps/DiagramStudio` in the workspace superproject) — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
 - **Narrow per-parser caches** — `_dateFormatterCacheQueue` (`src_gantt_parser.swift`) and `_reqRegexCacheQueue` (`src_requirement_parser.swift`) are single-element `DispatchQueue` serializers around `DateFormatter` / `NSRegularExpression` reuse, not pools.
 
@@ -128,7 +143,7 @@ These helpers are **synchronous, not worker-thread mediated, and do not perform 
 **The supported public API is `DiagramEngine.*` and `DiagramImageRenderer.*`.** Anything else is an implementation hook. Callers that reach into `DiagramKitModel` free functions directly are themselves responsible for:
 
 - **Thread / stack management** — call from a worker with an 8 MB stack (see [`_runOnWorker`](Sources/DiagramKit/DiagramEngine.swift)) when laying out diagrams with deep recursion (mindmap, nested subgraphs); the cooperative thread pool's ~512 KB budget is not enough.
-- **Font registration** — call `DiagramFontRegistry.registerBundledFontsIfNeeded()` before any Apple-side layout / render path; without it bundled-font snapshot determinism breaks and CoreText falls back to system fonts that drift across OS versions. (Font construction is locked at the resolver since [REVIEW.md C1](REVIEW.md), so concurrent calls won't stall on the font-provider XPC even without registration — but registration is still required for snapshot stability.)
+- **Font registration** — call `DiagramFontRegistry.registerBundledFontsIfNeeded()` before any Apple-side layout / render path; without it bundled-font snapshot determinism breaks and CoreText falls back to system fonts that drift across OS versions. (Font construction is locked at the resolver, so concurrent calls won't stall on the font-provider XPC even without registration — but registration is still required for snapshot stability. KNOWN ISSUE: under SwiftPM the bundled font resources never actually register — the resource bundle carries the fonts flattened at the root while the lookup paths expect the `Fonts/noto-sans/…` subdirectory — so all rendering currently uses system-font fallbacks. Fixing the lookup would invalidate every image baseline; deferred deliberately. See CHANGELOG.)
 - **Issue reporting context** — wrap with `_withDiagramIssueReporting(operation:)` if you want emitted diagnostics to flow through the central issue-reporting boundary.
 
 When in doubt: go through `DiagramEngine`. The model-layer free functions are for cases where the caller has explicit reasons to skip the engine (e.g., test fixtures that pin behavior of one layout function without paying for the full pipeline).
@@ -201,16 +216,13 @@ Files in `DiagramKitModel` cannot `import DiagramKitRenderingCG`. Files in `Diag
 4. `Scripts/strict-concurrency-check.sh` — `swift build` under `-strict-concurrency=complete -warnings-as-errors`, filtered to `Sources/DiagramKit*/`.
 5. `Scripts/check-sendable-annotations.sh` — every `@unchecked Sendable` must be in `.sendable-allowlist.txt` (yellow + sunset) or carry a "Concurrency Contract" banner.
 6. `Scripts/linux-check.sh` — Docker/Podman build of the Linux-portable matrix on `swift:6.3.1-noble`.
-7. `xcodebuild` for iOS / visionOS / tvOS via the `DiagramKit-Package` auto-scheme.
-
-The four governance scripts originated as ports from the sibling `MusicToolkit` package. See [CONTRIBUTING.md](CONTRIBUTING.md).
+7. `xcodebuild` for iOS (`generic/platform=iOS`) via the `DiagramKit-Package` auto-scheme — iOS only; no visionOS/tvOS destinations are exercised.
 
 ## Known deferrals
 
-- **Stage 2.5** — portable text-measurement shim (replacement for `CTLineGetBoundsWithOptions` on Linux) so `ishikawa` / `treeView` / `eventModeling` layouts can run without an Apple runtime.
+- **Bundled fonts never register under SwiftPM** — `Bundle.module` carries the Noto fonts flattened at the bundle root (`NotoSans-Regular.otf`) while `DiagramFontRegistry.registerBundledFontsIfNeeded()` probes `Fonts/noto-sans/…` and `Resources/Fonts/noto-sans/…`, so every font lookup misses and rendering silently uses system-font fallbacks. Fixing the lookup invalidates all image baselines; deferred deliberately (tracked in the CHANGELOG).
 - **CG/SVG renderer drift** — long-term plan is a single canonical render path; snapshot tests are the only guardrail in the meantime.
 - **`RenderConfig.swift` magic constants** — should be lifted into theme tokens.
-- **View interactivity** — `DiagramKitViews` is split out, but selection, hit-testing, and editor-oriented state remain future work.
 - **`<Module>Bootstrap.phase: Int` markers** — deferred to a future monorepo-promotion stage.
 
 ## Suggested reading map
@@ -222,4 +234,4 @@ For new contributors, in order:
 3. [CLAUDE.md](CLAUDE.md) — invariants, conventions, "where new files belong" decision tree.
 4. [CONTRIBUTING.md](CONTRIBUTING.md) — the governance gates and PR workflow.
 5. [BASELINES.md](BASELINES.md) — current metrics and known caveats.
-6. [docs/archive/PHASES.md](docs/archive/PHASES.md) — completed multi-format roadmap, useful for understanding why the package is shaped the way it is.
+6. [COVERAGE.md](COVERAGE.md) — per-format importer/exporter coverage and the closed-wave history in brief.

@@ -585,7 +585,7 @@ final class QuadrantRendererTests: XCTestCase {
     }
 
     private func findProjectRoot() -> String {
-        var dir = (URL(fileURLWithPath: #file).deletingLastPathComponent().path as NSString)
+        var dir = (URL(fileURLWithPath: #filePath).deletingLastPathComponent().path as NSString)
             .deletingLastPathComponent
         dir = (dir as NSString).deletingLastPathComponent
         if FileManager.default.fileExists(atPath: (dir as NSString).appendingPathComponent("Package.swift")) {

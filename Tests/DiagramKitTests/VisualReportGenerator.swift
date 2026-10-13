@@ -83,7 +83,7 @@ final class VisualReportGenerator: XCTestCase {
 
     private static func findProjectRoot() -> String {
         // Walk up from this source file to find the directory containing Package.swift
-        var dir = (URL(fileURLWithPath: #file).deletingLastPathComponent().path as NSString)
+        var dir = (URL(fileURLWithPath: #filePath).deletingLastPathComponent().path as NSString)
             .deletingLastPathComponent  // Tests/
         dir = (dir as NSString).deletingLastPathComponent  // project root
 

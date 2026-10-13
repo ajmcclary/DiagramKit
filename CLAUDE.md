@@ -26,14 +26,9 @@ overlap, preserve the constraints here and use the other docs for detail.
 - [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md) -
   the typed-factory decision tree for parser/exporter diagnostics, enforced by
   `Scripts/check-diagnostic-discipline.sh`.
-- [docs/archive/](docs/archive/) - historical record: completed roadmap
-  ([PHASES.md](docs/archive/PHASES.md), [PHASE-0.md](docs/archive/PHASE-0.md) …
-  [PHASE-10.md](docs/archive/PHASE-10.md)), execution plans
-  ([PLAN.md](docs/archive/PLAN.md), [PLAN-followup.md](docs/archive/PLAN-followup.md)),
-  shipped-cycle release notes
-  ([RELEASE_NOTES-review-remediation.md](docs/archive/RELEASE_NOTES-review-remediation.md)),
-  and the review-remediation closing-commit map
-  ([BASELINES-history.md](docs/archive/BASELINES-history.md)).
+- Historical record: this repository's `docs/archive/` tree was removed in
+  commit `e88a7a09`. The preserved specs, plans, and phase notes live in the
+  workspace superproject under `docs/archive/package/DiagramKit/superpowers/`.
 
 ## Commands
 
@@ -64,9 +59,10 @@ discipline gates below.
 
 ## Target Layout
 
-The package ships 14 layered SwiftPM library products, plus the internal
-`DiagramKitCorpus` test/tooling product (corpus schema + canonical
-`test-diagrams.json`; not intended for external reuse). Imports flow only
+The package ships 14 layered SwiftPM library products, plus two
+**unsupported tooling products** (`DiagramKitTestSupport`,
+`DiagramKitCorpus`) — round-trip harness + corpus schema/fixture, exempt
+from semver stability. Imports flow only
 downward; importers/exporters and the `DiagramKitMermaid` slice sit
 beside `DiagramKitModel` so they can be consumed without the umbrella.
 
@@ -129,11 +125,11 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   layout-tier diagnostics via `PositionedGraph`).
 - The Mermaid-prefixed public alias cohort (`MermaidParser`,
   `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`,
-  `MermaidStructuralError`, `renderMermaidSVG`, etc.) was sunset in
-  Session 12. The free-function SVG entry points (`renderDiagramSVG`,
+  `MermaidStructuralError`, `renderMermaidSVG`, etc.) has been removed,
+  along with the free-function SVG entry points (`renderDiagramSVG`,
   `renderDiagramSVGAsync`) and `DiagramPipeline.renderSVG(_:options:)`
-  / `_renderDiagramSVG` SPI deprecated in Session 7 (`381fd81`) went
-  away in the same change. Use `DiagramEngine.renderSVG(source:…)`,
+  / `_renderDiagramSVG` SPI that were deprecated alongside them. Use
+  `DiagramEngine.renderSVG(source:…)`,
   `DiagramPipeline.renderSVG(source:…)`, or the canonical `String`
   instance methods (`parseDiagram()`, `renderDiagramImage(…)`,
   `renderDiagramSVG(…)`, `renderDiagramASCII(…)`).
@@ -147,7 +143,7 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   cooperative pool's roughly 512 KB stack cannot handle deeply nested subgraph
   layouts. Scope: this invariant applies to `Sources/DiagramKit*/` production
   code on the parse/layout/render path. Test suites
-  (`MermaidPipelineConcurrencyTests` exercises the engine under
+  (`DiagramPipelineConcurrencyTests` exercises the engine under
   `withThrowingTaskGroup` to validate determinism) and the sample app
   (formerly the in-package `DiagramKitSample` target, now external at
   `apps/DiagramStudio` in the workspace superproject; `Task.detached`,
@@ -157,7 +153,12 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   pools and are allowed.
 - **Register bundled fonts first.** `DiagramFontRegistry.registerBundledFontsIfNeeded()`
   must run at the start of every pipeline method. Skipping it breaks snapshot
-  determinism across OS versions.
+  determinism across OS versions. KNOWN ISSUE: under SwiftPM the bundled
+  fonts never actually register (bundle-layout mismatch in
+  `DiagramFontRegistry`; see ARCHITECTURE.md "Known deferrals" and the
+  CHANGELOG), so rendering currently uses system-font fallbacks everywhere.
+  Fixing the lookup would invalidate every image baseline; deferred
+  deliberately.
 - **Parser dispatch order matters.** `Sources/DiagramKit/DiagramDescriptor.swift`
   uses a cascading `firstLine.hasPrefix(...)` chain (matchers prefer
   `startsWithToken` over raw `hasPrefix` for non-trivial prefixes).
@@ -243,16 +244,15 @@ outside the defining module.
   `ReExports.swift`.
 - `Sources/DiagramKitImport/` - importer protocol and registry boundary
   (`DiagramSourceImporter`, `ImporterRegistry`, `DiagramLoader`,
-  `DiagramImportResult`). `DiagramDiagnostic` lives in `DiagramKitCommon`
-  (see Phase 4).
+  `DiagramImportResult`). `DiagramDiagnostic` lives in `DiagramKitCommon`.
 - `Sources/DiagramKitExport/` - exporter protocol, registry, and loader
   (`DiagramExporter`, `ExporterRegistry`, `DiagramExportLoader`,
   `DiagramExportResult`, `DiagramExportError`). Depends only on
   `DiagramKitCommon` and `DiagramKitModel`.
 - `Sources/DiagramKitMermaid/` - Mermaid source exporter
-  (`MermaidExporter` + per-family `MermaidExport/*.swift`). Moved out of
-  the umbrella in Phase 4 so consumers can construct it without
-  importing `DiagramKit`.
+  (`MermaidExporter` + per-family `MermaidExport/*.swift`). Split out of
+  the umbrella so consumers can construct it without importing
+  `DiagramKit`.
 - `Sources/DiagramKitD2/` - D2 importer + exporter (`D2Importer`,
   `D2Parser`, `D2Mapper`, `D2Exporter`).
 - `Sources/DiagramKitGraphviz/` - Graphviz DOT importer + exporter
@@ -265,15 +265,19 @@ outside the defining module.
 - `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
   mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
-  `CorpusEntry`/`CorpusFile` and the canonical `test-diagrams.json` moved to
-  `Sources/DiagramKitCorpus/`; this target re-exports `DiagramKitCorpus` so
-  existing `import DiagramKitTestSupport` call sites still see the corpus types.
-- `Sources/DiagramKitCorpus/` - internal (not-for-external-reuse) corpus
-  target: the corpus schema (`CorpusEntry`/`CorpusFile`, `ExpectedDiagnostic`,
-  `CorpusEntryError`) plus the **single canonical** `test-diagrams.json`
-  bundled as a SwiftPM resource, reached through `DiagramCorpus.load()` /
+  **Unsupported tooling product** — exempt from semver stability (see the
+  banner in `DiagramKitTestSupport.swift`). `CorpusEntry`/`CorpusFile` and
+  the canonical `test-diagrams.json` moved to `Sources/DiagramKitCorpus/`;
+  this target re-exports `DiagramKitCorpus` so existing
+  `import DiagramKitTestSupport` call sites still see the corpus types.
+- `Sources/DiagramKitCorpus/` - **unsupported tooling product** (not part of
+  the supported public API; exempt from semver stability — see the banner in
+  `DiagramCorpus.swift`): the corpus schema (`CorpusEntry`/`CorpusFile`,
+  `ExpectedDiagnostic`, `CorpusEntryError`) plus the **single canonical**
+  `Sources/DiagramKitCorpus/Resources/test-diagrams.json` bundled as a
+  SwiftPM resource, reached through `DiagramCorpus.load()` /
   `DiagramCorpus.resourceURL`. Both this package's corpus suites and
-  `apps/DiagramStudio` consume it — there is no longer a second copy to sync.
+  `apps/DiagramStudio` consume it — there is no second copy to sync.
 - The SwiftUI sample app (formerly `Sources/DiagramKitSample/`, executable
   target `DiagramKitSample`) is **external to this repo**: it lives at
   `apps/DiagramStudio` in the workspace superproject and consumes DiagramKit
@@ -296,13 +300,20 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 299 Swift files (297 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
-- The corpus is `Tests/DiagramKitTests/Resources/test-diagrams.json` with
-  430 entries (401 Mermaid-only + 29 multi-format: D2, DOT, Structurizr, PlantUML).
-- Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
-  443 SVG, 443 image, and 430 ASCII snapshots (1316 total; stored on
-  disk as 443 PNG + 873 `.txt` — `swift-snapshot-testing` writes SVG
-  and ASCII to `.txt`).
+Last updated: 2026-10-13. All counts below are measured on this tree.
+
+- Current test source count: 387 Swift files (383 under `Tests/DiagramKitTests`,
+  4 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle
+  was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side
+  accessibility audit is no longer gated.
+- The corpus is `Sources/DiagramKitCorpus/Resources/test-diagrams.json` with
+  **435 entries** (406 Mermaid-only + 29 multi-format: D2, DOT, Structurizr,
+  PlantUML).
+- Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/`
+  track **435 SVG, 435 image, and 435 ASCII** snapshots (one of each per corpus
+  entry) plus **15 multi-format SVG + 15 multi-format image** snapshots —
+  **1,335 tracked files total** (450 PNG + 885 `.txt`;
+  `swift-snapshot-testing` writes SVG and ASCII to `.txt`).
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
   CoreText rasterization drift across CPU architectures.
 - Multi-format snapshot tests use format-suffixed names (`entry-id-format`) to
@@ -313,12 +324,16 @@ outside the defining module.
 
 **Round-trip discipline.** Beyond snapshot equality, every importer/exporter
 pair the library ships is gated on `parse → export → parse → assert structurally
-equal` via the `DiagramKitTestSupport.RoundTripHarness`. Same-format (14 cells)
-and cross-format (8 unordered pairs / 16 ordered directions) cover every
-intersecting family. Allowed losses are typed and closed — `RoundTripLoss`
-admits no `case other(_)`, and every observed loss must have a paired
-`.warning`/`.unsupported` diagnostic on the export step that produced it.
-Fixtures live under `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
+equal` via the `DiagramKitTestSupport.RoundTripHarness`. The registry pins
+**61 same-format cells** and **42 unordered cross-format pairs (84 directed)**
+covering every intersecting family; fixtures live under
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` (61 same-format
+fixtures + 84 cross-format pair directories). Allowed losses are typed and
+closed — `RoundTripLoss` admits no `case other(_)`, and every observed loss
+must have a paired `.warning`/`.unsupported` diagnostic on the export step
+that produced it. `CorpusRoundTripTests` additionally walks the whole Mermaid
+corpus through the harness; its 16 known pre-existing divergences are tracked
+via `withExpectedIssue` (see `CorpusRoundTripTests.knownIssues`).
 Run with `swift test --filter "RoundTrip"`.
 
 **Diagnostic discipline.** Emission sites use the typed
@@ -362,8 +377,9 @@ enabled" warnings when re-enabled.
 **Verified 2026-10-08 (`Scripts/linux-check.sh`, swift:6.3.1-noble): every
 target builds on Linux and the full portable test suite passes there**,
 including `CorpusRenderTests` (every corpus entry, all 28 families, renders to
-SVG and ASCII through `DiagramEngine`). CI runs the same suite on Linux on
-every push. The public Linux surface is `DiagramEngine.renderSVG`,
+SVG and ASCII through `DiagramEngine`). CI runs the same portable suite on
+Linux in a native `ubuntu-24.04` job. The public Linux surface is
+`DiagramEngine.renderSVG`,
 `renderASCII`, and `parseImportResult` (plus `String.renderDiagramSVG` /
 `renderDiagramASCII`). CG rendering, native views, and the interactive editor
 (`DiagramKitRenderingCG`, `DiagramKitViews`, `DiagramKitInteractive`) are
@@ -410,13 +426,12 @@ Per-family text measurement on the SVG/layout path (M-SVG-8 inventory):
 | `TextMetrics.shared` | C4, treemap, architecture, gitgraph, pie, ishikawa, treeview, eventModeling, mindmap | CoreText optical bounds on Apple; 0.55× (proportional) / 0.6× (monospace) char-count estimate on Linux — geometry differs cross-platform |
 | Cell/char-count arithmetic (no text measurement) | sequence, zenuml, quadrant, xychart, kanban, sankey, venn, wardley, radar, packet | Fixed monospace cell grids or label-length counts; identical cross-platform |
 
-## Forward Roadmap
+## Status
 
-Feature-complete: Phases 0–10 plus the follow-on Phases 1–11 (DOT
-exporter, full PlantUML family coverage, ASCII renderers for all 28
-families) have all landed. Importers and exporters ship for Mermaid,
+Feature-complete. Importers and exporters ship for Mermaid,
 D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
-state/activity + mindmap + gantt + C4). The corpus carries 430
-entries across 28 diagram families. The active backlog is currently empty;
-the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHASES.md),
-and [BASELINES.md](BASELINES.md) has the closing-commit map.
+state/activity + mindmap + gantt + C4). The corpus carries 435
+entries across 28 diagram families. The active backlog is empty;
+[COVERAGE.md](COVERAGE.md) tracks the remaining deliberate
+non-coverage (`—`) cells, and the historical specs/plans live in the
+workspace superproject under `docs/archive/package/DiagramKit/`.

@@ -1,6 +1,6 @@
 # Contributing to DiagramKit
 
-This package follows the conventions of the sibling `MusicToolkit` package: layered SPM targets, Linux-portable foundation, governance gates run locally before merging.
+DiagramKit is a layered SPM package with a Linux-portable foundation and governance gates run locally before merging.
 
 For invariants Claude / contributors must respect, see [CLAUDE.md](CLAUDE.md). For the full architectural picture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -20,17 +20,30 @@ If you're touching public API or a renderer, also run:
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs every PR through a macOS runner:
+`.github/workflows/ci.yml` (generated — edit the workspace superproject's
+`Scripts/sync-package-ci` generator, not the workflow) runs:
 
-- `swift package dump-package`
-- `swift build --build-tests`
-- `swift test`
-- `Scripts/check-file-sizes.sh`
-- `Scripts/check-sendable-annotations.sh`
-- `Scripts/strict-concurrency-check.sh`
-- `Scripts/linux-check.sh` (with `SKIP_LINUX_CHECK=1` — GitHub's macOS runners don't ship Docker or Podman; the actual container build runs locally via `bootstrap-smoke-check.sh`).
+- **Nothing on push to `main`.** Triggers are: release tags, pull requests
+  (docs-only changes skipped via `paths`), a weekly cron, and manual
+  `workflow_dispatch`.
+- **macOS 27 job** (`xcode-27` runner image; asserts a macOS 27 host and
+  Xcode 27): package dump, `swift build --build-tests`, the full test suite
+  split into non-corpus, round-trip, and per-format corpus snapshot runs,
+  and all the governance scripts (`check-file-sizes`,
+  `check-sendable-annotations`, `strict-concurrency-check`,
+  `check-diagnostic-discipline` + self-test, `check-stale-phase-comments`,
+  `check-linux-check-runtime-skip`, `check-zedtrek-pin`).
+- **Linux job** (`ubuntu-24.04`, TZ Pacific/Auckland): every target builds
+  and the whole portable test suite runs natively — no container, no
+  `SKIP_LINUX_CHECK`.
+- **iOS 27 job**: `xcodebuild -destination 'generic/platform=iOS'` build
+  with Xcode 27 asserted.
 
-The local merge gate is the authoritative health check: it adds the Xcode multi-platform builds and a real `linux-check.sh` against your locally-installed runtime. CI is the second line of defense, not a replacement.
+Dependency caching, concurrency grouping, crash-report collection on
+failure, and failure artifacts are configured in the workflow. The local
+merge gate (`bootstrap-smoke-check.sh`) adds the containerized
+`linux-check.sh` and the Xcode platform sweep; CI is the second line of
+defense, not a replacement.
 
 ## File-size guidelines
 
@@ -55,7 +68,7 @@ When you find yourself wanting to add to the allowlist:
 For `@unchecked Sendable`, the policy is **green > yellow > red**:
 
 - **Green (preferred):** add a "Concurrency Contract" banner explaining the invariant — single-pass / construction-then-freeze / queue-confinement / setup-then-share / etc. The banner must appear in the first 50 lines of the file or within 10 lines of the annotation. The gate at `Scripts/check-sendable-annotations.sh` searches for the banner pattern.
-- **Yellow:** add a `file:line:yellow:YYYY-MM-DD` entry to `.sendable-allowlist.txt` with a sunset date you intend to hit. Existing yellow entries (12 of them, all grandfathered when Stage 3 landed) sunset on `2027-06-30`.
+- **Yellow:** add a `file:line:yellow:YYYY-MM-DD` entry to `.sendable-allowlist.txt` with a sunset date you intend to hit. Existing yellow entries (6 of them, all grandfathered when Stage 3 landed) sunset on `2027-06-30`.
 - **Red:** entry-format `file:line:red:` — the gate fails immediately. Use only as a self-imposed deadline, never as a permanent state.
 
 Banner example:
@@ -141,4 +154,4 @@ Deprecated Mermaid-prefixed compatibility aliases (`MermaidRenderer`, `MermaidPi
 
 - Architectural questions / unclear invariants: open a discussion referencing the relevant section of [ARCHITECTURE.md](ARCHITECTURE.md) or [CLAUDE.md](CLAUDE.md).
 - "Should this go in Common, Model, or RenderingCG?": see the layer-import rules above; if still unsure, ask in the PR.
-- Stage-plan questions (what's open, what's deferred): the live deferrals are in [BASELINES.md](BASELINES.md); for the historical phase plan, see [docs/archive/PHASES.md](docs/archive/PHASES.md).
+- Stage-plan questions (what's open, what's deferred): the live deferrals are in [BASELINES.md](BASELINES.md) and [ARCHITECTURE.md](ARCHITECTURE.md); the preserved historical specs/plans live in the workspace superproject under `docs/archive/package/DiagramKit/`.

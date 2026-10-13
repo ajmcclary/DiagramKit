@@ -10,7 +10,7 @@ import DiagramKitTestSupport
 struct MultiFormatBackwardCompatibilityTests {
 
     private static func projectRoot() -> URL {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        var url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {
