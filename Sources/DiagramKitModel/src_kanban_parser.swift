@@ -1,7 +1,7 @@
 import Foundation
 import DiagramKitCommon
 
-public enum KanbanParserError: Error, LocalizedError {
+public enum KanbanParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case itemsWithoutSection(String)
     case invalidShape(String)

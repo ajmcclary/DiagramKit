@@ -64,15 +64,12 @@ extension RecoveryMarkerScanner {
         let lines = source.components(separatedBy: "\n")
         for (index, rawLine) in lines.enumerated() {
             let lineNumber = index + 1
-            var trimmed = rawLine
-            while let first = trimmed.first, first == " " || first == "\t" {
-                trimmed.removeFirst()
-            }
+            // `drop(while:)` trims without copying; the previous
+            // `removeFirst()` loop was O(n²) on a run of leading spaces.
+            var trimmed = rawLine.drop { $0 == " " || $0 == "\t" }
             guard trimmed.hasPrefix(commentPrefix) else { continue }
-            trimmed.removeFirst(commentPrefix.count)
-            while let first = trimmed.first, first == " " || first == "\t" {
-                trimmed.removeFirst()
-            }
+            trimmed = trimmed.dropFirst(commentPrefix.count)
+            trimmed = trimmed.drop { $0 == " " || $0 == "\t" }
             guard trimmed.hasPrefix(sentinel) else { continue }
             var rest = String(trimmed.dropFirst(sentinel.count))
             while let last = rest.last, last == " " || last == "\t" || last == "\r" {

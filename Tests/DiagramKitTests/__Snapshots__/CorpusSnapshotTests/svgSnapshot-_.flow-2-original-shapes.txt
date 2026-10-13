@@ -61,23 +61,23 @@
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="448.86999999999995,98.169 472.87,98.169 472.87,58.45 496.87,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="D" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="584.762,58.45 608.762,58.45 608.762,87.0 632.762,87.0" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Rectangle" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 141.23 40.0 L 141.23 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 141.23 40 L 141.23 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="90.615" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rectangle</text>
 </g>
 <g class="node" data-id="B" data-label="Rounded" data-shape="rounded">
-  <path d="M 195.23 40.0 L 278.532 40.0 Q 284.532 40.0 284.532 46.0 L 284.532 70.9 Q 284.532 76.9 278.532 76.9 L 195.23 76.9 Q 189.23 76.9 189.23 70.9 L 189.23 46.0 Q 189.23 40.0 195.23 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 195.23 40 L 278.53 40 Q 284.53 40 284.53 46 L 284.53 70.90 Q 284.53 76.90 278.53 76.90 L 195.23 76.90 Q 189.23 76.90 189.23 70.90 L 189.23 46 Q 189.23 40 195.23 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="236.88099999999997" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rounded</text>
 </g>
 <g class="node" data-id="C" data-label="Diamond" data-shape="diamond">
-  <path d="M 390.70099999999996 40.0 L 448.87 98.169 L 390.70099999999996 156.338 L 332.532 98.169 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 390.70 40 L 448.87 98.17 L 390.70 156.34 L 332.53 98.17 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="390.70099999999996" y="98.169" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Diamond</text>
 </g>
 <g class="node" data-id="D" data-label="Stadium" data-shape="stadium">
-  <path d="M 515.32 40.0 L 566.3119999999999 40.0 A 18.450000000000003 18.450000000000003 0 0 1 584.762 58.45 L 584.762 58.45 A 18.450000000000003 18.450000000000003 0 0 1 566.3119999999999 76.9 L 515.32 76.9 A 18.450000000000003 18.450000000000003 0 0 1 496.87 58.45 L 496.87 58.45 A 18.450000000000003 18.450000000000003 0 0 1 515.32 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 515.32 40 L 566.31 40 A 18.45 18.45 0 0 1 584.76 58.45 L 584.76 58.45 A 18.45 18.45 0 0 1 566.31 76.90 L 515.32 76.90 A 18.45 18.45 0 0 1 496.87 58.45 L 496.87 58.45 A 18.45 18.45 0 0 1 515.32 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="540.816" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Stadium</text>
 </g>
 <g class="node" data-id="E" data-label="Circle" data-shape="circle">
-  <path d="M 632.762 87.0 A 47.0 47.0 0 1 1 726.762 87.0 A 47.0 47.0 0 1 1 632.762 87.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 632.76 87 A 47 47 0 1 1 726.76 87 A 47 47 0 1 1 632.76 87 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="679.762" y="87.0" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Circle</text>
 </g>
 </svg>

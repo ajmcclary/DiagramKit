@@ -193,7 +193,7 @@ enum PlantUMLSequenceExport {
     }
 
     private static func quoted(_ text: String) -> String {
-        "\"\(escape(text))\""
+        "\"\(PlantUMLHygiene.escapeSequenceString(text))\""
     }
 
     private static func normalizeColor(_ color: String) -> String {
@@ -204,21 +204,13 @@ enum PlantUMLSequenceExport {
     /// collapsing — PlantUML renders `\"` literally (no escape processing),
     /// so backslash-escaping quotes corrupted round-tripped labels.
     private static func escapeFreeText(_ text: String) -> String {
-        text.replacingOccurrences(of: "\r\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\n")
-            .replacingOccurrences(of: "\n", with: "\\n")
+        PlantUMLHygiene.escapeSequenceFreeText(text)
     }
 
     private static func escape(_ text: String) -> String {
         // Multiline title/note/group/box/else labels must collapse into
         // PlantUML's inline-newline escape (`\n` in source) — otherwise the
         // line-oriented @startuml/@enduml model gets corrupt extra lines.
-        // CR/LF/CRLF are all normalised to `\n` so editor-origin variants do
-        // not leak through.
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\n")
-            .replacingOccurrences(of: "\n", with: "\\n")
+        PlantUMLHygiene.escapeSequenceString(text)
     }
 }

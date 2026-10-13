@@ -40,7 +40,7 @@ The local merge gate is the authoritative health check: it adds the Xcode multi-
 | 500–1000 lines | warns (`Scripts/check-file-sizes.sh` prints `WARNING:`); still passes |
 | > 1000 lines | errors unless allowlisted in `Scripts/check-file-sizes-allowlist.txt` |
 
-The 9 currently-allowlisted files are JS-port parsers/layouts/renderers in `DiagramKitModel` that mirror upstream `mermaid-js` source files line-for-line. Splitting them would diverge from upstream and create maintenance churn. **Don't add new allowlist entries without a comment block explaining why** — file size is a code smell signal, and the allowlist is for genuine exceptions.
+The 8 currently-allowlisted files are JS-port parsers/layouts/renderers in `DiagramKitModel` that mostly mirror upstream `mermaid-js` source files closely (`src_wardley_parser.swift` and `src_zenuml_parser.swift` are native rewrites grandfathered for size alone). Splitting them would diverge from upstream and create maintenance churn. **Don't add new allowlist entries without a comment block explaining why** — file size is a code smell signal, and the allowlist is for genuine exceptions.
 
 When you find yourself wanting to add to the allowlist:
 

@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 extension IshikawaNode: AsciiTreeNode {
@@ -9,7 +10,7 @@ public func renderIshikawaAscii(_ model: IshikawaDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     guard let root = model.root else {
         return lines.joined(separator: "\n")

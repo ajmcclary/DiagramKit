@@ -24,25 +24,22 @@ private struct _SankeyUidGenerator {
     }
 }
 
-/// Concurrency Contract: `_SankeyRenderScopeCounter` is a process-wide
-/// singleton that hands out monotonically increasing scope IDs to
-/// `renderSankeySvg` calls when no explicit `diagramId` is supplied.
-/// The internal `NSLock` serializes every read/write of `counter`, so
-/// concurrent calls from worker threads see consistent IDs and the
-/// `@unchecked Sendable` annotation is sound. (Resolves yellow → green
-/// per REVIEW.md L2.)
-private final class _SankeyRenderScopeCounter: @unchecked Sendable {
-    static let shared = _SankeyRenderScopeCounter()
 
-    private let lock = NSLock()
-    private var counter = 0
-
-    func next() -> String {
-        lock.lock()
-        defer { lock.unlock() }
-        counter += 1
-        return "sankey-\(counter)"
+/// Deterministic id scope for a rendered sankey: derived from the node
+/// and link content so the same diagram always produces the same gradient
+/// ids, regardless of how many diagrams the process rendered before it.
+private func _sankeyContentScope(_ positioned: PositionedSankeyDiagram) -> String {
+    var content = positioned.nodes.map(\.id).joined(separator: ",")
+    content += "|"
+    content += positioned.links
+        .map { "\($0.sourceID)->\($0.targetID):\($0.value)" }
+        .joined(separator: ",")
+    var hash: UInt64 = 0xcbf29ce484222325
+    for byte in content.utf8 {
+        hash ^= UInt64(byte)
+        hash = hash &* 0x100000001b3
     }
+    return String(format: "sankey-%016llx", hash)
 }
 
 public func renderSankeySvg(
@@ -52,7 +49,7 @@ public func renderSankeySvg(
     _ transparent: Bool = false,
     diagramId: String? = nil
 ) -> String {
-    var uid = _SankeyUidGenerator(scope: diagramId ?? _SankeyRenderScopeCounter.shared.next())
+    var uid = _SankeyUidGenerator(scope: diagramId ?? _sankeyContentScope(positioned))
 
     let nodeColorMap = _buildNodeColorMap(positioned)
 

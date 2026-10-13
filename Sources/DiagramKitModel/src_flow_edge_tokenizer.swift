@@ -1,7 +1,7 @@
 // Edge syntax tokenizer for flowchart links.
 import Foundation
 
-public struct _ParsedEdgeOp {
+struct _ParsedEdgeOp {
     var edgeId: String?
     var arrowHeadStart: original_src_types.ArrowHeadType
     var arrowHeadEnd: original_src_types.ArrowHeadType
@@ -25,7 +25,7 @@ public struct _ParsedEdgeOp {
 /// Matches Mermaid edge syntax including edge IDs, bidirectional markers,
 /// circle/cross arrowheads, text-embedded labels, minimum-length links,
 /// and invisible links.
-public func _scanEdgeOp(_ text: String) -> _ParsedEdgeOp? {
+func _scanEdgeOp(_ text: String) -> _ParsedEdgeOp? {
     let chars = Array(text)
     guard !chars.isEmpty else { return nil }
     var i = 0

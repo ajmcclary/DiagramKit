@@ -410,19 +410,5 @@ private func _textEl(_ text: String, cx: Double, cy: Double, fontSize: Double, a
     return "<text class=\"\(cls)\" x=\"\(cx)\" y=\"\(cy)\" font-size=\"\(fontSize)\" text-anchor=\"\(anchor)\" fill=\"var(--_text-muted)\"\(w)>\(SVG.escapeText(text))</text>"
 }
 
-
 // MARK: - Legacy class
 
-final class original_src_sequence_renderer {
-    public init() {}
-
-    public static func renderSequenceSvg(
-        _ diagram: PositionedSequenceDiagram,
-        _ colors: DiagramColors,
-        _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false,
-        interactive: Bool = false
-    ) throws -> String {
-        try _renderSequenceSvgEntry(diagram, colors, font, transparent, interactive: interactive)
-    }
-}

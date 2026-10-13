@@ -39,6 +39,8 @@ public struct JourneyDiagramConfig: Sendable {
     public var titleFontSize: String = "4ex"
     public var faceColor: String = "#FFF8DC"
 
+    public init() {}
+
     public static let `default` = JourneyDiagramConfig()
 }
 

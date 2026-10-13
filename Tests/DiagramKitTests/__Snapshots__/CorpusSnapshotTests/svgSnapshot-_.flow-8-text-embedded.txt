@@ -70,23 +70,23 @@
   <text x="180.19750000000002" y="256.4935" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">No</text>
 </g>
 <g class="node" data-id="A" data-label="Start" data-shape="rounded">
-  <path d="M 46.0 40.0 L 104.108 40.0 Q 110.108 40.0 110.108 46.0 L 110.108 70.9 Q 110.108 76.9 104.108 76.9 L 46.0 76.9 Q 40.0 76.9 40.0 70.9 L 40.0 46.0 Q 40.0 40.0 46.0 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 46 40 L 104.11 40 Q 110.11 40 110.11 46 L 110.11 70.90 Q 110.11 76.90 104.11 76.90 L 46 76.90 Q 40 76.90 40 70.90 L 40 46 Q 40 40 46 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="75.054" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Start</text>
 </g>
 <g class="node" data-id="B" data-label="Is it sunny?" data-shape="diamond">
-  <path d="M 105.57900000000001 124.9 L 171.15800000000002 190.479 L 105.57900000000001 256.058 L 40.0 190.479 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 105.58 124.90 L 171.16 190.48 L 105.58 256.06 L 40 190.48 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="105.57900000000001" y="190.479" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Is it sunny?</text>
 </g>
 <g class="node" data-id="C" data-label="Go to the park" data-shape="rectangle">
-  <path d="M 40.0 304.058 L 161.23700000000002 304.058 L 161.23700000000002 340.95799999999997 L 40.0 340.95799999999997 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 304.06 L 161.24 304.06 L 161.24 340.96 L 40 340.96 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="100.61850000000001" y="322.508" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Go to the park</text>
 </g>
 <g class="node" data-id="D" data-label="Stay indoors" data-shape="rectangle">
-  <path d="M 189.23700000000002 304.058 L 306.028 304.058 L 306.028 340.95799999999997 L 189.23700000000002 340.95799999999997 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 189.24 304.06 L 306.03 304.06 L 306.03 340.96 L 189.24 340.96 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="247.63250000000002" y="322.508" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Stay indoors</text>
 </g>
 <g class="node" data-id="E" data-label="Finish" data-shape="rectangle">
-  <path d="M 40.0 388.95799999999997 L 119.0 388.95799999999997 L 119.0 425.85799999999995 L 40.0 425.85799999999995 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 388.96 L 119 388.96 L 119 425.86 L 40 425.86 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="79.5" y="407.40799999999996" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Finish</text>
 </g>
 </svg>

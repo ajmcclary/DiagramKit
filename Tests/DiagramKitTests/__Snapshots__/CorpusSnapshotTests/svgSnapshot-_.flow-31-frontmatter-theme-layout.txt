@@ -61,19 +61,19 @@
 <polyline data-from="B" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="70.0,180.8 70.0,214.3 70.0,214.3 70.0,247.8" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="169.0,180.8 169.0,214.3 70.0,214.3 70.0,247.8" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="A" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 100.0 40.0 L 100.0 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 100 40 L 100 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="70.0" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">A</text>
 </g>
 <g class="node" data-id="B" data-label="B" data-shape="rectangle">
-  <path d="M 40.0 143.9 L 100.0 143.9 L 100.0 180.8 L 40.0 180.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 143.90 L 100 143.90 L 100 180.80 L 40 180.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="70.0" y="162.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">B</text>
 </g>
 <g class="node" data-id="C" data-label="C" data-shape="rectangle">
-  <path d="M 139.0 143.9 L 199.0 143.9 L 199.0 180.8 L 139.0 180.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 139 143.90 L 199 143.90 L 199 180.80 L 139 180.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="169.0" y="162.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">C</text>
 </g>
 <g class="node" data-id="D" data-label="D" data-shape="rectangle">
-  <path d="M 40.0 247.8 L 100.0 247.8 L 100.0 284.70000000000005 L 40.0 284.70000000000005 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 247.80 L 100 247.80 L 100 284.70 L 40 284.70 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="70.0" y="266.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">D</text>
 </g>
 </svg>

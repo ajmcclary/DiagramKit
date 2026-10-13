@@ -1,5 +1,5 @@
 Participants: Alice, Bob, Charlie
-• asyncMessage
-• asyncMessage
-• asyncMessage
-• asyncMessage
+• Alice-->Bob: hello
+• Bob-->Charlie: process
+• Charlie-->Bob: result
+• Bob-->Alice: done

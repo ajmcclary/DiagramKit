@@ -66,27 +66,27 @@
 <polyline data-from="C" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="70.0,76.9 70.0,267.7455 105.06450000000001,267.7455 105.06450000000001,458.591" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="E" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="105.06450000000001,495.491 105.06450000000001,519.491 116.3235,519.491 116.3235,543.491" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="C" data-label="C" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 100.0 40.0 L 100.0 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 100 40 L 100 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="70.0" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">C</text>
 </g>
 <g class="node" data-id="E" data-label="Deploy Staging" data-shape="stadium">
-  <path d="M 58.45 458.591 L 151.67900000000003 458.591 A 18.450000000000003 18.450000000000003 0 0 1 170.12900000000002 477.041 L 170.12900000000002 477.041 A 18.450000000000003 18.450000000000003 0 0 1 151.67900000000003 495.491 L 58.45 495.491 A 18.450000000000003 18.450000000000003 0 0 1 40.0 477.041 L 40.0 477.041 A 18.450000000000003 18.450000000000003 0 0 1 58.45 458.591 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 58.45 458.59 L 151.68 458.59 A 18.45 18.45 0 0 1 170.13 477.04 L 170.13 477.04 A 18.45 18.45 0 0 1 151.68 495.49 L 58.45 495.49 A 18.45 18.45 0 0 1 40 477.04 L 40 477.04 A 18.45 18.45 0 0 1 58.45 458.59 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="105.06450000000001" y="477.041" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Deploy Staging</text>
 </g>
 <g class="node" data-id="F" data-label="QA Approved?" data-shape="diamond">
-  <path d="M 116.3235 543.491 L 192.647 619.8145 L 116.3235 696.1379999999999 L 40.0 619.8145 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 116.32 543.49 L 192.65 619.81 L 116.32 696.14 L 40 619.81 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="116.3235" y="619.8145" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">QA Approved?</text>
 </g>
 <g class="node" data-id="A" data-label="Push Code" data-shape="rectangle">
-  <path d="M 144.0 168.9 L 250.41699999999997 168.9 L 250.41699999999997 205.8 L 144.0 205.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 144 168.90 L 250.42 168.90 L 250.42 205.80 L 144 205.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="197.2085" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Push Code</text>
 </g>
 <g class="node" data-id="B" data-label="Tests Pass?" data-shape="diamond">
-  <path d="M 214.3955 253.8 L 284.791 324.19550000000004 L 214.3955 394.591 L 144.0 324.19550000000004 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 214.40 253.80 L 284.79 324.20 L 214.40 394.59 L 144 324.20 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="214.3955" y="324.19550000000004" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Tests Pass?</text>
 </g>
 <g class="node" data-id="D" data-label="D" data-shape="rectangle">
-  <path d="M 144.0 84.0 L 204.0 84.0 L 204.0 120.9 L 144.0 120.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 144 84 L 204 84 L 204 120.90 L 144 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="174.0" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">D</text>
 </g>
 </svg>

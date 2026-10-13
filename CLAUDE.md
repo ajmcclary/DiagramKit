@@ -402,6 +402,14 @@ but not pixel-equivalent to Apple's CoreText measurement, so no Linux
 snapshot baselines are recorded — `CorpusRenderTests` checks that output
 renders and is well-formed rather than comparing it.
 
+Per-family text measurement on the SVG/layout path (M-SVG-8 inventory):
+
+| Tier | Families | Mechanism |
+|---|---|---|
+| Portable metrics (`original_src_text_metrics` in `DiagramKitCommon`) | flowchart (`FlowNodeSizer`), class, ER, journey, timeline, gantt, block, requirement, and the shared generic SVG renderer (`src_renderer`) | Per-character width classes; byte-identical output on Apple and Linux |
+| `TextMetrics.shared` | C4, treemap, architecture, gitgraph, pie, ishikawa, treeview, eventModeling, mindmap | CoreText optical bounds on Apple; 0.55× (proportional) / 0.6× (monospace) char-count estimate on Linux — geometry differs cross-platform |
+| Cell/char-count arithmetic (no text measurement) | sequence, zenuml, quadrant, xychart, kanban, sankey, venn, wardley, radar, packet | Fixed monospace cell grids or label-length counts; identical cross-platform |
+
 ## Forward Roadmap
 
 Feature-complete: Phases 0–10 plus the follow-on Phases 1–11 (DOT

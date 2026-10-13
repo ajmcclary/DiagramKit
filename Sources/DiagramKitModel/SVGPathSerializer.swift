@@ -23,37 +23,37 @@ public enum SVGPathSerializer {
         switch shapePath {
         case .rect(let cornerRadius):
             if cornerRadius > 0 {
-                return "M \(bounds.minX + cornerRadius) \(bounds.minY) L \(bounds.maxX - cornerRadius) \(bounds.minY) Q \(bounds.maxX) \(bounds.minY) \(bounds.maxX) \(bounds.minY + cornerRadius) L \(bounds.maxX) \(bounds.maxY - cornerRadius) Q \(bounds.maxX) \(bounds.maxY) \(bounds.maxX - cornerRadius) \(bounds.maxY) L \(bounds.minX + cornerRadius) \(bounds.maxY) Q \(bounds.minX) \(bounds.maxY) \(bounds.minX) \(bounds.maxY - cornerRadius) L \(bounds.minX) \(bounds.minY + cornerRadius) Q \(bounds.minX) \(bounds.minY) \(bounds.minX + cornerRadius) \(bounds.minY) Z"
+                return "M \(_fmt(bounds.minX + cornerRadius)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX - cornerRadius)) \(_fmt(bounds.minY)) Q \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) \(_fmt(bounds.maxX)) \(_fmt(bounds.minY + cornerRadius)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY - cornerRadius)) Q \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) \(_fmt(bounds.maxX - cornerRadius)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX + cornerRadius)) \(_fmt(bounds.maxY)) Q \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) \(_fmt(bounds.minX)) \(_fmt(bounds.maxY - cornerRadius)) L \(_fmt(bounds.minX)) \(_fmt(bounds.minY + cornerRadius)) Q \(_fmt(bounds.minX)) \(_fmt(bounds.minY)) \(_fmt(bounds.minX + cornerRadius)) \(_fmt(bounds.minY)) Z"
             }
-            return "M \(bounds.minX) \(bounds.minY) L \(bounds.maxX) \(bounds.minY) L \(bounds.maxX) \(bounds.maxY) L \(bounds.minX) \(bounds.maxY) Z"
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
 
         case .ellipse:
             let rx = bounds.width / 2
             let ry = bounds.height / 2
-            return "M \(bounds.midX - rx) \(bounds.midY) A \(rx) \(ry) 0 1 1 \(bounds.midX + rx) \(bounds.midY) A \(rx) \(ry) 0 1 1 \(bounds.midX - rx) \(bounds.midY) Z"
+            return "M \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX + rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) Z"
 
         case .diamond:
-            return "M \(bounds.midX) \(bounds.minY) L \(bounds.maxX) \(bounds.midY) L \(bounds.midX) \(bounds.maxY) L \(bounds.minX) \(bounds.midY) Z"
+            return "M \(_fmt(bounds.midX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.midY)) L \(_fmt(bounds.midX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.midY)) Z"
 
         case .hexagon:
             let inset = bounds.height / 4
-            return "M \(bounds.minX + inset) \(bounds.minY) L \(bounds.maxX - inset) \(bounds.minY) L \(bounds.maxX) \(bounds.midY) L \(bounds.maxX - inset) \(bounds.maxY) L \(bounds.minX + inset) \(bounds.maxY) L \(bounds.minX) \(bounds.midY) Z"
+            return "M \(_fmt(bounds.minX + inset)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.midY)) L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX + inset)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.midY)) Z"
 
         case .cylinder:
             // Body rectangle only; caps drawn separately in SVG
-            return "M \(bounds.minX) \(bounds.minY) L \(bounds.maxX) \(bounds.minY) L \(bounds.maxX) \(bounds.maxY) L \(bounds.minX) \(bounds.maxY) Z"
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
 
         case .trapezoid(let skew):
             let inset = bounds.width * skew
-            return "M \(bounds.minX + inset) \(bounds.minY) L \(bounds.maxX - inset) \(bounds.minY) L \(bounds.maxX) \(bounds.maxY) L \(bounds.minX) \(bounds.maxY) Z"
+            return "M \(_fmt(bounds.minX + inset)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
 
         case .parallelogram(let skew):
             let inset = bounds.width * skew
-            return "M \(bounds.minX + inset) \(bounds.minY) L \(bounds.maxX) \(bounds.minY) L \(bounds.maxX - inset) \(bounds.maxY) L \(bounds.minX) \(bounds.maxY) Z"
+            return "M \(_fmt(bounds.minX + inset)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
 
         case .stadium:
             let r = bounds.height / 2
-            return "M \(bounds.minX + r) \(bounds.minY) L \(bounds.maxX - r) \(bounds.minY) A \(r) \(r) 0 0 1 \(bounds.maxX) \(bounds.minY + r) L \(bounds.maxX) \(bounds.maxY - r) A \(r) \(r) 0 0 1 \(bounds.maxX - r) \(bounds.maxY) L \(bounds.minX + r) \(bounds.maxY) A \(r) \(r) 0 0 1 \(bounds.minX) \(bounds.maxY - r) L \(bounds.minX) \(bounds.minY + r) A \(r) \(r) 0 0 1 \(bounds.minX + r) \(bounds.minY) Z"
+            return "M \(_fmt(bounds.minX + r)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX - r)) \(_fmt(bounds.minY)) A \(_fmt(r)) \(_fmt(r)) 0 0 1 \(_fmt(bounds.maxX)) \(_fmt(bounds.minY + r)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY - r)) A \(_fmt(r)) \(_fmt(r)) 0 0 1 \(_fmt(bounds.maxX - r)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX + r)) \(_fmt(bounds.maxY)) A \(_fmt(r)) \(_fmt(r)) 0 0 1 \(_fmt(bounds.minX)) \(_fmt(bounds.maxY - r)) L \(_fmt(bounds.minX)) \(_fmt(bounds.minY + r)) A \(_fmt(r)) \(_fmt(r)) 0 0 1 \(_fmt(bounds.minX + r)) \(_fmt(bounds.minY)) Z"
 
         case .subroutine:
             // Outer rectangle only; inner vertical lines are decorations

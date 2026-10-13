@@ -181,7 +181,7 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     let theme = frontmatter?.perDiagram.packet.theme ?? PacketThemeConfig.default
 
     // Normalize blocks (contiguity, defaults, row splitting)
-    let rows = try normalizePacketBlocks(rawBlocks, config: config)
+    let rows = try _normalizePacketBlocks(rawBlocks, config: config)
 
     // Frontmatter title does not override source title
     if diagramTitle == nil, let fmTitle = frontmatter?.shared.diagramTitle, frontmatter?.shared.title != nil {
@@ -351,7 +351,15 @@ private func _valueAfterKeyword(_ s: String, len: Int) -> String {
 
 // MARK: - Normalization
 
+@available(*, deprecated, renamed: "_normalizePacketBlocks", message: "SPI; not part of the supported public API.")
 public func normalizePacketBlocks(
+    _ blocks: [RawPacketBlock],
+    config: PacketDiagramConfig
+) throws -> [PacketRow] {
+    try _normalizePacketBlocks(blocks, config: config)
+}
+
+public func _normalizePacketBlocks(
     _ blocks: [RawPacketBlock],
     config: PacketDiagramConfig
 ) throws -> [PacketRow] {

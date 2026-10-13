@@ -559,15 +559,3 @@ private func _midpoint(_ points: [ErPoint]) -> ErPoint {
     return points[points.count - 1]
 }
 
-final class original_src_er_renderer {
-    public init() {}
-
-    public static func renderErSvg(
-        _ diagram: PositionedErDiagram,
-        _ colors: DiagramColors,
-        _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false
-    ) throws -> String {
-        try _renderErSvgEntry(diagram, colors, font, transparent)
-    }
-}

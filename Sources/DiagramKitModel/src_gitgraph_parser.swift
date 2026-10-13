@@ -25,7 +25,7 @@ public func _gitGraphGeneratedID(seq: Int) -> String {
 
 // MARK: - Parser State (DB equivalent)
 
-public struct _GitGraphDBState: Sendable {
+struct _GitGraphDBState: Sendable {
     var commits: [String: GitGraphCommit] = [:]
     var head: GitGraphCommit?
     var branchConfig: [String: _GitGraphBranchConfig] = [:]
@@ -427,7 +427,7 @@ public func _gitGraphParseInt(_ s: String) -> Int? {
 
 // MARK: - Statement Parser
 
-public func _gitGraphParseStatement(_ line: String) throws -> GitGraphStatement? {
+func _gitGraphParseStatement(_ line: String) throws -> GitGraphStatement? {
     let trimmed = line.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
     guard !trimmed.hasPrefix("%%") else { return nil }

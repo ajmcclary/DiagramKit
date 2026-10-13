@@ -249,7 +249,8 @@ public enum DiagramPipeline {
     /// positioned entry point in `SVGRenderRegistry` are supported.
     public static func renderSVG(
         positioned: PositionedGraph,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        idPolicy: SVGIDPolicy = .unique
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             try _assertPlatformSupport(positioned.diagram)
@@ -257,7 +258,7 @@ public enum DiagramPipeline {
             let font = DiagramSVGFontFamily.proportional
             let diagramId = SVGIDGenerator.id(
                 for: "\(positioned.diagram.type.rawValue)-\(positioned.width)x\(positioned.height)",
-                policy: .unique
+                policy: idPolicy
             )
             let svg = try SVGRenderRegistry.render(
                 positioned: positioned,

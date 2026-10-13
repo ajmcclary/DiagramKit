@@ -58,11 +58,11 @@
 </style>
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="86.91,76.9 86.91,100.9 76.536,100.9 76.536,124.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Process" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 133.82 40.0 L 133.82 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 133.82 40 L 133.82 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="86.91" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Process</text>
 </g>
 <g class="node" data-id="B" data-label="Done" data-shape="rectangle">
-  <path d="M 40.0 124.9 L 113.072 124.9 L 113.072 161.8 L 40.0 161.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 124.90 L 113.07 124.90 L 113.07 161.80 L 40 161.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="76.536" y="143.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Done</text>
 </g>
 </svg>

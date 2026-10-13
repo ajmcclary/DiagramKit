@@ -88,7 +88,7 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
             id: "root",
             children: children,
             edges: edges,
-            layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren, preset: _layoutPreset(for: graph))
+            layoutOptions: ElkLayoutOptions.root(direction: graph.direction, preset: _layoutPreset(for: graph))
         )
     }
 
@@ -190,7 +190,7 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
         id: "root",
         children: rootChildren,
         edges: rootEdges,
-        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .separate, preset: _layoutPreset(for: graph))
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, preset: _layoutPreset(for: graph))
     )
 }
 
@@ -361,7 +361,7 @@ func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _LayoutDiagn
         id: "root",
         children: rootChildren,
         edges: rootEdges,
-        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren, preset: _layoutPreset(for: graph))
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, preset: _layoutPreset(for: graph))
     )
 }
 
@@ -379,6 +379,6 @@ func _buildFlatElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? 
         id: "root",
         children: children,
         edges: edges,
-        layoutOptions: ElkLayoutOptions.flatRoot(direction: graph.direction, preset: _layoutPreset(for: graph))
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, preset: _layoutPreset(for: graph))
     )
 }

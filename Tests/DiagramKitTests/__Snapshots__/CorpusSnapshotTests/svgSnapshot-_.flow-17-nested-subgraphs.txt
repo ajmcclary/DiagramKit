@@ -76,23 +76,23 @@
 <polyline data-from="E" data-to="A" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="105.06450000000001,76.9 105.06450000000001,102.45 286.672,102.45 286.672,128.0" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="E" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="105.06450000000001,76.9 105.06450000000001,102.45 459.75800000000004,102.45 459.75800000000004,128.0" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="E" data-label="Load Balancer" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 170.12900000000002 40.0 L 170.12900000000002 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 170.13 40 L 170.13 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="105.06450000000001" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Load Balancer</text>
 </g>
 <g class="node" data-id="A" data-label="Web Server" data-shape="rectangle">
-  <path d="M 230.12900000000002 128.0 L 343.21500000000003 128.0 L 343.21500000000003 164.9 L 230.12900000000002 164.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 230.13 128 L 343.22 128 L 343.22 164.90 L 230.13 164.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="286.672" y="146.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Web Server</text>
 </g>
 <g class="node" data-id="B" data-label="App Server" data-shape="rectangle">
-  <path d="M 230.12900000000002 212.9 L 340.992 212.9 L 340.992 249.8 L 230.12900000000002 249.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 230.13 212.90 L 340.99 212.90 L 340.99 249.80 L 230.13 249.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="285.56050000000005" y="231.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">App Server</text>
 </g>
 <g class="node" data-id="C" data-label="Web Server" data-shape="rectangle">
-  <path d="M 403.21500000000003 128.0 L 516.301 128.0 L 516.301 164.9 L 403.21500000000003 164.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 403.22 128 L 516.30 128 L 516.30 164.90 L 403.22 164.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="459.75800000000004" y="146.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Web Server</text>
 </g>
 <g class="node" data-id="D" data-label="App Server" data-shape="rectangle">
-  <path d="M 403.21500000000003 212.9 L 514.078 212.9 L 514.078 249.8 L 403.21500000000003 249.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 403.22 212.90 L 514.08 212.90 L 514.08 249.80 L 403.22 249.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="458.64650000000006" y="231.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">App Server</text>
 </g>
 </svg>

@@ -7,7 +7,7 @@ import IssueReporting
 /// reporting for any `Error` adopting this protocol.
 ///
 /// Adoption is auditable by grepping `: _RecoverableDiagramError` — the
-/// full list as of the latest review:
+/// full list as of the Phase 9 remediation:
 ///
 /// - `DiagramError` (`Sources/DiagramKitModel/Types.swift`)
 /// - `DiagramEditorError` (`Sources/DiagramKitInteractive/DiagramEditorError.swift`)
@@ -17,10 +17,16 @@ import IssueReporting
 /// - `GraphvizImporterError` (`Sources/DiagramKitGraphviz/GraphvizImporter.swift`)
 /// - `StructurizrImporterError` (`Sources/DiagramKitStructurizr/StructurizrImporter.swift`)
 /// - `PlantUMLImporterError` (`Sources/DiagramKitPlantUML/PlantUMLImporter.swift`)
-/// - `ClassParserError`, `SequenceParserError`, `ErParserError`,
-///   `GanttParserError`, `PacketParserError`,
-///   `RequirementParserError`, `TreemapParserError`,
-///   `_ParserEntryError` (parser-tier errors in `DiagramKitModel`)
+/// - Every `DiagramKitModel` parser-tier error enum adopts:
+///   `_ParserEntryError`, `ClassParserError`, `SequenceParserError`,
+///   `ErParserError`, `GanttParserError`, `JourneyParserError`,
+///   `TimelineParserError`, `GitGraphParserError`, `GitGraphDBError`,
+///   `BlockParserError`, `PacketParserError`, `RequirementParserError`,
+///   `TreemapParserError`, `SankeyParserError`, `IshikawaParserError`,
+///   `ArchitectureParserError`, `EventModelingParserError`,
+///   `MindmapParserError`, `VennParserError`, `KanbanParserError`,
+///   `PieChartParserError`, `QuadrantChartParserError`, `RadarParserError`,
+///   `WardleyMapParserError`, `TreeViewParserError`, `XYChartParserError`
 ///
 /// New adopters should be added to this list when they land.
 public protocol _RecoverableDiagramError: Error {}

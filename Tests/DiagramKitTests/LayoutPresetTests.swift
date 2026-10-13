@@ -28,16 +28,15 @@ struct LayoutPresetTests {
         #expect(hierarchical != adaptive, "adaptive preset must change layout output")
     }
 
-    @Test("adaptive option dictionary relaxes model order and widens spacing")
+    @Test("adaptive option dictionary widens spacing and sets the preset marker")
     func adaptiveOptions() {
-        let opts = ElkLayoutOptions.root(
-            direction: .TD, hierarchy: .includeChildren, preset: .adaptive
-        )
-        #expect(opts["elk.layered.considerModelOrder.strategy"] == "NONE")
+        let opts = ElkLayoutOptions.root(direction: .TD, preset: .adaptive)
         #expect(opts["elk.spacing.nodeNode"] == "40")
         #expect(opts["elk.layered.spacing.nodeNodeBetweenLayers"] == "64")
-        let defaults = ElkLayoutOptions.root(direction: .TD, hierarchy: .includeChildren)
-        #expect(defaults["elk.layered.considerModelOrder.strategy"] == "NODES_AND_EDGES")
+        #expect(opts["diagramkit.layoutPreset"] == "adaptive")
+        let defaults = ElkLayoutOptions.root(direction: .TD)
+        #expect(defaults["elk.spacing.nodeNode"] == "28")
+        #expect(defaults["diagramkit.layoutPreset"] == nil)
     }
 
     @Test("unknown layout value falls back to hierarchical without crashing")

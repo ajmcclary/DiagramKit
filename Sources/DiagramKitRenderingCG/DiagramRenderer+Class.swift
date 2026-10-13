@@ -260,10 +260,10 @@ extension DiagramRenderer {
         }
 
         // Member name (include params if method)
-        let genName = parseGenericTypes(member.id)
+        let genName = _parseGenericTypes(member.id)
         let displayName: String
         if member.memberType == .method {
-            let genParams = parseGenericTypes(member.parameters)
+            let genParams = _parseGenericTypes(member.parameters)
             displayName = "\(genName)(\(genParams))"
         } else {
             displayName = genName
@@ -287,7 +287,7 @@ extension DiagramRenderer {
 
         // Return type
         if !member.returnType.isEmpty {
-            let genReturn = parseGenericTypes(member.returnType)
+            let genReturn = _parseGenericTypes(member.returnType)
             let colonText = " : "
             _drawTextInFlipped(colonText, at: CGPoint(x: currentX, y: point.y), context: ctx, contentHeight: ch, color: theme.effectiveTextFaint(), font: memberFont, alignment: .left)
             currentX += config.textMetrics.estimateMonoTextWidth(colonText, fontSize: config.classMemberFontSize)

@@ -1,4 +1,5 @@
 // Ported from original/src/xychart/types.ts
+import DiagramKitCommon
 import Foundation
 
 // MARK: - XYText model (Mermaid parity)
@@ -98,7 +99,7 @@ public struct XYChart: Sendable {
 
 // MARK: - Mermaid parser error type
 
-public enum XYChartParserError: Error, LocalizedError {
+public enum XYChartParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case invalidOrientation(String)
     case unbalancedBrackets(String)

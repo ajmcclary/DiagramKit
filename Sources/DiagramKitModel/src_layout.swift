@@ -81,15 +81,3 @@ private func _layoutGraphWithDiagnosticsEntry(
     try _layoutGraphWithDiagnosticsSyncFromLayoutEngine(graph, options)
 }
 
-final class original_src_layout {
-    public init() {}
-
-    // Export inventory from TypeScript source:
-    // - export { layoutGraphSync } from './layout-engine.ts'
-    public static func layoutGraphSync(
-        _ graph: DiagramDocument,
-        _ options: RenderOptions = RenderOptions()
-    ) throws -> PositionedGraph {
-        try _layoutGraphSyncEntry(graph, options)
-    }
-}

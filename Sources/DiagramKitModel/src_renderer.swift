@@ -187,11 +187,15 @@ private func _arrowMarkerDefsForColor(_ color: String) -> String {
     SVGArrowMarkerDefs.commonWithColor(color, suffix: _markerSuffix(color))
 }
 
+/// URL-safe, injective marker-id suffix for a stroke color. Letters and
+/// digits pass through; every other scalar is escaped as `_u<value>_`, a
+/// shape pure-alphanumeric colors can never produce, so two different
+/// colors can no longer collide on one marker id.
 private func _markerSuffix(_ color: String) -> String {
-    color.unicodeScalars.map { scalar in
+    color.unicodeScalars.map { scalar -> String in
         let ch = Character(scalar)
         if ch.isLetter || ch.isNumber { return String(ch) }
-        return String(scalar.value, radix: 16)
+        return "_u\(scalar.value)_"
     }.joined()
 }
 
@@ -586,100 +590,11 @@ private func _renderRoundedRect(x: Double, y: Double, w: Double, h: Double, fill
     "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"6\" ry=\"6\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
-private func _renderStadium(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let r = h / 2
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"\(r)\" ry=\"\(r)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
 private func _renderCircle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     let cx = x + w / 2
     let cy = y + h / 2
     let r = min(w, h) / 2
     return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDiamond(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cx = x + w / 2
-    let cy = y + h / 2
-    let hw = w / 2
-    let hh = h / 2
-    let points = [
-        "\(cx),\(cy - hh)",
-        "\(cx + hw),\(cy)",
-        "\(cx),\(cy + hh)",
-        "\(cx - hw),\(cy)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderSubroutine(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = 8.0
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x + inset)\" y1=\"\(y)\" x2=\"\(x + inset)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x + w - inset)\" y1=\"\(y)\" x2=\"\(x + w - inset)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDoubleCircle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cx = x + w / 2
-    let cy = y + h / 2
-    let outerR = min(w, h) / 2
-    let innerR = outerR - 5
-    return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(outerR)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(innerR)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderHexagon(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = h / 4
-    let points = [
-        "\(x + inset),\(y)",
-        "\(x + w - inset),\(y)",
-        "\(x + w),\(y + h / 2)",
-        "\(x + w - inset),\(y + h)",
-        "\(x + inset),\(y + h)",
-        "\(x),\(y + h / 2)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderAsymmetric(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let indent = 12.0
-    let points = [
-        "\(x + indent),\(y)",
-        "\(x + w),\(y)",
-        "\(x + w),\(y + h)",
-        "\(x + indent),\(y + h)",
-        "\(x),\(y + h / 2)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderTrapezoid(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = w * 0.15
-    let points = [
-        "\(x + inset),\(y)",
-        "\(x + w - inset),\(y)",
-        "\(x + w),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderTrapezoidAlt(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = w * 0.15
-    let points = [
-        "\(x),\(y)",
-        "\(x + w),\(y)",
-        "\(x + w - inset),\(y + h)",
-        "\(x + inset),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderStateStart(x: Double, y: Double, w: Double, h: Double) -> String {
-    let cx = x + w / 2
-    let cy = y + h / 2
-    let r = min(w, h) / 2 - 2
-    return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"var(--_text)\" stroke=\"none\" />"
 }
 
 private func _renderStateEnd(x: Double, y: Double, w: Double, h: Double) -> String {
@@ -696,222 +611,9 @@ private func _renderStateDivider(x: Double, y: Double, w: Double, h: Double, str
     return "<line x1=\"\(x)\" y1=\"\(cy)\" x2=\"\(x + w)\" y2=\"\(cy)\" stroke=\"\(stroke)\" stroke-width=\"1\" stroke-dasharray=\"5,5\" opacity=\"0.6\" />"
 }
 
-private func _renderForkJoinBar(x: Double, y: Double, w: Double, h: Double) -> String {
-    "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"2\" ry=\"2\" fill=\"var(--_text)\" stroke=\"none\" />"
-}
-
-private func _renderParallel(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let skew = w * 0.2
-    let points = [
-        "\(x + skew),\(y)",
-        "\(x + w),\(y)",
-        "\(x + w - skew),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderParallelAlt(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let skew = w * 0.2
-    let points = [
-        "\(x),\(y)",
-        "\(x + w - skew),\(y)",
-        "\(x + w),\(y + h)",
-        "\(x + skew),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderTriangle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let points = ["\(x + w / 2),\(y)", "\(x + w),\(y + h)", "\(x),\(y + h)"].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderBang(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cx = x + w / 2, cy = y + h / 2, r = min(w, h) / 2
-    return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(cx)\" y1=\"\(y)\" x2=\"\(cx)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
 private func _renderFilledCircle(x: Double, y: Double, w: Double, h: Double) -> String {
     let cx = x + w / 2, cy = y + h / 2, r = min(w, h) / 2 - 2
     return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"var(--_text)\" stroke=\"none\" />"
-}
-
-private func _renderFramedCircle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cx = x + w / 2, cy = y + h / 2
-    let outerR = min(w, h) / 2
-    let innerR = outerR - 4
-    return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(outerR)\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(innerR)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderCrossedCircle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cx = x + w / 2, cy = y + h / 2, r = min(w, h) / 2
-    let hs = r * 0.5
-    return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(cx - hs)\" y1=\"\(cy - hs)\" x2=\"\(cx + hs)\" y2=\"\(cy + hs)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(cx + hs)\" y1=\"\(cy - hs)\" x2=\"\(cx - hs)\" y2=\"\(cy + hs)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDividedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x)\" y1=\"\(y + h / 2)\" x2=\"\(x + w)\" y2=\"\(y + h / 2)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDocument(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let waveDepth = h * 0.15
-    let points = [
-        "\(x),\(y)",
-        "\(x + w),\(y)",
-        "\(x + w),\(y + h - waveDepth)",
-        "\(x + w * 0.8),\(y + h + waveDepth * 0.5)",
-        "\(x + w * 0.6),\(y + h - waveDepth * 1.5)",
-        "\(x + w * 0.4),\(y + h + waveDepth * 0.5)",
-        "\(x + w * 0.2),\(y + h - waveDepth * 1.5)",
-        "\(x),\(y + h - waveDepth)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderHourglass(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let midY = y + h / 2, pinch = w * 0.15
-    let points = [
-        "\(x),\(y)", "\(x + w),\(y)",
-        "\(x + w / 2 + pinch),\(midY)",
-        "\(x + w),\(y + h)", "\(x),\(y + h)",
-        "\(x + w / 2 - pinch),\(midY)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderLightningBolt(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let points = [
-        "\(x + w * 0.4),\(y)",
-        "\(x + w * 0.25),\(y + h * 0.4)",
-        "\(x + w * 0.55),\(y + h * 0.4)",
-        "\(x + w * 0.35),\(y + h * 0.6)",
-        "\(x + w * 0.75),\(y + h)",
-        "\(x + w * 0.5),\(y + h * 0.6)",
-        "\(x + w * 0.2),\(y + h * 0.6)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderBowTie(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let midX = x + w / 2, midY = y + h / 2
-    let points = [
-        "\(x),\(y)", "\(midX),\(midY)",
-        "\(x + w),\(y)", "\(midX),\(midY)",
-        "\(x + w),\(y + h)", "\(midX),\(midY)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderFlag(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = w * 0.15
-    let points = [
-        "\(x),\(y)", "\(x + w - inset),\(y)",
-        "\(x + w),\(y + h / 2)",
-        "\(x + w - inset),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderCloud(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let r = min(w, h) * 0.12
-    let midX = x + w / 2, midY = y + h / 2
-    let path = "M\(midX),\(y + r * 0.5) " +
-               "C\(midX + r * 2),\(y - r * 0.3) \(x + w),\(y - r * 0.2) \(x + w - r),\(y + r) " +
-               "C\(x + w + r),\(y + r * 2) \(x + w + r),\(midY - r) \(x + w - r * 0.5),\(midY) " +
-               "C\(x + w + r),\(midY + r) \(x + w + r),\(y + h - r) \(x + w - r),\(y + h - r) " +
-               "C\(x + w - r * 2),\(y + h + r * 0.3) \(midX + r * 2),\(y + h + r * 0.5) \(midX),\(y + h) " +
-               "C\(midX - r * 2),\(y + h + r * 0.5) \(x),\(y + h + r * 0.3) \(x + r),\(y + h - r) " +
-               "C\(x - r),\(y + h - r * 2) \(x - r),\(midY + r) \(x + r * 0.5),\(midY) " +
-               "C\(x - r),\(midY - r) \(x - r),\(y + r) \(x + r),\(y + r) " +
-               "C\(x + r * 2),\(y - r * 0.3) \(midX - r),\(y - r) \(midX),\(y + r * 0.5) Z"
-    return "<path d=\"\(path)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderCurvedTrapezoid(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = w * 0.15, cp = h * 0.2
-    return "<path d=\"M\(x + inset),\(y) Q\(x + w - inset),\(y) \(x + w),\(y + h - cp) L\(x + w),\(y + h) L\(x),\(y + h) Q\(x),\(y + h - cp) \(x + inset),\(y)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDelay(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let r = h / 2
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"\(r)\" ry=\"\(r)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderNotchedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let n: Double = 10
-    let points = [
-        "\(x),\(y)",
-        "\(x + w - n),\(y)",
-        "\(x + w),\(y + n)",
-        "\(x + w),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderLinedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x + 4)\" y1=\"\(y)\" x2=\"\(x + 4)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.5\" />"
-}
-
-private func _renderLinedDocument(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let doc = _renderDocument(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
-    let ly = y + h * 0.3
-    return doc + "\n<line x1=\"\(x + 8)\" y1=\"\(ly)\" x2=\"\(x + w - 8)\" y2=\"\(ly)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.4\" />" +
-        "<line x1=\"\(x + 8)\" y1=\"\(ly + 6)\" x2=\"\(x + w - 16)\" y2=\"\(ly + 6)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.3\" />"
-}
-
-private func _renderFlippedTriangle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let points = ["\(x),\(y)", "\(x + w),\(y + h / 2)", "\(x),\(y + h)"].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderSlopedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let slope = w * 0.15
-    let points = [
-        "\(x + slope),\(y)",
-        "\(x + w),\(y)",
-        "\(x + w),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderBraceL(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let midY = y + h / 2
-    let points = [
-        "\(x + w * 0.4),\(y + 2)",
-        "\(x + 2),\(y + h * 0.1)",
-        "\(x + w * 0.3),\(midY)",
-        "\(x + 2),\(y + h * 0.9)",
-        "\(x + w * 0.4),\(y + h - 2)",
-    ].joined(separator: " ")
-    return "<polyline points=\"\(points)\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" stroke-linejoin=\"round\" />"
-}
-
-private func _renderBraceR(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let midY = y + h / 2
-    let points = [
-        "\(x + w * 0.6),\(y + 2)",
-        "\(x + w - 2),\(y + h * 0.1)",
-        "\(x + w * 0.7),\(midY)",
-        "\(x + w - 2),\(y + h * 0.9)",
-        "\(x + w * 0.6),\(y + h - 2)",
-    ].joined(separator: " ")
-    return "<polyline points=\"\(points)\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" stroke-linejoin=\"round\" />"
-}
-
-private func _renderBraces(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    return _renderBraceL(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw) + "\n" +
-        _renderBraceR(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
 }
 
 // MARK: - Icon and image node rendering
@@ -1126,17 +828,3 @@ private func _graphSecurityLevel(_ graph: DiagramDocument) -> String? {
     }
 }
 
-final class original_src_renderer {
-    public init() {}
-
-    // Export inventory from TypeScript source:
-    // - export function renderSvg
-    public static func renderSvg(
-        _ graph: PositionedGraph,
-        _ colors: DiagramColors,
-        _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false
-    ) throws -> String {
-        try _renderSvgEntry(graph, colors, font, transparent)
-    }
-}

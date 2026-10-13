@@ -286,7 +286,6 @@ enum MermaidFlowchartExport {
         arrowHeadStart: original_src_types.ArrowHeadType,
         arrowHeadEnd: original_src_types.ArrowHeadType
     ) -> String {
-        let startMarker = arrowHeadMarker(arrowHeadStart)
         let endMarker = arrowHeadMarker(arrowHeadEnd)
 
         let lineStr: String

@@ -80,14 +80,6 @@ private struct AsciiPlacedClass {
     var height: Int
 }
 
-private func splitAsciiClassLines(_ text: String) -> [String] {
-    text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-}
-
-private func classClassifyBoxChar(_ ch: Character) -> CharRole {
-    let chars: Set<Character> = ["┌", "┐", "└", "┘", "├", "┤", "┬", "┴", "┼", "│", "─", "╭", "╮", "╰", "╯", "+", "-", "|"]
-    return chars.contains(ch) ? .border : .text
-}
 
 private func formatClassMember(_ m: AsciiClassMember) -> String {
     let vis = m.visibility ?? ""
@@ -100,7 +92,7 @@ private func buildClassSections(_ cls: AsciiClassNode) -> [[String]] {
     if let annotation = cls.annotation {
         header.append("<<\(annotation)>>")
     }
-    header.append(contentsOf: splitAsciiClassLines(cls.label))
+    header.append(contentsOf: splitLines(cls.label))
 
     let attrs = cls.attributes.map(formatClassMember)
     let methods = cls.methods.map(formatClassMember)
@@ -359,7 +351,7 @@ public func renderClassAsciiDiagram(
                 let cx = p.x + bx
                 let cy = p.y + by
                 if cx < totalW, cy < totalH {
-                    setC(cx, cy, ch, classClassifyBoxChar(ch))
+                    setC(cx, cy, ch, classifyAsciiBoxChar(ch))
                 }
             }
         }
@@ -596,8 +588,8 @@ public func renderClassAsciiDiagram(
         }
 
         if let label = rel.label, !label.isEmpty {
-            let lines = splitAsciiClassLines(label)
-            let maxLabelWidth = (lines.map { $0.count }.max() ?? 0) + 2
+            let lines = splitLines(label)
+            let maxLabelWidth = (lines.map { terminalDisplayWidth($0) }.max() ?? 0) + 2
 
             let baseMidY: Int
             let idealMidX: Int
@@ -652,10 +644,10 @@ public func renderClassAsciiDiagram(
             let startY = labelY - halfHeight
             for (lineIdx, line) in lines.enumerated() {
                 let paddedLine = " \(line) "
-                let idealLabelStart = idealMidX - Int(floor(Double(paddedLine.count) / 2.0))
+                let idealLabelStart = idealMidX - Int(floor(Double(terminalDisplayWidth(paddedLine)) / 2.0))
                 let labelStart = max(0, idealLabelStart)
                 let y = startY + lineIdx
-                let labelEnd = labelStart + paddedLine.count
+                let labelEnd = labelStart + terminalDisplayWidth(paddedLine)
                 if labelEnd > 0, y >= 0 {
                     _ = increaseSize(&canvas, max(labelEnd, 1), max(y + 1, 1))
                     _ = increaseRoleCanvasSize(&rc, max(labelEnd, 1), max(y + 1, 1))
@@ -676,6 +668,3 @@ public func renderClassAsciiDiagram(
     )
 }
 
-final class original_src_ascii_class_diagram {
-    public init() {}
-}

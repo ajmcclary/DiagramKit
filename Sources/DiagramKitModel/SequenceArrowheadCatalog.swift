@@ -34,27 +34,26 @@ public enum SequenceArrowheadCatalog {
     }()
 
     /// Marker ID for a classified arrow style, or `nil` if the style draws
-    /// no arrowhead. Mirrors the legacy `_markerId(for:)` composition exactly,
-    /// including its idiosyncratic handling of dotted non-reversed half/stick
-    /// arrows (whose composed ID has no corresponding `<marker>` entry).
+    /// no arrowhead. Dotted half/stick arrowheads share their geometry with
+    /// the solid variants, and the composed dotted non-reversed IDs
+    /// (`seq-arrow-{half,stick}-{top,bottom}-dot`) historically had no
+    /// `<marker>` definition — arrows referencing them rendered headless —
+    /// so they map onto the solid IDs instead.
     public static func markerID(for style: SequenceArrowStyle) -> String? {
         if style.isCross { return "seq-arrow-cross" }
         if style.isOpenArrow { return "seq-arrow-async" }
         if !style.hasArrowEnd { return nil }
         if style.isHalfArrow {
             let suffix = style.isReversed ? "-rev" : ""
-            let dotSuffix = style.isDotted ? "-dot" : ""
             let dir = style.halfArrowDirection == .top ? "top" : "bottom"
             let kind = style.halfArrowStyle == .stick ? "stick" : "half"
-            return "seq-arrow-\(kind)-\(dir)\(suffix)\(dotSuffix)"
+            return "seq-arrow-\(kind)-\(dir)\(suffix)"
         }
         return "seq-arrow-filled"
     }
 
-    /// Catalog entry for a classified arrow style. Returns `nil` when the
-    /// composed marker ID has no defined `<marker>` (matches legacy behavior
-    /// — the SVG renderer emits a `url(#…)` reference either way; the CG
-    /// renderer falls back to a filled triangle in that case).
+    /// Catalog entry for a classified arrow style, or `nil` when the style
+    /// draws no arrowhead.
     public static func marker(for style: SequenceArrowStyle) -> SequenceArrowheadMarker? {
         guard let id = markerID(for: style) else { return nil }
         return markersByID[id]

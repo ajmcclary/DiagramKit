@@ -7,70 +7,46 @@ struct ElkLayoutOptionsTests {
     @Test("Hierarchical-root options for INCLUDE_CHILDREN match the legacy literal")
     func rootIncludeChildrenLR() {
         let opts = ElkLayoutOptions.root(
-            direction: original_src_types.Direction.LR,
-            hierarchy: .includeChildren
+            direction: original_src_types.Direction.LR
         )
-        #expect(opts["elk.algorithm"] == "layered")
         #expect(opts["elk.direction"] == "RIGHT")
-        #expect(opts["elk.hierarchyHandling"] == "INCLUDE_CHILDREN")
         #expect(opts["elk.padding"] == "[top=40,left=40,bottom=40,right=40]")
-        #expect(opts["elk.layered.wrapping.strategy"] == "OFF")
         #expect(opts["elk.spacing.nodeNode"] == "28")
-        #expect(opts["elk.spacing.edgeEdge"] == "12")
         #expect(opts["elk.layered.spacing.nodeNodeBetweenLayers"] == "48")
-        #expect(opts["elk.layered.spacing.edgeEdgeBetweenLayers"] == "12")
-        #expect(opts["elk.layered.spacing.edgeNodeBetweenLayers"] == "12")
-        #expect(opts["elk.edgeRouting"] == "ORTHOGONAL")
-        #expect(opts["elk.contentAlignment"] == "H_CENTER V_CENTER")
-        #expect(opts["elk.layered.nodePlacement.bk.fixedAlignment"] == "BALANCED")
-        #expect(opts["elk.layered.considerModelOrder.strategy"] == "NODES_AND_EDGES")
-        #expect(opts["elk.layered.thoroughness"] == "3")
-        #expect(opts["elk.layered.compaction.postCompaction.strategy"] == "LEFT_RIGHT_CONSTRAINT_LOCKING")
-        #expect(opts["elk.layered.highDegreeNodes.treatment"] == "true")
-        #expect(opts["elk.layered.highDegreeNodes.threshold"] == "8")
-        #expect(opts.count == 18)
+        #expect(opts.count == 4)
     }
 
-    @Test("Hierarchical-root options for SEPARATE flip only hierarchyHandling")
-    func rootSeparateTD() {
+    @Test("Root options for TD map the direction to DOWN")
+    func rootTD() {
         let opts = ElkLayoutOptions.root(
-            direction: original_src_types.Direction.TD,
-            hierarchy: .separate
+            direction: original_src_types.Direction.TD
         )
         #expect(opts["elk.direction"] == "DOWN")
-        #expect(opts["elk.hierarchyHandling"] == "SEPARATE")
-        #expect(opts["elk.layered.wrapping.strategy"] == "OFF")
-        #expect(opts.count == 18)
+        #expect(opts.count == 4)
     }
 
-    @Test("Flat-fallback root drops hierarchy/wrapping and adds randomSeed")
+    @Test("Flat-fallback root uses the same consumed-key dictionary")
     func flatRootLR() {
-        let opts = ElkLayoutOptions.flatRoot(direction: original_src_types.Direction.LR)
+        let opts = ElkLayoutOptions.root(direction: original_src_types.Direction.LR)
         #expect(opts["elk.direction"] == "RIGHT")
-        #expect(opts["elk.randomSeed"] == "1")
-        #expect(opts["elk.hierarchyHandling"] == nil)
-        #expect(opts["elk.layered.wrapping.strategy"] == nil)
-        #expect(opts["elk.algorithm"] == "layered")
-        #expect(opts["elk.padding"] == "[top=40,left=40,bottom=40,right=40]")
-        #expect(opts.count == 17)
+        #expect(opts.count == 4)
     }
 
     @Test("Subgraph options omit direction when no override")
     func subgraphNoDirection() {
         let opts = ElkLayoutOptions.subgraph(direction: nil)
-        #expect(opts["elk.algorithm"] == "layered")
         #expect(opts["elk.padding"] == "[top=44,left=16,bottom=16,right=16]")
         #expect(opts["elk.spacing.nodeNode"] == "28")
         #expect(opts["elk.layered.spacing.nodeNodeBetweenLayers"] == "48")
         #expect(opts["elk.direction"] == nil)
-        #expect(opts.count == 10)
+        #expect(opts.count == 3)
     }
 
     @Test("Subgraph options carry direction when override set")
     func subgraphWithDirection() {
         let opts = ElkLayoutOptions.subgraph(direction: original_src_types.Direction.BT)
         #expect(opts["elk.direction"] == "UP")
-        #expect(opts.count == 11)
+        #expect(opts.count == 4)
     }
 
     @Test("Direction mapping matches legacy _mapDirection semantics")

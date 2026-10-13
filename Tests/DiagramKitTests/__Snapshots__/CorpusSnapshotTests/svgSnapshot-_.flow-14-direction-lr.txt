@@ -59,15 +59,15 @@
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="110.108,58.45 134.108,58.45 134.108,58.45 158.108,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="262.302,58.45 286.302,58.45 286.302,58.45 310.302,58.45" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Input" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 110.108 40.0 L 110.108 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 110.11 40 L 110.11 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="75.054" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Input</text>
 </g>
 <g class="node" data-id="B" data-label="Transform" data-shape="rectangle">
-  <path d="M 158.108 40.0 L 262.302 40.0 L 262.302 76.9 L 158.108 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 158.11 40 L 262.30 40 L 262.30 76.90 L 158.11 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="210.205" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Transform</text>
 </g>
 <g class="node" data-id="C" data-label="Output" data-shape="rectangle">
-  <path d="M 310.302 40.0 L 389.302 40.0 L 389.302 76.9 L 310.302 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 310.30 40 L 389.30 40 L 389.30 76.90 L 310.30 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="349.802" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Output</text>
 </g>
 </svg>

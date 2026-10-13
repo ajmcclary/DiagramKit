@@ -63,11 +63,11 @@
 </g>
 <polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="86.0,120.9 86.0,144.9 86.0,144.9 86.0,168.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="A" data-shape="rectangle">
-  <path d="M 56.0 84.0 L 116.0 84.0 L 116.0 120.9 L 56.0 120.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 56 84 L 116 84 L 116 120.90 L 56 120.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="86.0" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">A</text>
 </g>
 <g class="node" data-id="B" data-label="B" data-shape="rectangle">
-  <path d="M 56.0 168.9 L 116.0 168.9 L 116.0 205.8 L 56.0 205.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 56 168.90 L 116 168.90 L 116 205.80 L 56 205.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="86.0" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">B</text>
 </g>
 </svg>

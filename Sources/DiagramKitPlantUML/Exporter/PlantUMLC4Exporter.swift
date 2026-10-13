@@ -151,13 +151,7 @@ enum PlantUMLC4Export {
     }
 
     private static func quoted(_ s: String) -> String {
-        let escaped = s
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
-        return "\"\(escaped)\""
+        PlantUMLHygiene.quoted(s)
     }
 
     private static func escape(_ s: String) -> String {

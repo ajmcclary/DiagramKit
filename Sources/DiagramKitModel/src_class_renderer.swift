@@ -296,9 +296,9 @@ private func _renderMember(_ member: ClassMember, _ x: Double, _ y: Double) -> S
         spans.append("<tspan fill=\"var(--_text-faint)\">\(SVG.escapeText(member.visibility)) </tspan>")
     }
 
-    let genId = parseGenericTypes(member.id)
-    let genParams = parseGenericTypes(member.parameters)
-    let genReturn = parseGenericTypes(member.returnType)
+    let genId = _parseGenericTypes(member.id)
+    let genParams = _parseGenericTypes(member.parameters)
+    let genReturn = _parseGenericTypes(member.returnType)
 
     let displayName: String
     if member.memberType == .method {
@@ -538,15 +538,3 @@ private func _cardinalityOffset(from: ClassPoint, to: ClassPoint) -> ClassPoint 
     return ClassPoint(x: -14, y: dy > 0 ? 14 : -14)
 }
 
-final class original_src_class_renderer {
-    public init() {}
-
-    public static func renderClassSvg(
-        _ diagram: PositionedClassDiagram,
-        _ colors: DiagramColors,
-        _ font: String = DiagramSVGFontFamily.proportional,
-        _ transparent: Bool = false
-    ) throws -> String {
-        try _renderClassSvgEntry(diagram, colors, font, transparent)
-    }
-}

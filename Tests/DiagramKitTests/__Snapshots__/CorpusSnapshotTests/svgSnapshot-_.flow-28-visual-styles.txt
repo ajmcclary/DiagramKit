@@ -60,11 +60,11 @@
 <polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="93.723,232.346 93.723,256.346 75.795,256.346 75.795,280.346" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="75.795,327.246 75.795,351.246 76.536,351.246 76.536,375.246" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Start" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 110.108 40.0 L 110.108 76.9 L 40.0 76.9 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
+  <path d="M 40 40 L 110.11 40 L 110.11 76.90 L 40 76.90 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
   <text x="75.054" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#1b5e20" dy="4.55">Start</text>
 </g>
 <g class="node" data-id="B" data-label="Decide" data-shape="diamond">
-  <path d="M 93.723 124.9 L 147.446 178.623 L 93.723 232.346 L 40.0 178.623 Z" fill="#fff3e0" stroke="#ef6c00" stroke-width="0.75" />
+  <path d="M 93.72 124.90 L 147.45 178.62 L 93.72 232.35 L 40 178.62 Z" fill="#fff3e0" stroke="#ef6c00" stroke-width="0.75" />
   <text x="93.723" y="178.623" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Decide</text>
 </g>
 <g class="node" data-id="C" data-label="Files" data-shape="stacked-document">
@@ -73,7 +73,7 @@
   <text x="75.795" y="303.796" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Files</text>
 </g>
 <g class="node" data-id="D" data-label="Done" data-shape="rectangle">
-  <path d="M 40.0 375.246 L 113.072 375.246 L 113.072 412.14599999999996 L 40.0 412.14599999999996 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
+  <path d="M 40 375.25 L 113.07 375.25 L 113.07 412.15 L 40 412.15 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
   <text x="76.536" y="393.69599999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#1b5e20" dy="4.55">Done</text>
 </g>
 </svg>

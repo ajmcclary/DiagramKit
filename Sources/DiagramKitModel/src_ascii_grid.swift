@@ -1,4 +1,5 @@
 // Ported from original/src/ascii/grid.ts
+import DiagramKitCommon
 import Foundation
 
 open class original_src_ascii_grid {
@@ -567,7 +568,7 @@ open class original_src_ascii_grid {
             var index: Int
         }
 
-        let lenLabel = edge.text.count
+        let lenLabel = terminalDisplayWidth(edge.text)
         var segments: [Segment] = []
         if edge.path.count >= 2 {
             for i in 1 ..< edge.path.count {

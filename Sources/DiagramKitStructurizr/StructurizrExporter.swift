@@ -253,37 +253,14 @@ enum StructurizrC4Export {
     }
 
     private static func escape(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: " ")
-            .replacingOccurrences(of: "\r", with: "")
+        StructurizrHygiene.escape(text)
     }
 
     /// Returns a parser-safe alias and, if rewriting was required, appends a
-    /// `.warning` diagnostic explaining the rename. Matches the StructurizrLexer
-    /// identifier grammar: first char letter/underscore; subsequent chars
-    /// letter/digit/underscore/dot/slash/colon/hyphen.
+    /// `.warning` diagnostic explaining the rename. The character grammar
+    /// lives in `StructurizrHygiene.sanitizeIdentifier`.
     static func sanitizeStructurizrIdentifier(_ alias: String) -> String {
-        guard !alias.isEmpty else { return "_" }
-        var out = ""
-        var isFirst = true
-        for c in alias {
-            if isFirst {
-                if c.isLetter || c == "_" {
-                    out.append(c)
-                } else {
-                    out.append("_")
-                }
-                isFirst = false
-            } else {
-                if c.isLetter || c.isNumber || c == "_" || c == "." || c == "/" || c == ":" || c == "-" {
-                    out.append(c)
-                } else {
-                    out.append("_")
-                }
-            }
-        }
-        return out
+        StructurizrHygiene.sanitizeIdentifier(alias)
     }
 
     private static func uniqueSanitizedAlias(

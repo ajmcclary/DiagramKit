@@ -1,4 +1,5 @@
 // Ported from original/src/ascii/sequence.ts
+import DiagramKitCommon
 import Foundation
 
 public struct AsciiSequenceActor {
@@ -94,22 +95,6 @@ private struct AsciiSequenceNotePlacement {
     var lines: [String]
 }
 
-private func splitAsciiLines(_ text: String) -> [String] {
-    text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-}
-
-private func asciiMaxLineWidth(_ text: String) -> Int {
-    splitAsciiLines(text).map { $0.count }.max() ?? 0
-}
-
-private func asciiLineCount(_ text: String) -> Int {
-    splitAsciiLines(text).count
-}
-
-private func sequenceClassifyBoxChar(_ ch: Character) -> CharRole {
-    let chars: Set<Character> = ["┌", "┐", "└", "┘", "├", "┤", "┬", "┴", "┼", "│", "─", "╭", "╮", "╰", "╯", "+", "-", "|"]
-    return chars.contains(ch) ? .border : .text
-}
 
 public func renderSequenceAscii(
     _ text: String,
@@ -232,9 +217,9 @@ public func renderSequenceAsciiDiagram(
     }
 
     let boxPad = 1
-    let actorBoxWidths = diagram.actors.map { asciiMaxLineWidth($0.label) + 2 * boxPad + 2 }
+    let actorBoxWidths = diagram.actors.map { maxLineWidth($0.label) + 2 * boxPad + 2 }
     let halfBox = actorBoxWidths.map { Int(ceil(Double($0) / 2.0)) }
-    let actorBoxHeights = diagram.actors.map { asciiLineCount($0.label) + 2 }
+    let actorBoxHeights = diagram.actors.map { lineCount($0.label) + 2 }
     let actorBoxH = max(actorBoxHeights.max() ?? 3, 3)
 
     var adjMaxWidth = Array(repeating: 0, count: max(diagram.actors.count - 1, 0))
@@ -243,7 +228,7 @@ public func renderSequenceAsciiDiagram(
         if fi == ti { continue }
         let lo = min(fi, ti)
         let hi = max(fi, ti)
-        let needed = asciiMaxLineWidth(msg.label) + 4
+        let needed = maxLineWidth(msg.label) + 4
         let numGaps = hi - lo
         if numGaps <= 0 { continue }
         let perGap = Int(ceil(Double(needed) / Double(numGaps)))
@@ -293,7 +278,7 @@ public func renderSequenceAsciiDiagram(
             curY += 1
             let msg = diagram.messages[m]
             let isSelfMsg = msg.from == msg.to
-            let msgLines = asciiLineCount(msg.label)
+            let msgLines = lineCount(msg.label)
 
             if isSelfMsg {
                 msgLabelY[m] = curY + 1
@@ -307,8 +292,8 @@ public func renderSequenceAsciiDiagram(
 
             for note in diagram.notes where note.afterIndex == m {
                 curY += 1
-                let nLines = splitAsciiLines(note.text)
-                let nWidth = (nLines.map { $0.count }.max() ?? 0) + 4
+                let nLines = splitLines(note.text)
+                let nWidth = (nLines.map { terminalDisplayWidth($0) }.max() ?? 0) + 4
                 let nHeight = nLines.count + 2
 
                 let aIdx = actorIdx[note.actorIds.first ?? ""] ?? 0
@@ -351,7 +336,7 @@ public func renderSequenceAsciiDiagram(
     for msg in diagram.messages {
         if msg.from == msg.to {
             let fi = actorIdx[msg.from] ?? 0
-            let selfRight = llX[fi] + 6 + 2 + msg.label.count
+            let selfRight = llX[fi] + 6 + 2 + terminalDisplayWidth(msg.label)
             totalW = max(totalW, selfRight + 1)
         }
     }
@@ -367,8 +352,8 @@ public func renderSequenceAsciiDiagram(
     }
 
     func drawActorBox(_ cx: Int, _ topY: Int, _ label: String) {
-        let lines = splitAsciiLines(label)
-        let maxW = asciiMaxLineWidth(label)
+        let lines = splitLines(label)
+        let maxW = maxLineWidth(label)
         let w = maxW + (2 * boxPad) + 2
         let hBox = lines.count + 2
         let left = cx - Int(floor(Double(w) / 2.0))
@@ -446,7 +431,7 @@ public func renderSequenceAsciiDiagram(
 
             setC(fromX + loopW, y0 + 1, v, .line)
             let labelX = fromX + loopW + 2
-            let selfLabelLines = splitAsciiLines(msg.label)
+            let selfLabelLines = splitLines(msg.label)
             for (lineIdx, selfLine) in selfLabelLines.enumerated() {
                 for (i, ch) in selfLine.enumerated() {
                     if labelX + i < totalW {
@@ -469,7 +454,7 @@ public func renderSequenceAsciiDiagram(
             let leftToRight = fromX < toX
 
             let midX = Int(floor(Double(fromX + toX) / 2.0))
-            let msgLines = splitAsciiLines(msg.label)
+            let msgLines = splitLines(msg.label)
             for (lineIdx, line) in msgLines.enumerated() {
                 let labelStart = midX - Int(floor(Double(line.count) / 2.0))
                 let y = labelY + lineIdx
@@ -530,7 +515,7 @@ public func renderSequenceAsciiDiagram(
         setC(bRight, topY, tr, .border)
 
         let hdrLabel = block.label.map { "\(block.type) [\($0)]" } ?? block.type
-        let hdrLines = splitAsciiLines(hdrLabel)
+        let hdrLines = splitLines(hdrLabel)
         for (lineIdx, line) in hdrLines.enumerated() where topY + lineIdx < botY {
             for (i, ch) in line.enumerated() where bLeft + 1 + i < bRight {
                 setC(bLeft + 1 + i, topY + lineIdx, ch, .text)
@@ -602,13 +587,9 @@ public func renderSequenceAsciiDiagram(
         setC(np.x + np.width - 1, by, br, .border)
     }
 
-    _ = sequenceClassifyBoxChar("+")
     return canvasToString(
         canvas,
         options: CanvasToStringOptions(roleCanvas: rc, colorMode: colorMode, theme: theme)
     )
 }
 
-final class original_src_ascii_sequence {
-    public init() {}
-}

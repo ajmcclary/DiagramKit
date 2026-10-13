@@ -1,4 +1,5 @@
 // Ported from original/src/ascii/xychart.ts
+import DiagramKitCommon
 import Foundation
 
 // MARK: - Constants
@@ -121,7 +122,7 @@ private func _renderVertical(
 
     // 1. Title
     if let title = chart.title {
-        _writeText(&canvas, &roles, 0, max(0, totalW / 2 - title.count / 2), title, .text)
+        _writeText(&canvas, &roles, 0, max(0, totalW / 2 - terminalDisplayWidth(title) / 2), title, .text)
     }
 
     // 2. Legend
@@ -155,13 +156,13 @@ private func _renderVertical(
         let cx = bandCenter(i)
         _set(&canvas, &roles, xAxisRow, cx, ch.xTick, .border)
         let label = catLabels[i]
-        let labelStart = cx - label.count / 2
+        let labelStart = cx - terminalDisplayWidth(label) / 2
         _writeText(&canvas, &roles, xLabelRow, max(0, labelStart), label, .text)
     }
 
     // 5. X-axis title
     if let title = chart.xAxis.title, xTitleRow >= 0 {
-        _writeText(&canvas, &roles, xTitleRow, max(0, totalW / 2 - title.count / 2), title, .text)
+        _writeText(&canvas, &roles, xTitleRow, max(0, totalW / 2 - terminalDisplayWidth(title) / 2), title, .text)
     }
 
     // 6. Grid lines
@@ -268,7 +269,7 @@ private func _renderHorizontal(
 
     // Title
     if let title = chart.title {
-        _writeText(&canvas, &roles, 0, max(0, totalW / 2 - title.count / 2), title, .text)
+        _writeText(&canvas, &roles, 0, max(0, totalW / 2 - terminalDisplayWidth(title) / 2), title, .text)
     }
 
     // Legend
@@ -286,7 +287,7 @@ private func _renderHorizontal(
     for i in 0..<dataCount {
         let my = bandMid(i)
         let label = catLabels[i]
-        let labelStart = catGutter - label.count
+        let labelStart = catGutter - terminalDisplayWidth(label)
         _writeText(&canvas, &roles, my, max(0, labelStart), label, .text)
     }
 
@@ -299,12 +300,12 @@ private func _renderHorizontal(
         if cx < plotLeft || cx >= plotLeft + plotW { continue }
         _set(&canvas, &roles, xAxisRow, cx, ch.xTick, .border)
         let label = _formatTickValue(tick)
-        _writeText(&canvas, &roles, xAxisRow + 1, cx - label.count / 2, label, .text)
+        _writeText(&canvas, &roles, xAxisRow + 1, cx - terminalDisplayWidth(label) / 2, label, .text)
     }
 
     // Y-axis title
     if let title = chart.yAxis.title {
-        _writeText(&canvas, &roles, totalH - 1, max(0, totalW / 2 - title.count / 2), title, .text)
+        _writeText(&canvas, &roles, totalH - 1, max(0, totalW / 2 - terminalDisplayWidth(title) / 2), title, .text)
     }
 
     // Grid lines

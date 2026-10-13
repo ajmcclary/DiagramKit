@@ -57,15 +57,15 @@
 }
 </style>
 <g class="node" data-id="A" data-label="Is it raining?" data-shape="diamond">
-  <path d="M 107.80199999999999 40.0 L 175.60399999999998 107.80199999999999 L 107.80199999999999 175.60399999999998 L 40.0 107.80199999999999 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 107.80 40 L 175.60 107.80 L 107.80 175.60 L 40 107.80 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="107.80199999999999" y="107.80199999999999" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Is it raining?</text>
 </g>
 <g class="node" data-id="B" data-label="B" data-shape="rectangle">
-  <path d="M 203.60399999999998 40.0 L 263.604 40.0 L 263.604 76.9 L 203.60399999999998 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 203.60 40 L 263.60 40 L 263.60 76.90 L 203.60 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="233.60399999999998" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">B</text>
 </g>
 <g class="node" data-id="E" data-label="E" data-shape="rectangle">
-  <path d="M 291.604 40.0 L 351.604 40.0 L 351.604 76.9 L 291.604 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 291.60 40 L 351.60 40 L 351.60 76.90 L 291.60 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="321.604" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">E</text>
 </g>
 </svg>

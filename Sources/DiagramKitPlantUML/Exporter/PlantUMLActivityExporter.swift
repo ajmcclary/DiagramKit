@@ -135,7 +135,6 @@ enum PlantUMLActivityExport {
     }
 
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: ";", with: "\\;")
-         .replacingOccurrences(of: "\n", with: " ")
+        PlantUMLHygiene.escapeActivityText(s)
     }
 }

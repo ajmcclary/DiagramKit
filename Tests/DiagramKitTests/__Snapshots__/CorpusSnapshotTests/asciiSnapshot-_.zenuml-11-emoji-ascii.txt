@@ -1,2 +1,2 @@
 Participants: Production, _STARTER_
-• message
+• _STARTER_->Production: deploy()

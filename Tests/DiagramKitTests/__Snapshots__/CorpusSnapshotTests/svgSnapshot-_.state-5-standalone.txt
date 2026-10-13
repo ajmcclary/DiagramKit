@@ -92,16 +92,16 @@
 }
 </style>
 <g class="node statediagram-state" data-id="stateId" data-label="stateId" data-shape="rounded">
-  <path d="M 46.0 40.0 L 114.482 40.0 Q 120.482 40.0 120.482 46.0 L 120.482 70.9 Q 120.482 76.9 114.482 76.9 L 46.0 76.9 Q 40.0 76.9 40.0 70.9 L 40.0 46.0 Q 40.0 40.0 46.0 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 46 40 L 114.48 40 Q 120.48 40 120.48 46 L 120.48 70.90 Q 120.48 76.90 114.48 76.90 L 46 76.90 Q 40 76.90 40 70.90 L 40 46 Q 40 40 46 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="80.241" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">stateId</text>
 </g>
 <g class="node statediagram-state" data-id="anotherState" data-label="anotherState" data-shape="rounded">
-  <path d="M 154.482 40.0 L 260.014 40.0 Q 266.014 40.0 266.014 46.0 L 266.014 70.9 Q 266.014 76.9 260.014 76.9 L 154.482 76.9 Q 148.482 76.9 148.482 70.9 L 148.482 46.0 Q 148.482 40.0 154.482 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 154.48 40 L 260.01 40 Q 266.01 40 266.01 46 L 266.01 70.90 Q 266.01 76.90 260.01 76.90 L 154.48 76.90 Q 148.48 76.90 148.48 70.90 L 148.48 46 Q 148.48 40 154.48 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="207.248" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">anotherState</text>
 </g>
 <g class="node statediagram-state" data-id="LS" data-label="This is a description" data-shape="rect-with-title">
-  <path d="M 298.014 40.0 L 469.78999999999996 40.0 Q 473.78999999999996 40.0 473.78999999999996 44.0 L 473.78999999999996 113.80000000000001 Q 473.78999999999996 117.80000000000001 469.78999999999996 117.80000000000001 L 298.014 117.80000000000001 Q 294.014 117.80000000000001 294.014 113.80000000000001 L 294.014 44.0 Q 294.014 40.0 298.014 40.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <path d="M 298.014 40.0 L 469.78999999999996 40.0 Q 473.78999999999996 40.0 473.78999999999996 44.0 L 473.78999999999996 60.0 Q 473.78999999999996 64.0 469.78999999999996 64.0 L 298.014 64.0 Q 294.014 64.0 294.014 60.0 L 294.014 44.0 Q 294.014 40.0 298.014 40.0 Z" fill="#666666" stroke="none" stroke-width="0.75" />
+  <path d="M 298.01 40 L 469.79 40 Q 473.79 40 473.79 44 L 473.79 113.80 Q 473.79 117.80 469.79 117.80 L 298.01 117.80 Q 294.01 117.80 294.01 113.80 L 294.01 44 Q 294.01 40 298.01 40 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 298.01 40 L 469.79 40 Q 473.79 40 473.79 44 L 473.79 60 Q 473.79 64 469.79 64 L 298.01 64 Q 294.01 64 294.01 60 L 294.01 44 Q 294.01 40 298.01 40 Z" fill="#666666" stroke="none" stroke-width="0.75" />
   <path d="M 0 24 L 100 24" fill="none" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="383.902" y="52.0" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">This is a description</text>
   <text x="383.902" y="90.9" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Second description line</text>

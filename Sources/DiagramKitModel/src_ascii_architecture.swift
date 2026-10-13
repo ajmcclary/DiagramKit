@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render an `ArchitectureDiagram` as a grouped list of services and
@@ -6,7 +7,7 @@ public func renderArchitectureAscii(_ model: ArchitectureDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
     let groupsById = Dictionary(model.groups.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })

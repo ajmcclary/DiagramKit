@@ -106,20 +106,20 @@
   <text x="0.0" y="0.0" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">option2</text>
 </g>
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
-  <path d="M 67.5 54.0 A 14.0 14.0 0 1 1 95.5 54.0 A 14.0 14.0 0 1 1 67.5 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
+  <path d="M 67.50 54 A 14 14 0 1 1 95.50 54 A 14 14 0 1 1 67.50 54 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="Start" data-label="Start" data-shape="rounded">
-  <path d="M 73.5 116.0 L 131.608 116.0 Q 137.608 116.0 137.608 122.0 L 137.608 146.9 Q 137.608 152.9 131.608 152.9 L 73.5 152.9 Q 67.5 152.9 67.5 146.9 L 67.5 122.0 Q 67.5 116.0 73.5 116.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 73.50 116 L 131.61 116 Q 137.61 116 137.61 122 L 137.61 146.90 Q 137.61 152.90 131.61 152.90 L 73.50 152.90 Q 67.50 152.90 67.50 146.90 L 67.50 122 Q 67.50 116 73.50 116 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="102.554" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Start</text>
 </g>
 <g class="node statediagram-state" data-id="if_state" data-label="" data-shape="choice">
-  <path d="M 97.5 200.9 L 127.5 229.875 L 97.5 258.85 L 67.5 229.875 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 97.50 200.90 L 127.50 229.88 L 97.50 258.85 L 67.50 229.88 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="97.5" y="229.875" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55"></text>
 </g>
 <g class="node statediagram-state" data-id="fork_state" data-label="" data-shape="fork">
-  <path d="M 67.5 306.85 L 137.5 306.85 L 137.5 313.85 L 67.5 313.85 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
+  <path d="M 67.50 306.85 L 137.50 306.85 L 137.50 313.85 L 67.50 313.85 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="join_state" data-label="" data-shape="join">
-  <path d="M 67.5 361.85 L 137.5 361.85 L 137.5 368.85 L 67.5 368.85 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
+  <path d="M 67.50 361.85 L 137.50 361.85 L 137.50 368.85 L 67.50 368.85 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 </svg>

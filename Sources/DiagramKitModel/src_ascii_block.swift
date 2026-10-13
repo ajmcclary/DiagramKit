@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import Foundation
 
 /// Render a `BlockDiagram` as a tabular list of blocks plus their
@@ -6,7 +7,7 @@ public func renderBlockAscii(_ model: BlockDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
     func emit(blockId: String, depth: Int) {

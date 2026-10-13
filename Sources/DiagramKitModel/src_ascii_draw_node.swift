@@ -1,5 +1,6 @@
 // Ported from original/src/ascii/draw.ts — node + multi-section box rendering.
 // Extracted from `src_ascii_draw.swift` (audit A6).
+import DiagramKitCommon
 import Foundation
 
 // ============================================================================
@@ -81,7 +82,7 @@ public func drawBox(_ node: AsciiNode, _ graph: AsciiGraph) -> Canvas {
 // ============================================================================
 
 public func drawMultiBox(_ sections: [[String]], _ useAscii: Bool, _ padding: Int = 1) -> Canvas {
-    let maxTextWidth = sections.flatMap { $0 }.map { $0.count }.max() ?? 0
+    let maxTextWidth = sections.flatMap { $0 }.map { terminalDisplayWidth($0) }.max() ?? 0
     let innerWidth = maxTextWidth + (2 * max(0, padding))
     let boxWidth = innerWidth + 2
 

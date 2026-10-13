@@ -143,7 +143,7 @@ public func parseC4Diagram(
         }
 
         let argsString = String(trimmed[trimmed.index(after: openParen)..<closeParen])
-        let (positional, parsedNamed) = parseMacroArguments(argsString)
+        let (positional, parsedNamed) = _parseMacroArguments(argsString)
         var named = parsedNamed
 
         // Check for { boundary opening, or merge trailing $key=value attributes.
@@ -364,7 +364,12 @@ public func parseC4Diagram(
 
 /// Parse macro arguments from a string between parens.
 /// Handles quoted strings, named $key=value arguments, and empty arguments.
+@available(*, deprecated, renamed: "_parseMacroArguments", message: "SPI; not part of the supported public API.")
 public func parseMacroArguments(_ argsString: String) -> (positional: [String], named: [String: String]) {
+    return _parseMacroArguments(argsString)
+}
+
+public func _parseMacroArguments(_ argsString: String) -> (positional: [String], named: [String: String]) {
     var positional: [String] = []
     var named: [String: String] = [:]
 

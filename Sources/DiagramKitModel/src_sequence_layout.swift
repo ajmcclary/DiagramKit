@@ -634,13 +634,3 @@ private func _sequenceLifecycleMessageIndices(_ diagram: SequenceDiagram) -> (cr
 
 // MARK: - Legacy class
 
-final class original_src_sequence_layout {
-    public init() {}
-
-    public static func layoutSequenceDiagram(
-        _ diagram: SequenceDiagram,
-        _ options: RenderOptions = RenderOptions()
-    ) throws -> PositionedSequenceDiagram {
-        try _layoutSequenceDiagramEntry(diagram, .default)
-    }
-}

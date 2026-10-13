@@ -57,7 +57,7 @@
 }
 </style>
 <g class="node" data-id="A" data-label="Source" data-shape="rectangle">
-  <path d="M 40.0 40.0 L 126.41 40.0 L 126.41 76.9 L 40.0 76.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 40 40 L 126.41 40 L 126.41 76.90 L 40 76.90 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="83.205" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Source</text>
 </g>
 </svg>

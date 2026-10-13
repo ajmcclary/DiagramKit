@@ -66,11 +66,11 @@
 </g>
 <g class="node" data-id="B" data-label="Double Circle" data-shape="doublecircle">
   <path d="M 195.16 113.50 A 73.50 73.50 0 1 1 342.16 113.50 A 73.50 73.50 0 1 1 195.16 113.50 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
-  <path d="M 195.15800000000002 113.5 A 73.5 73.5 0 1 1 342.158 113.5 A 73.5 73.5 0 1 1 195.15800000000002 113.5 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 195.16 113.50 A 73.50 73.50 0 1 1 342.16 113.50 A 73.50 73.50 0 1 1 195.16 113.50 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="268.658" y="113.5" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Double Circle</text>
 </g>
 <g class="node" data-id="C" data-label="Hexagon" data-shape="hexagon">
-  <path d="M 399.38300000000004 40.0 L 496.235 40.0 L 505.46000000000004 58.45 L 496.235 76.9 L 399.38300000000004 76.9 L 390.158 58.45 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 399.38 40 L 496.24 40 L 505.46 58.45 L 496.24 76.90 L 399.38 76.90 L 390.16 58.45 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="447.809" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Hexagon</text>
 </g>
 </svg>

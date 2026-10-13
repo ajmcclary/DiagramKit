@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Error types
 
-public enum QuadrantChartParserError: Error, LocalizedError {
+public enum QuadrantChartParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case invalidStatement(String)
     case invalidStyleName(String)

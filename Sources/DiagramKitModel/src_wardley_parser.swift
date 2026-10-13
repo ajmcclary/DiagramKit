@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Error types
 
-public enum WardleyMapParserError: Error, LocalizedError {
+public enum WardleyMapParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case emptySource
     case missingCoordinate(String)
@@ -153,12 +153,14 @@ private func tokenizeNameWithHyphens(_ text: String) -> [WardleyNameToken] {
     return result.isEmpty ? [.name(text, stopsBeforeArrow: false)] : result
 }
 
-// MARK: - Quote-aware prefix scanning
+// MARK: - Keyword-prefix scanning
 
-private func hasPrefixOutsideQuotes(_ line: String, prefix: String) -> Bool {
+/// Case-insensitive line-prefix check for statement keywords. Statement
+/// keywords only ever appear at the start of a (trimmed) line, so there is
+/// no quote state to track despite the historical name.
+private func lineHasKeywordPrefix(_ line: String, prefix: String) -> Bool {
     let trimmed = line.trimmingCharacters(in: .whitespaces)
-    let lower = trimmed.lowercased()
-    return lower.hasPrefix(prefix.lowercased())
+    return trimmed.lowercased().hasPrefix(prefix.lowercased())
 }
 
 // MARK: - Arrow detection in a line
@@ -186,11 +188,6 @@ private func detectArrowInLine(_ line: String) -> LinkArrowInfo? {
     if let range = trimmed.range(of: "+'", options: .literal) {
         let remainder = trimmed[range.lowerBound...]
         let remainderStr = String(remainder)
-        for (pattern, dir, bidirectional) in [("+'", nil as WardleyFlowDirection?, true),
-                                                ("+'", nil as WardleyFlowDirection?, true),
-                                                ("+'", nil as WardleyFlowDirection?, true)] {
-            _ = (pattern, dir, bidirectional)
-        }
         // Match +'<label>'<> +'<label>'> +'<label>'<
         if let match = try? regexMatch(remainderStr, pattern: #"^\+'([^']*)'(<>|>|<)"#) {
             let labelText = match.count > 0 ? match[0] : ""
@@ -456,7 +453,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse title
-        if hasPrefixOutsideQuotes(trimmed, prefix: "title ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "title ") {
             let titleText = String(trimmed.dropFirst("title ".count)).trimmingCharacters(in: .whitespaces)
             diagram.diagramTitle = titleText
             continue
@@ -475,7 +472,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse size
-        if hasPrefixOutsideQuotes(trimmed, prefix: "size ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "size ") {
             let rest = String(trimmed.dropFirst("size ".count)).trimmingCharacters(in: .whitespaces)
             let cleaned = rest.replacingOccurrences(of: "[", with: "").replacingOccurrences(of: "]", with: "")
             let parts = cleaned.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -487,7 +484,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse evolution
-        if hasPrefixOutsideQuotes(trimmed, prefix: "evolution ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "evolution ") {
             let rest = String(trimmed.dropFirst("evolution ".count)).trimmingCharacters(in: .whitespaces)
             let (stages, boundaries) = try parseEvolutionStages(rest)
             diagram.axes.stages = stages
@@ -496,7 +493,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse anchor
-        if hasPrefixOutsideQuotes(trimmed, prefix: "anchor ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "anchor ") {
             let rest = String(trimmed.dropFirst("anchor ".count)).trimmingCharacters(in: .whitespaces)
             let (namePart, coordPart) = extractNameAndRest(rest)
             let name = trimmingQuotes(namePart)
@@ -507,7 +504,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse component
-        if hasPrefixOutsideQuotes(trimmed, prefix: "component ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "component ") {
             let rest = String(trimmed.dropFirst("component ".count)).trimmingCharacters(in: .whitespaces)
             let (namePart, restAfterName) = extractNameAndRest(rest)
             let name = trimmingQuotes(namePart)
@@ -560,7 +557,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse note
-        if hasPrefixOutsideQuotes(trimmed, prefix: "note ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "note ") {
             let rest = String(trimmed.dropFirst("note ".count)).trimmingCharacters(in: .whitespaces)
             // Format: "text" [visibility, evolution]
             guard let firstQuote = rest.firstIndex(of: "\"") else {
@@ -584,7 +581,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse annotations (box position)
-        if hasPrefixOutsideQuotes(trimmed, prefix: "annotations ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "annotations ") {
             let rest = String(trimmed.dropFirst("annotations ".count)).trimmingCharacters(in: .whitespaces)
             // Can have coordinate values that are int or decimal
             let cleaned = rest.replacingOccurrences(of: "[", with: "").replacingOccurrences(of: "]", with: "")
@@ -598,7 +595,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse annotation (individual)
-        if hasPrefixOutsideQuotes(trimmed, prefix: "annotation ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "annotation ") {
             let rest = String(trimmed.dropFirst("annotation ".count)).trimmingCharacters(in: .whitespaces)
             // Format: number, [x, y] "text"
             let parts = rest.split(separator: ",", maxSplits: 1)
@@ -636,7 +633,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse evolve
-        if hasPrefixOutsideQuotes(trimmed, prefix: "evolve ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "evolve ") {
             let rest = String(trimmed.dropFirst("evolve ".count)).trimmingCharacters(in: .whitespaces)
             let (componentName, targetVal) = try parseEvolveStatementRest(rest, sourceLine: trimmed)
 
@@ -652,7 +649,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse accelerator
-        if hasPrefixOutsideQuotes(trimmed, prefix: "accelerator ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "accelerator ") {
             let rest = String(trimmed.dropFirst("accelerator ".count)).trimmingCharacters(in: .whitespaces)
             let (namePart, coordPart) = extractNameAndRest(rest)
             let name = trimmingQuotes(namePart)
@@ -662,7 +659,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
 
         // Parse deaccelerator
-        if hasPrefixOutsideQuotes(trimmed, prefix: "deaccelerator ") {
+        if lineHasKeywordPrefix(trimmed, prefix: "deaccelerator ") {
             let rest = String(trimmed.dropFirst("deaccelerator ".count)).trimmingCharacters(in: .whitespaces)
             let (namePart, coordPart) = extractNameAndRest(rest)
             let name = trimmingQuotes(namePart)
@@ -842,17 +839,15 @@ private func parseLabelOffsets(_ text: String) -> (x: Double?, y: Double?) {
     var x: Double?
     var y: Double?
 
+    // `Double(_:)` already accepts a leading `-`; the former
+    // `hasPrefix("-")` fallback branches were unreachable duplicates.
     let xStr = parts[0]
     if let xVal = Double(xStr) {
-        x = xVal
-    } else if xStr.hasPrefix("-"), let xVal = Double(xStr) {
         x = xVal
     }
 
     let yStr = parts[1]
     if let yVal = Double(yStr) {
-        y = yVal
-    } else if yStr.hasPrefix("-"), let yVal = Double(yStr) {
         y = yVal
     }
 

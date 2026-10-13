@@ -1,4 +1,4 @@
 Participants: A, B, C
-• asyncMessage
-• divider
-• asyncMessage
+• A-->B: step1
+• --- Phase 2== ---
+• B-->C: step2

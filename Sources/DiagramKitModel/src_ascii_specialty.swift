@@ -6,13 +6,14 @@
 // Tabular form is intentional — canvas-based ASCII would require
 // substantial layout code; the value here is unambiguous textual
 // inspection of a parsed model.
+import DiagramKitCommon
 import Foundation
 
 public func renderSankeyAscii(_ model: SankeyDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     for link in model.links {
         lines.append("\(link.source) → \(link.target) : \(String(format: "%g", link.value))")
@@ -24,7 +25,7 @@ public func renderRadarAscii(_ model: RadarDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     if !model.axes.isEmpty {
         lines.append("Axes: " + model.axes.map(\.label).joined(separator: ", "))
@@ -40,7 +41,7 @@ public func renderTreemapAscii(_ model: TreemapDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     func emit(_ node: TreemapNode, depth: Int) {
         let indent = String(repeating: "  ", count: depth)
@@ -60,7 +61,7 @@ public func renderVennAscii(_ model: VennDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     for area in model.areas {
         let key = area.sets.joined(separator: " ∩ ")
@@ -74,7 +75,7 @@ public func renderQuadrantAscii(_ model: QuadrantChart) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle ?? model.titleText, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     if let l = model.xAxisLeftText, let r = model.xAxisRightText {
         lines.append("x-axis: \(l) ↔ \(r)")
@@ -92,7 +93,7 @@ public func renderPacketAscii(_ model: PacketDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     for row in model.rows {
         for block in row {
@@ -106,7 +107,7 @@ public func renderRequirementAscii(_ model: RequirementDiagram) -> String {
     var lines: [String] = []
     if let title = model.diagramTitle, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     if !model.requirements.isEmpty {
         lines.append("Requirements:")
@@ -133,7 +134,7 @@ public func renderZenUMLAscii(_ model: ZenUMLDiagram) -> String {
     var lines: [String] = []
     if let title = model.title, !title.isEmpty {
         lines.append(title)
-        lines.append(String(repeating: "=", count: max(title.count, 1)))
+        lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     if !model.participants.isEmpty {
         lines.append("Participants: " + model.participants.map(\.name).joined(separator: ", "))
@@ -145,8 +146,23 @@ public func renderZenUMLAscii(_ model: ZenUMLDiagram) -> String {
 }
 
 private func zenStatementSummary(_ stmt: ZenUMLStatement) -> String {
-    // ZenUMLStatement is an enum with many cases; this falls back to
-    // a generic summary so the renderer compiles without exhaustive
-    // case coverage.
-    String(describing: stmt).split(separator: "(").first.map(String.init) ?? "stmt"
+    switch stmt {
+    case .message(let from, let to, let signature, let type, _, _):
+        let arrow = (type == .async) ? "-->" : "->"
+        return "\(from)\(arrow)\(to): \(signature)"
+    case .asyncMessage(let from, let to, let content, _):
+        return "\(from)-->\(to): \(content ?? "")"
+    case .creation(let assignee, _, let construct, let to, let params, _, _):
+        let paramsText = params.map { "(\($0.joined(separator: ", ")))" } ?? ""
+        let actor = assignee.map { "\($0)= " } ?? ""
+        return "\(actor)\(construct)\(paramsText) -> \(to)"
+    case .return(let from, let to, let value, _):
+        return "\(from)-->\(to): \(value ?? "")"
+    case .fragment(let kind, let condition, _):
+        return condition.map { "\(kind.rawValue) [\($0)]" } ?? kind.rawValue
+    case .divider(let label):
+        return "--- \(label) ---"
+    case .comment(let text):
+        return "note: \(text)"
+    }
 }

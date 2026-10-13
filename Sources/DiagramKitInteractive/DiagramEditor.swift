@@ -28,9 +28,9 @@ import Foundation
 /// isolation already provided by `@MainActor`.
 ///
 /// ## Mutation Contract
-/// The `document`, `source`, and `lastExportDiagnostics` properties have
-/// public setters so that the `@Observable` macro can generate proper
-/// observation tracking. Consumers MUST apply mutations through
+/// The `document`, `source`, and `lastExportDiagnostics` properties are
+/// readable publicly but only settable within the editor (`private(set)`).
+/// Consumers MUST apply mutations through
 /// `perform(_:)` or `performFlowchart(_:)` — never by direct property
 /// assignment. Direct assignment bypasses undo/redo and source sync.
 @MainActor

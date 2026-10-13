@@ -1314,12 +1314,3 @@ private extension Array {
     }
 }
 
-final class original_src_parser {
-    public init() {}
-
-    // Export inventory from TypeScript source:
-    // - export function parseMermaid
-    public static func parseMermaid(_ text: String) throws -> DiagramDocument {
-        try _parseMermaidEntry(text).0
-    }
-}

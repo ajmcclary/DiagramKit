@@ -1,2 +1,2 @@
 Participants: _STARTER_, A, B
-• message
+• _STARTER_->A: method()

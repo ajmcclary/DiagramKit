@@ -646,7 +646,7 @@ public enum GitGraphParserError: Error, LocalizedError, _RecoverableDiagramError
 
 // MARK: - DB Errors
 
-public enum GitGraphDBError: Error, LocalizedError {
+public enum GitGraphDBError: Error, LocalizedError, _RecoverableDiagramError {
     case duplicateBranch(String)
     case checkoutUnknownBranch(String)
     case mergeUnknownBranch(String)

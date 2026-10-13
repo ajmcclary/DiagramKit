@@ -1497,10 +1497,3 @@ private extension Array {
 
 // MARK: - Legacy Export Class
 
-final class original_src_er_parser {
-    public init() {}
-
-    public static func parseErDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ErDiagram {
-        try _parseErDiagramEntry(lines, frontmatter: frontmatter)
-    }
-}

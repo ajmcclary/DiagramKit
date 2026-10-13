@@ -1,6 +1,38 @@
 // Ported from original/src/text-metrics.ts
 import Foundation
 
+/// Number of terminal cells `text` occupies when rendered in a fixed-width
+/// grid: 0 for combining marks, 2 per fullwidth (CJK / kana / Hangul) or
+/// emoji grapheme cluster, 1 otherwise. ASCII renderers must size columns
+/// and boxes with this instead of `String.count`, which counts graphemes
+/// and shifts right-hand borders for CJK/emoji labels.
+public func terminalDisplayWidth(_ text: String) -> Int {
+    text.reduce(0) { $0 + _terminalCharWidth($1) }
+}
+
+func _terminalCharWidth(_ char: Character) -> Int {
+    guard let scalar = char.unicodeScalars.first else { return 0 }
+    if original_src_text_metrics.isCombiningMark(scalar.value) {
+        return 0
+    }
+    if original_src_text_metrics.isFullwidth(scalar.value)
+        || original_src_text_metrics.isEmoji(char) {
+        return 2
+    }
+    return 1
+}
+
+/// Appends spaces until `text`'s *display* width reaches `width`
+/// (no-op when it already meets or exceeds it). Unlike NSString's
+/// `padding(toLength:)` this is grapheme-aware — it never truncates the
+/// middle of an emoji or combining sequence and it counts fullwidth
+/// characters as two columns.
+public func _padToTerminalWidth(_ text: String, toWidth width: Int) -> String {
+    let missing = width - terminalDisplayWidth(text)
+    guard missing > 0 else { return text }
+    return text + String(repeating: " ", count: missing)
+}
+
 public final class original_src_text_metrics {
     public init() {}
 
@@ -31,7 +63,7 @@ public final class original_src_text_metrics {
         }
     }
 
-    private static func isCombiningMark(_ code: UInt32) -> Bool {
+    static func isCombiningMark(_ code: UInt32) -> Bool {
         (code >= 0x0300 && code <= 0x036F)
             || (code >= 0x1AB0 && code <= 0x1AFF)
             || (code >= 0x1DC0 && code <= 0x1DFF)
@@ -39,7 +71,7 @@ public final class original_src_text_metrics {
             || (code >= 0xFE20 && code <= 0xFE2F)
     }
 
-    private static func isFullwidth(_ code: UInt32) -> Bool {
+    static func isFullwidth(_ code: UInt32) -> Bool {
         (code >= 0x1100 && code <= 0x115F)
             || (code >= 0x2E80 && code <= 0x2EFF)
             || (code >= 0x2F00 && code <= 0x2FDF)
@@ -59,7 +91,7 @@ public final class original_src_text_metrics {
             || code >= 0x20000
     }
 
-    private static func isEmoji(_ char: Character) -> Bool {
+    static func isEmoji(_ char: Character) -> Bool {
         let text = String(char)
         let range = NSRange(text.startIndex..<text.endIndex, in: text)
         return EMOJI_REGEX.firstMatch(in: text, options: [], range: range) != nil

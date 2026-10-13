@@ -361,12 +361,13 @@ public func generateBlockId() -> String {
     return "id-" + String(count)
 }
 
-/// Concurrency Contract: `AtomicInt` is a process-wide monotonic
-/// counter backing `generateBlockId()`. Every read and write of
-/// `value` is wrapped in the internal `NSLock`, so concurrent
-/// `increment()` calls from worker threads produce monotonically
-/// distinct results and the `@unchecked Sendable` annotation is
-/// sound. (Resolves yellow → green per REVIEW.md L2.)
+/// Concurrency Contract: `AtomicInt` is a thread-local monotonic counter
+/// backing `generateBlockId()` — it lives in
+/// `Thread.current.threadDictionary` (see `_currentBlockIdCounter`), so
+/// each parse worker counts independently and `resetBlockIdCounter()`
+/// scopes to the calling thread. The `NSLock` guards the counter within a
+/// thread and the `@unchecked Sendable` annotation documents that the
+/// instance itself is only ever reached from its owning thread.
 private final class AtomicInt: @unchecked Sendable {
     private var value: Int = 0
     private let lock = NSLock()

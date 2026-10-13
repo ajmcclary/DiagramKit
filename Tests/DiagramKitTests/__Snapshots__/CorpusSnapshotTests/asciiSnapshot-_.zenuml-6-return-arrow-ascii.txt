@@ -1,2 +1,2 @@
 Participants: A, B
-• return
+• A-->B: result
