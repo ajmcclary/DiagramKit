@@ -93,8 +93,6 @@ jobs:
         run: ./Scripts/check-stale-phase-comments.sh
       - name: Scripts/check-linux-check-runtime-skip.sh
         run: ./Scripts/check-linux-check-runtime-skip.sh
-      - name: Scripts/check-zedtrek-pin.sh
-        run: ./Scripts/check-zedtrek-pin.sh
       - name: Crash reports (on failure)
         if: failure()
         run: |

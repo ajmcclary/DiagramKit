@@ -60,7 +60,7 @@ The full parameterized `CorpusSnapshotTests` run has a known `swift-testing`
 - `Scripts/check-sendable-annotations.sh` — pass; **6** yellow allowlist
   entries in `.sendable-allowlist.txt`, all sunset `2027-06-30`.
 - `Scripts/check-diagnostic-discipline.sh` (+ self-test driver) — pass.
-- `Scripts/check-stale-phase-comments.sh`, `Scripts/check-zedtrek-pin.sh` — pass.
+- `Scripts/check-stale-phase-comments.sh` — pass.
 - `Scripts/linux-check.sh` — Docker/Podman build of the Linux-portable
   matrix (`swift:6.3.1-noble`); exits 0 with a notice when no container
   runtime is available (environment skip, not a source failure). Last full

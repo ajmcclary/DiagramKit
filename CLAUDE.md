@@ -286,9 +286,9 @@ outside the defining module.
   chrome consumes the external DesignKit package (`DesignKitTokens`/
   `DesignKitThemes`); the code editor is CodeEditorKit's `CodeEditor`
   (diagram-DSL languages mermaid/d2/dot/structurizr/plantuml live there).
-  Diagram/canvas theming (`DiagramTheme`, `Theme+ZedTrek.swift`) stays in
-  this repo and is independent of DesignKit; canvas-follows-chrome syncs by
-  theme display name (contract-tested in the app's test suite).
+  Diagram/canvas theming (`DiagramTheme`) stays in this repo and is
+  independent of DesignKit; a consumer that wants the canvas to follow its
+  chrome builds a `DiagramTheme` from its own theme.
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots. Convention: new suites are swift-testing (`import Testing`)
   unless they need XCTest-only machinery — parameterized corpus snapshot

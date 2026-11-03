@@ -109,7 +109,6 @@ run_gate "check-diagnostic-discipline.sh" "$GATE_BASH" "$ROOT/Scripts/check-diag
 run_gate "check-diagnostic-discipline-tests/run.sh" "$ROOT/Scripts/check-diagnostic-discipline-tests/run.sh"
 run_gate "check-stale-phase-comments.sh" "$ROOT/Scripts/check-stale-phase-comments.sh"
 run_gate "check-linux-check-runtime-skip.sh" "$ROOT/Scripts/check-linux-check-runtime-skip.sh"
-run_gate "check-zedtrek-pin.sh" "$ROOT/Scripts/check-zedtrek-pin.sh"
 run_gate "linux-check.sh" "$ROOT/Scripts/linux-check.sh"
 
 run_build "iOS" 'generic/platform=iOS'

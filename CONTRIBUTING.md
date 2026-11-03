@@ -32,7 +32,7 @@ If you're touching public API or a renderer, also run:
   and all the governance scripts (`check-file-sizes`,
   `check-sendable-annotations`, `strict-concurrency-check`,
   `check-diagnostic-discipline` + self-test, `check-stale-phase-comments`,
-  `check-linux-check-runtime-skip`, `check-zedtrek-pin`).
+  `check-linux-check-runtime-skip`).
 - **Linux job** (`ubuntu-24.04`, TZ Pacific/Auckland): every target builds
   and the whole portable test suite runs natively — no container, no
   `SKIP_LINUX_CHECK`.

@@ -6,6 +6,14 @@ All notable changes to DiagramKit are documented in this file.
 
 Remediation cycle following the 2026-10 full code review. No tag yet.
 
+### Removed
+
+- The 20 Zed Trek canvas themes (`zedTrek<Family><Dark|Light>`), the
+  `zedTrekDark` reference value, `Scripts/zed-trek.json`,
+  `Scripts/gen_zedtrek.py` and the `check-zedtrek-pin` gate. `allThemes` is
+  the 17 neutral canvas themes; `theme(named:)` returns nil for the removed
+  names, and `DiagramTheme.default` is still `zincLight`.
+
 ### Fixed
 
 - **Hostile diagram text can no longer crash or hang the engine.** The
