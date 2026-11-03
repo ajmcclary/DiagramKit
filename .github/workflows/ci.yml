@@ -75,9 +75,9 @@ jobs:
         run: swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot"
       - name: swift test (corpus multi-format image)
         run: swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot"
-      - name: Put Bash 5 on PATH for the gate scripts
+      - name: Put Bash 5 and ripgrep on PATH for the gate scripts
         run: |
-          brew install bash
+          brew install bash ripgrep
           echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
       - name: Scripts/check-file-sizes.sh
         run: ./Scripts/check-file-sizes.sh

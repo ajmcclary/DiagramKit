@@ -1,3 +1,5 @@
+// `allThemes` / `theme(named:)` are Apple-only (BMColor); the Linux job compiles this file too.
+#if canImport(AppKit) || canImport(UIKit)
 import Testing
 @testable import DiagramKitModel
 
@@ -11,3 +13,4 @@ struct DiagramThemeCatalogTests {
         #expect(DiagramTheme.default == DiagramTheme.zincLight)
     }
 }
+#endif
