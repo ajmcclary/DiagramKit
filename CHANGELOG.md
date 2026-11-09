@@ -6,6 +6,12 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [0.1.0-beta.8] - 2026-11-09
 
+### Fixed
+
+- Assert known corpus round-trip divergences with portable XCTest assertions.
+  Linux executes the same corpus checks without relying on the unavailable
+  XCTest expected-failure API; a fixed or no-longer-exercised known entry fails.
+
 ### Added
 
 - `DiagramEditor.setFlowchartDirection(_:)` applies direction through the editor's

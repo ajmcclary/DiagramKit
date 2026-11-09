@@ -338,7 +338,7 @@ closed — `RoundTripLoss` admits no `case other(_)`, and every observed loss
 must have a paired `.warning`/`.unsupported` diagnostic on the export step
 that produced it. `CorpusRoundTripTests` additionally walks the whole Mermaid
 corpus through the harness; its 16 known pre-existing divergences are tracked
-via `withExpectedIssue` (see `CorpusRoundTripTests.knownIssues`).
+via portable explicit divergence assertions (see `CorpusRoundTripTests.knownIssues`).
 Run with `swift test --filter "RoundTrip"`.
 
 **Diagnostic discipline.** Emission sites use the typed

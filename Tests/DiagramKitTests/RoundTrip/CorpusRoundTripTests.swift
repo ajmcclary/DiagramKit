@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-import IssueReporting
 import DiagramKit
 import DiagramKitMermaid
 import DiagramKitImport
@@ -28,12 +27,11 @@ final class CorpusRoundTripTests: XCTestCase {
     /// Entries with a pre-existing round-trip divergence in the Mermaid
     /// exporter family set (flowchart, state, sequence, class, ER) or in
     /// parser limitations the DSL cannot bridge. These entries are still
-    /// exercised — wrapped in `withExpectedIssue` so a divergence is recorded
-    /// as a tracked expected issue instead of failing the suite, and a
-    /// future fix simply makes the issue stop firing (remove the id then).
-    /// They are NOT skipped: parse failures, throws, and divergences still
-    /// flow through the issue-reporting boundary, and ids that no longer
-    /// match a corpus entry fail the suite so the set cannot rot silently.
+    /// exercised with explicit portable assertions: each must reach comparison
+    /// or export/reparse failure and still produce its known divergence. A fixed
+    /// entry fails this assertion so it can be removed from the set.
+    /// They are NOT skipped; the same checks run under Darwin and Linux XCTest,
+    /// where expected-failure APIs are unavailable.
     ///
     /// Last verified 2026-10-13: 16 of the former 17 `knownFailures` still
     /// diverge; `flow-21-cicd-pipeline` was fixed and removed from the set.
@@ -88,11 +86,8 @@ final class CorpusRoundTripTests: XCTestCase {
             let (exercised, divergences) = Self.roundTrip(
                 entry, importer: importer, exporter: exporter, supported: supported)
             if known.contains(entry.id) {
-                withExpectedIssue {
-                    for divergence in divergences {
-                        IssueReporting.reportIssue(divergence)
-                    }
-                }
+                XCTAssertTrue(exercised, "Known issue no longer exercises the round trip: \(entry.id)")
+                XCTAssertEqual(divergences.count, 1, "Known issue changed or was fixed; review and remove its id: \(entry.id)")
             } else {
                 failures.append(contentsOf: divergences)
             }
@@ -109,7 +104,7 @@ final class CorpusRoundTripTests: XCTestCase {
     /// the entry reached the compare step and the divergences it produced
     /// (empty when the entry round-trips cleanly, throws, or is not
     /// supported). Callers decide whether divergences fail the suite or
-    /// flow through `withExpectedIssue`.
+    /// are checked against the known-issue set.
     private static func roundTrip(
         _ entry: CorpusEntry,
         importer: MermaidImporter,
