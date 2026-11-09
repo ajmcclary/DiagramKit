@@ -4,7 +4,25 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
-Remediation cycle following the 2026-10 full code review. No tag yet.
+## [0.1.0-beta.8] - 2026-11-09
+
+### Added
+
+- `DiagramEditor.setFlowchartDirection(_:)` applies direction through the editor's
+  serialized transaction and undo stack. Its initializer accepts the exact parsed
+  `initialSource`, avoiding a redundant export when attaching an existing document.
+
+## [0.1.0-beta.7] - 2026-11-03
+
+### Fixed
+
+- Gate the canvas-theme catalog test to Apple platforms and install ripgrep for
+  the stale-comment CI gate.
+
+## [0.1.0-beta.6] - 2026-11-03
+
+Remediation cycle following the 2026-10 full code review, including removal of
+retired canvas themes.
 
 ### Removed
 

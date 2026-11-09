@@ -87,6 +87,22 @@ private func stateDoc(_ nodes: [String], edges: [(String, String)] = []) -> Diag
 
 @Suite @MainActor
 struct DiagramEditorMutationTests {
+    @Test func directionUsesExistingUndoStack() async throws {
+        let editor = DiagramEditor(document: flowDoc(["A", "B"]), preferredExportFormat: .mermaid,
+                                   exportRegistry: mockRegistry(), initialSource: "original source")
+        #expect(editor.source == "original source")
+        try await editor.perform(.setTitle("Retain me"))
+        while editor.undoManager.groupingLevel > 0 { editor.endUndoGrouping() }
+        try await editor.setFlowchartDirection(.LR)
+        guard case .flowchart(let changed) = editor.document.payload else { return }
+        #expect(changed.direction == .LR)
+        await editor.undo()
+        guard case .flowchart(let restored) = editor.document.payload else { return }
+        #expect(restored.direction == .TD)
+        #expect(editor.document.title == "Retain me")
+        #expect(editor.canUndo)
+    }
+
 
     // MARK: - deleteElement
 

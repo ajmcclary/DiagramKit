@@ -32,6 +32,19 @@ extension DiagramEditor {
         }
     }
 
+    /// Change a flowchart's direction as an undoable structural edit.
+    public func setFlowchartDirection(_ direction: original_src_types.Direction) async throws {
+        try await _enqueueChainedMutation { editor in
+            guard case .flowchart(var graph) = editor.document.payload else {
+                throw DiagramEditorError.unsupportedMutation(mutation: "Set Direction", diagramType: String(describing: editor.document.type))
+            }
+            graph.direction = direction
+            var document = editor.document
+            document.payload = .flowchart(graph)
+            try await editor._commitMutation(newDocument: document, actionName: "Set Direction")
+        }
+    }
+
     /// Inner commit body. Always runs on `MainActor`. Atomic: a throw
     /// from the worker leaves state untouched.
     func _performInner(_ mutation: DiagramMutation) async throws {

@@ -173,14 +173,16 @@ public final class DiagramEditor {
     /// Create an editor for the given document, preferred export format,
     /// and exporter registry.
     ///
-    /// The editor does not run an initial source sync. Call
-    /// `syncSource()` after initialization to populate `source`.
+    /// Pass `initialSource` when `document` was parsed from that exact text.
+    /// Otherwise call `syncSource()` to populate `source`.
     public init(
         document: DiagramDocument,
         preferredExportFormat: DiagramFormatID,
-        exportRegistry: ExporterRegistry
+        exportRegistry: ExporterRegistry,
+        initialSource: String? = nil
     ) {
         self.document = document
+        self.source = initialSource
         self.preferredExportFormat = preferredExportFormat
         self.exportRegistry = exportRegistry
         self.undoManager = UndoManager()
