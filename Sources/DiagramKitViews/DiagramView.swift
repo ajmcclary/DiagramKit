@@ -56,6 +56,17 @@ public struct DiagramView: UIViewRepresentable {
         return view
     }
 
+    /// Takes the size SwiftUI proposes, so a `.frame` smaller than the
+    /// diagram scales the drawing down instead of overflowing it. See
+    /// ``DiagramViewSizing``.
+    public func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: DiagramNativeView,
+        context: Context
+    ) -> CGSize? {
+        DiagramViewSizing.size(for: proposal, naturalSize: uiView.diagramBounds.size)
+    }
+
     public func updateUIView(_ view: DiagramNativeView, context: Context) {
         context.coordinator.updateBindings(
             parseError: $parseError,
@@ -177,6 +188,17 @@ public struct DiagramView: NSViewRepresentable {
         return view
     }
 
+    /// Takes the size SwiftUI proposes, so a `.frame` smaller than the
+    /// diagram scales the drawing down instead of overflowing it. See
+    /// ``DiagramViewSizing``.
+    public func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        nsView: DiagramNativeView,
+        context: Context
+    ) -> CGSize? {
+        DiagramViewSizing.size(for: proposal, naturalSize: nsView.diagramBounds.size)
+    }
+
     public func updateNSView(_ view: DiagramNativeView, context: Context) {
         context.coordinator.updateBindings(
             parseError: $parseError,
@@ -248,6 +270,55 @@ public struct DiagramView: NSViewRepresentable {
 }
 
 #endif
+
+// MARK: - Sizing
+
+/// How `DiagramView` answers a SwiftUI size proposal.
+///
+/// The native view draws the diagram aspect-fitted to its own bounds, so the
+/// view is as flexible as a resizable image: it takes whatever size it is
+/// given, larger or smaller than the diagram. Without this, SwiftUI falls
+/// back to the native view's `intrinsicContentSize` and default compression
+/// resistance, which lets the view grow but never shrink — a frame below the
+/// diagram's natural size left the drawing at 100%, overflowing the frame
+/// from its centre.
+///
+/// - A proposed dimension is taken as is.
+/// - An unspecified dimension (`nil`, as from `fixedSize()` or a scroll
+///   view's scrolling axis) is the diagram's natural one, scaled down with
+///   the other dimension when that one is proposed below natural size, so a
+///   width-constrained diagram keeps its aspect ratio instead of
+///   letterboxing.
+enum DiagramViewSizing {
+    static func size(for proposal: ProposedViewSize, naturalSize: CGSize) -> CGSize {
+        let natural = CGSize(
+            width: max(naturalSize.width, 0),
+            height: max(naturalSize.height, 0)
+        )
+        switch (usable(proposal.width), usable(proposal.height)) {
+        case let (width?, height?):
+            return CGSize(width: width, height: height)
+        case let (width?, nil):
+            return CGSize(width: width, height: natural.height * shrink(width, natural.width))
+        case let (nil, height?):
+            return CGSize(width: natural.width * shrink(height, natural.height), height: height)
+        case (nil, nil):
+            return natural
+        }
+    }
+
+    /// A proposed dimension the view can take: not NaN, never negative.
+    private static func usable(_ dimension: CGFloat?) -> CGFloat? {
+        guard let dimension, !dimension.isNaN else { return nil }
+        return max(dimension, 0)
+    }
+
+    /// The factor (at most 1) that fits `natural` into `proposed`.
+    private static func shrink(_ proposed: CGFloat, _ natural: CGFloat) -> CGFloat {
+        guard natural > 0 else { return 1 }
+        return min(proposed / natural, 1)
+    }
+}
 
 // MARK: - Phase 0 backward-compat deprecated alias
 

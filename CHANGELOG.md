@@ -4,6 +4,20 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- `DiagramView` now takes the size SwiftUI proposes. It used to fall back to
+  the native view's `intrinsicContentSize` (the diagram's natural size) with
+  default compression resistance, so it could grow but never shrink: a
+  `.frame` below natural size left the drawing at 100%, overflowing the frame
+  from its centre, while the host's own geometry (hit-testing, selection
+  overlays) used the smaller frame. Both representables (AppKit and UIKit)
+  implement `sizeThatFits`: a proposed dimension is taken as is, and an
+  unspecified one is the natural size, scaled down with the other dimension
+  when that is proposed below natural. **Behaviour change:** in a stack the
+  view is now compressible like a resizable image; a host that relied on it
+  holding its natural size should add `.fixedSize()`.
+
 ## [0.1.0-beta.8] - 2026-11-09
 
 ### Fixed
