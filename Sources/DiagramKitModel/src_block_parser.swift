@@ -21,6 +21,32 @@ public enum BlockParserError: Error, LocalizedError, _RecoverableDiagramError {
 }
 
 public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
+    var diagnostics: [DiagramDiagnostic] = []
+    return try _parseBlockDiagramLines(lines, diagnostics: &diagnostics)
+}
+
+/// Largest column span a block, composite, arrow or `space` may claim.
+/// The layout sums spans (`numItems += widthInColumns`), so an unbounded
+/// span overflows `Int`; larger values are clamped with a diagnostic.
+private let _maxBlockSpan = 1000
+
+/// Parses the `N` of `id:N` / `space:N` / `block:id:N`. Returns `nil` for
+/// anything that is not a positive integer (layout divides by the span, so
+/// zero would be NaN). A positive value above `_maxBlockSpan` — including a
+/// digit run too long for `Int` — is clamped and reported through
+/// `onClamp`.
+private func _parseBlockSpan<S: StringProtocol>(_ text: S, onClamp: (String) -> Void) -> Int? {
+    let raw = String(text)
+    let isDigits = !raw.isEmpty && raw.allSatisfy { $0.isASCII && $0.isNumber }
+    guard let value = Int(raw) ?? (isDigits ? Int.max : nil), value > 0 else { return nil }
+    if value > _maxBlockSpan {
+        onClamp(raw)
+        return _maxBlockSpan
+    }
+    return value
+}
+
+func _parseBlockDiagramLines(_ lines: [String], diagnostics: inout [DiagramDiagnostic]) throws -> BlockDiagram {
     resetBlockIdCounter()
     guard let header = lines.first?.lowercased(), header == "block" || header == "block-beta" else {
         throw BlockParserError.invalidHeader(lines.first ?? "")
@@ -35,6 +61,9 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
     var rootBlock_tmp = BlockNode(id: "root", type: .composite, children: [], columns: -1)
 
     let bodyLines = lines.dropFirst()
+
+    var clampedSpans: [String] = []
+    func recordClampedSpan(_ raw: String) { clampedSpans.append(raw) }
 
     func mergedBlock(existing: BlockNode, incoming: BlockNode) -> BlockNode {
         var merged = existing
@@ -95,6 +124,30 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
     }
 
     func addToParent(child: BlockNode) {
+        // A block cannot contain itself or a block that encloses it (`g`
+        // inside `block:g`, an edge `g --> a` written inside `block:g`, or
+        // a nested `block:g` inside `block:g`). Recording that containment
+        // made the composite its own descendant, and the database walk
+        // below then recursed until the stack overflowed. Ignore the
+        // reference; a nested same-id composite hands its children to the
+        // enclosing block instead.
+        if currentCompositeStack.contains(where: { $0.id == child.id }) {
+            diagnostics.append(.lossyTransform(
+                .subgraphFlatten,
+                message: "[Block] \"\(child.id)\" cannot be nested inside itself; the inner reference is ignored",
+                location: nil
+            ))
+            if child.type == .composite, let currentIdx = currentCompositeStack.indices.last {
+                var parent = currentCompositeStack[currentIdx]
+                let enclosingIds = Set(currentCompositeStack.map(\.id))
+                for cid in child.children where !enclosingIds.contains(cid) && !parent.children.contains(cid) {
+                    parent.children.append(cid)
+                }
+                currentCompositeStack[currentIdx] = parent
+                tempChildren[parent.id] = parent
+            }
+            return
+        }
         store(child)
         if let currentIdx = currentCompositeStack.indices.last {
             var parent = currentCompositeStack[currentIdx]
@@ -150,7 +203,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
     @discardableResult
     func parseEdgeChain(tokens: [String], startIndex: Int) -> Int {
         guard startIndex < tokens.count else { return startIndex + 1 }
-        let (startNodeId, startType, startLabel, startSpan, startDirs) = parseNodeToken(tokens[startIndex])
+        let (startNodeId, startType, startLabel, startSpan, startDirs) = parseNodeToken(tokens[startIndex], onSpanClamp: recordClampedSpan)
         guard var currentId = startNodeId else { return startIndex + 1 }
         addToParent(child: BlockNode(
             id: currentId,
@@ -177,7 +230,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
             }
 
             guard nextNodeIndex < tokens.count else { break }
-            let (endId, endType, endLabel, endSpan, endDirs) = parseNodeToken(tokens[nextNodeIndex])
+            let (endId, endType, endLabel, endSpan, endDirs) = parseNodeToken(tokens[nextNodeIndex], onSpanClamp: recordClampedSpan)
             guard let endId else { break }
 
             addToParent(child: BlockNode(
@@ -289,7 +342,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
 
                 if t.hasPrefix("block:") {
                     let afterPrefix = String(t.dropFirst(6))
-                    let (nid, _, lbl, sp, _) = parseNodeToken(afterPrefix)
+                    let (nid, _, lbl, sp, _) = parseNodeToken(afterPrefix, onSpanClamp: recordClampedSpan)
                     compositeId = nid ?? afterPrefix
                     compositeLabel = lbl ?? compositeId
                     span = sp
@@ -297,7 +350,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 } else {
                     i += 1
                     if i < tokens.count {
-                        let (nid, _, lbl, sp, _) = parseNodeToken(tokens[i])
+                        let (nid, _, lbl, sp, _) = parseNodeToken(tokens[i], onSpanClamp: recordClampedSpan)
                         if let id = nid {
                             compositeId = id
                             compositeLabel = lbl ?? id
@@ -308,7 +361,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 }
 
                 if i < tokens.count && tokens[i].hasPrefix(":") {
-                    span = Int(String(tokens[i].dropFirst()))
+                    span = _parseBlockSpan(tokens[i].dropFirst(), onClamp: recordClampedSpan)
                     i += 1
                 }
 
@@ -317,6 +370,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 let compNode = BlockNode(id: id, label: lbl, type: .composite, children: [], widthInColumns: span)
                 store(compNode)
                 currentCompositeStack.append(compNode)
+                try _checkParserNestingDepth(currentCompositeStack.count, "block \"\(id)\"")
                 continue
             }
 
@@ -345,9 +399,9 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                     let parts = t.split(separator: ":")
                     // Reject non-positive spans at parse time. Downstream layout
                     // divides `size.width` by widthInColumns; 0 → NaN. Cap huge
-                    // spans to a single node so `space:1000000000` cannot OOM.
-                    if parts.count == 2, let n = Int(parts[1]), n > 0 {
-                        span = min(n, 1000)
+                    // spans so `space:1000000000` cannot OOM.
+                    if parts.count == 2, let n = _parseBlockSpan(parts[1], onClamp: recordClampedSpan) {
+                        span = n
                     }
                 }
                 let spaceId = generateBlockId() + "-s"
@@ -363,7 +417,7 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 continue
             }
 
-            let (nodeId, shapeType, label, span, dirs) = parseNodeToken(t)
+            let (nodeId, shapeType, label, span, dirs) = parseNodeToken(t, onSpanClamp: recordClampedSpan)
             if let nid = nodeId {
                 let nt = shapeType ?? .square
                 let node = BlockNode(id: nid, label: label ?? nid, type: nt, widthInColumns: span, directions: dirs)
@@ -439,14 +493,31 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
     }
 
     var rootBlock = rootBlock_tmp
-    rootBlock.children = rootChildren.map(\.id)
     var db: [String: BlockNode] = ["root": rootBlock]
-    for child in rootChildren {
-        populateBlockDB(childId: child.id, from: tempChildren, into: &db, edgeList: &edgeList, edgeCount: &edgeCount)
+    var placed: Set<String> = ["root"]
+    var rootChildIds: [String] = []
+    for child in rootChildren where !placed.contains(child.id) {
+        rootChildIds.append(child.id)
+        try populateBlockDB(
+            childId: child.id, from: tempChildren, into: &db,
+            placed: &placed, depth: 1, diagnostics: &diagnostics
+        )
+    }
+    // A root-level block that a composite already claimed stays under that
+    // composite only, so the database the layout walks is a tree.
+    rootBlock.children = rootChildIds
+    db["root"] = rootBlock
+
+    for raw in clampedSpans {
+        diagnostics.append(.lossyTransform(
+            .configDrop,
+            message: "[Block] column span \(raw) exceeds \(_maxBlockSpan); clamped to \(_maxBlockSpan)",
+            location: nil
+        ))
     }
 
     return BlockDiagram(
-        rootChildren: rootChildren.map(\.id),
+        rootChildren: rootChildIds,
         blockDatabase: db,
         edges: edgeList,
         classes: classDefs,
@@ -507,7 +578,10 @@ private func tokenizeLine(_ line: String) -> [String] {
     return tokens
 }
 
-private func parseNodeToken(_ token: String) -> (id: String?, type: BlockNodeType?, label: String?, span: Int?, directions: [BlockDirection]?) {
+private func parseNodeToken(
+    _ token: String,
+    onSpanClamp: (String) -> Void = { _ in }
+) -> (id: String?, type: BlockNodeType?, label: String?, span: Int?, directions: [BlockDirection]?) {
     let t = token
     if isEdgeTokenStr(t) || t.hasPrefix("\"") || t == "block" || t == "block-beta" ||
        t == "columns" || t == "space" || t == "end" || t == "classDef" || t == "class" || t == "style" ||
@@ -533,7 +607,7 @@ private func parseNodeToken(_ token: String) -> (id: String?, type: BlockNodeTyp
         }
         if let lastColon = t.range(of: ":", options: .backwards) {
             let afterColon = t[lastColon.upperBound...]
-            if let n = Int(String(afterColon)), n > 0 { span = n }
+            if let n = _parseBlockSpan(afterColon, onClamp: onSpanClamp) { span = n }
         }
         return (generateBlockId(), .blockArrow, label, span, dirs)
     }
@@ -548,7 +622,7 @@ private func parseNodeToken(_ token: String) -> (id: String?, type: BlockNodeTyp
         let parts = t.split(separator: ":", maxSplits: 1)
         // Reject non-positive spans at parse time. Downstream layout
         // divides `size.width` by widthInColumns; 0 → NaN.
-        if parts.count == 2, let n = Int(parts[1]), n > 0 {
+        if parts.count == 2, let n = _parseBlockSpan(parts[1], onClamp: onSpanClamp) {
             span = n
             mainPart = String(parts[0])
         }
@@ -603,15 +677,42 @@ private func isEdgeLabelToken(_ t: String) -> Bool {
     t.hasPrefix("\"") && t.hasSuffix("\"")
 }
 
+/// Copies `childId` and its descendants from `tempChildren` into `db`.
+///
+/// The result must be a tree: `placed` holds every id already copied, so a
+/// child that names an enclosing block (a cycle, e.g. two composites that
+/// each list the other) or a block already placed under another parent is
+/// dropped from this node's children with a diagnostic instead of being
+/// walked again. Without that, a cycle recursed until the stack overflowed
+/// and a shared descendant was walked once per path (exponential).
+/// Nesting deeper than `_maxParserNestingDepth` throws.
 private func populateBlockDB(
     childId: String,
     from tempChildren: [String: BlockNode],
     into db: inout [String: BlockNode],
-    edgeList: inout [BlockEdge],
-    edgeCount: inout [String: Int]
-) {
+    placed: inout Set<String>,
+    depth: Int,
+    diagnostics: inout [DiagramDiagnostic]
+) throws {
     guard let block = tempChildren[childId] else { return }
+    if !block.children.isEmpty {
+        try _checkParserNestingDepth(depth, "block \"\(childId)\"")
+    }
+    placed.insert(childId)
     var node = block
+    var keptChildren: [String] = []
+    for cid in node.children {
+        if cid == node.id || (placed.contains(cid) && tempChildren[cid] != nil) {
+            diagnostics.append(.lossyTransform(
+                .subgraphFlatten,
+                message: "[Block] \"\(cid)\" is already placed elsewhere; it cannot also be nested in \"\(node.id)\"",
+                location: nil
+            ))
+            continue
+        }
+        keptChildren.append(cid)
+    }
+    node.children = keptChildren
 
     if node.label.isEmpty {
         if node.type == .composite {
@@ -638,10 +739,11 @@ private func populateBlockDB(
         return
     }
 
-    for cid in node.children {
-        if let _ = tempChildren[cid] {
-            populateBlockDB(childId: cid, from: tempChildren, into: &db, edgeList: &edgeList, edgeCount: &edgeCount)
-        }
+    for cid in node.children where tempChildren[cid] != nil && !placed.contains(cid) {
+        try populateBlockDB(
+            childId: cid, from: tempChildren, into: &db,
+            placed: &placed, depth: depth + 1, diagnostics: &diagnostics
+        )
     }
 }
 
@@ -649,10 +751,11 @@ public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter?
     let (processed, fm) = _parseFrontMatterAndStripped(source)
     let resolvedFM = frontmatter ?? fm
     let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
-    var diagram = try parseBlockDiagramLines(lines)
+    var diagnostics: [DiagramDiagnostic] = []
+    var diagram = try _parseBlockDiagramLines(lines, diagnostics: &diagnostics)
     if let fmc = resolvedFM {
         diagram.diagramTitle = fmc.shared.title
         if let bc = fmc.perDiagram.block.config { diagram.config = bc }
     }
-    return (diagram, [])
+    return (diagram, diagnostics)
 }

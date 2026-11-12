@@ -84,3 +84,15 @@ public func _svgNum(_ value: Double) -> String {
     if !rounded.isFinite { return "0" }
     return String(format: "%.1f", rounded)
 }
+
+// MARK: - Numbers parsed from diagram source
+
+/// Parses an integer written in diagram source and returns it only when it
+/// lies inside `range`; `nil` for non-integers, overflowing literals and
+/// out-of-range values. Use it for every source number that later feeds
+/// arithmetic, a loop bound, or a range constructor, so the bound is
+/// checked once at parse time rather than at each downstream sink.
+public func _parseBoundedInt<S: StringProtocol>(_ text: S, in range: ClosedRange<Int>) -> Int? {
+    guard let value = Int(String(text)), range.contains(value) else { return nil }
+    return value
+}

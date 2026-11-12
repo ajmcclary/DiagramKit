@@ -32,3 +32,49 @@ public func _recursionGuard(
     )
     return false
 }
+
+// MARK: - Parser input limits
+
+/// Maximum structural nesting a parser accepts (composite blocks, class
+/// namespaces, ZenUML blocks). Far above anything a person writes, and far
+/// below what the recursive parse passes and the layouts that follow them
+/// can survive on the worker thread's 8 MB stack. A parser that meets
+/// deeper nesting throws `DiagramInputLimitError` instead of recursing.
+public let _maxParserNestingDepth: Int = 100
+
+/// Thrown by a parser when the source exceeds a limit that a later stage
+/// could not survive: nesting deeper than `_maxParserNestingDepth`, or a
+/// number outside the range the family accepts. Recoverable: callers see a
+/// typed parse failure instead of a trap, hang, or stack overflow.
+public struct DiagramInputLimitError: Error, LocalizedError, Equatable, Sendable, _RecoverableDiagramError {
+    public enum Limit: String, Sendable, Equatable {
+        case nestingDepth
+        case numericRange
+    }
+
+    public let limit: Limit
+    public let detail: String
+
+    public init(_ limit: Limit, _ detail: String) {
+        self.limit = limit
+        self.detail = detail
+    }
+
+    public var errorDescription: String? {
+        switch limit {
+        case .nestingDepth:
+            return "Nesting is deeper than \(_maxParserNestingDepth) levels: \(detail)"
+        case .numericRange:
+            return "Number out of range: \(detail)"
+        }
+    }
+}
+
+/// Throws `DiagramInputLimitError(.nestingDepth, …)` when `depth` exceeds
+/// `_maxParserNestingDepth`. Call it wherever a parser pushes a nesting
+/// level or recurses into one.
+public func _checkParserNestingDepth(_ depth: Int, _ context: @autoclosure () -> String) throws {
+    if depth > _maxParserNestingDepth {
+        throw DiagramInputLimitError(.nestingDepth, context())
+    }
+}

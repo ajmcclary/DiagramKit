@@ -7,9 +7,10 @@ import IssueReporting
 /// reporting for any `Error` adopting this protocol.
 ///
 /// Adoption is auditable by grepping `: _RecoverableDiagramError`. The
-/// full adopter set as of 2026-10-13 (28 types):
+/// full adopter set as of 2026-11-12 (29 types):
 ///
 /// - `DiagramError` (`Sources/DiagramKitModel/Types.swift`)
+/// - `DiagramInputLimitError` (`Sources/DiagramKitCommon/RecursionGuard.swift`)
 /// - `DiagramExportError` (`Sources/DiagramKitExport/DiagramExportError.swift`)
 /// - Every `DiagramKitModel` parser-tier error enum adopts:
 ///   `_ParserEntryError`, `ClassParserError`, `SequenceParserError`,
