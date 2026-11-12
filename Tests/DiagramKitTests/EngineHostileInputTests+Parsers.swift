@@ -200,4 +200,45 @@ extension EngineHostileInputTests {
         }
         #expect(radar.options.ticks == Int(ticks))
     }
+
+    // MARK: - Regex backtracking on one line
+
+    @Test("state class/style id lists are linear in the number of ids", arguments: [
+        "class " + (0..<40).map { "s\($0)" }.joined(separator: ",") + " my-class",
+        "style " + (0..<40).map { "s\($0)" }.joined(separator: ","),
+    ])
+    func stateIdListBacktracking(_ line: String) async throws {
+        let start = Date()
+        _ = await Self.runAllStages("stateDiagram-v2\n\(line)")
+        #expect(Date().timeIntervalSince(start) < 5)
+    }
+
+    @Test("state class list still applies the class to every id")
+    func stateClassListApplies() async throws {
+        let imported = try await DiagramEngine.parseImportResult(source: "stateDiagram-v2\na --> b\nclass a, b hot")
+        guard case .stateDiagram(let graph) = imported.document.payload else {
+            Issue.record("expected state diagram")
+            return
+        }
+        #expect(graph.classAssignments["a"] == ["hot"])
+        #expect(graph.classAssignments["b"] == ["hot"])
+    }
+
+    @Test("treemap unterminated quote full of backslashes terminates quickly")
+    func treemapUnterminatedEscapes() async throws {
+        let start = Date()
+        _ = await Self.runAllStages("treemap-beta\n\"" + String(repeating: "\\a", count: 40))
+        #expect(Date().timeIntervalSince(start) < 5)
+    }
+
+    @Test("treemap quoted names parse as before")
+    func treemapQuotedNames() async throws {
+        let imported = try await DiagramEngine.parseImportResult(source: "treemap-beta\n\"Root\"\n  'Leaf A': 10\n  \"Leaf B\": 5")
+        guard case .treemap(let treemap) = imported.document.payload else {
+            Issue.record("expected treemap")
+            return
+        }
+        #expect(treemap.nodes.first?.name == "Root")
+        #expect(treemap.nodes.first?.children?.map(\.name) == ["Leaf A", "Leaf B"])
+    }
 }

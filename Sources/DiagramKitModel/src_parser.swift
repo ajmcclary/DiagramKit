@@ -507,8 +507,14 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
 
     // Build regex patterns with embedded state ID character class
     let SID = #"[^\n\s\-\{\}\:\-\-\>]+"#
+    // Id-list patterns (`class a,b,c x`, `style a,b fill:…`) must not let one
+    // id match a comma: with SID matching `,` too, `a,b,c` splits 2^(n-1)
+    // ways and a line whose tail fails to match backtracks through all of
+    // them (26 ids took ~14 s). SIDL excludes `,` so the list is linear.
+    let SIDL = #"[^\n\s\-\{\}\:\-\-\>,]+"#
     func sPat(_ tmpl: String) -> String {
         tmpl.replacingOccurrences(of: "{{SID}}", with: SID)
+            .replacingOccurrences(of: "{{SIDL}}", with: SIDL)
     }
 
     func isStateKeyword(_ s: String) -> Bool {
@@ -642,7 +648,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         }
 
         // --- class ---
-        if let clm = _regexGroups(sPat("^class\\s+({{SID}}(?:\\s*,\\s*{{SID}})*)\\s+(\\w+)$"), line),
+        if let clm = _regexGroups(sPat("^class\\s+({{SIDL}}(?:\\s*,\\s*{{SIDL}})*)\\s+(\\w+)$"), line),
            let idsRaw = clm[safe: 1], let className = clm[safe: 2] {
             for id in idsRaw.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !id.isEmpty {
                 if let firstChar = id.first, firstChar == "e", Int(id.dropFirst()) != nil {
@@ -657,7 +663,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         }
 
         // --- style ---
-        if let stm = _regexGroups(sPat("^style\\s+({{SID}}(?:\\s*,\\s*{{SID}})*)\\s+(.+)$"), line),
+        if let stm = _regexGroups(sPat("^style\\s+({{SIDL}}(?:\\s*,\\s*{{SIDL}})*)\\s+(.+)$"), line),
            let idsRaw = stm[safe: 1], let propsRaw = stm[safe: 2] {
             let props = _parseStyleProps(propsRaw)
             for id in idsRaw.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !id.isEmpty {

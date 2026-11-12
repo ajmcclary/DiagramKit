@@ -177,7 +177,13 @@ private func _parseTreemapLine(_ line: String) throws -> (indent: Int, name: Str
 
     var name: String = ""
 
-    let sectionRegex = try! NSRegularExpression(pattern: "^(?:\"([^\"]*(?:\\\\.[^\"]*)*)\"|'([^']*(?:\\\\.[^']*)*)')")
+    // A quoted name runs to the next matching quote (upstream's STRING
+    // terminal is `"[^"]*"|'[^']*'`). The former pattern added an escape
+    // loop, `"([^"]*(?:\\.[^"]*)*)"`, whose `[^"]*` also matched the
+    // backslash: it matched exactly the same strings, but an unterminated
+    // quote full of backslashes backtracked exponentially (24 escapes ran
+    // for over a minute).
+    let sectionRegex = try! NSRegularExpression(pattern: "^(?:\"([^\"]*)\"|'([^']*)')")
 
     guard let match = sectionRegex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) else {
         throw TreemapParserError.missingLabel(trimmed)
