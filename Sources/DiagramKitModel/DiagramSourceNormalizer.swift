@@ -5,6 +5,22 @@ import Foundation
 /// `src_index.swift`, and `Parser.swift`.
 public enum DiagramSourceNormalizer {
 
+    // MARK: - Line endings
+
+    /// Rewrites CRLF and lone CR line endings to `\n`. Every Mermaid parse
+    /// starts from this form (`_parseFrontMatterAndStripped` applies it), so
+    /// no parser has to know about `\r`. Note that `"\r\n"` is a single
+    /// `Character`, so code that compares characters with `"\n"` or splits
+    /// a `String` on `"\n"` never sees a CRLF line break.
+    public static func normalizedLineEndings(_ source: String) -> String {
+        // Check the bytes: `contains("\r")` would compare Characters and
+        // miss every CRLF.
+        guard source.utf8.contains(UInt8(ascii: "\r")) else { return source }
+        return source
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+    }
+
     // MARK: - Raw lines
 
     /// Split source into raw lines, no filtering.
@@ -14,9 +30,7 @@ public enum DiagramSourceNormalizer {
     /// paragraph separators (U+2028 / U+2029), and form feed (U+000C) — to
     /// a single `\n` before splitting.
     public static func rawLines(_ source: String) -> [String] {
-        source
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
+        normalizedLineEndings(source)
             .replacingOccurrences(of: "\u{2028}", with: "\n")
             .replacingOccurrences(of: "\u{2029}", with: "\n")
             .replacingOccurrences(of: "\u{000C}", with: "\n")
@@ -81,7 +95,8 @@ public enum DiagramSourceNormalizer {
         var isEscaped = false
 
         for ch in source {
-            if ch == "\n" {
+            // `"\r\n"` is one grapheme, so it must be matched explicitly.
+            if ch == "\n" || ch == "\r\n" || ch == "\r" {
                 // Newline always ends the current statement and resets quote state.
                 parts.append(current)
                 current = ""

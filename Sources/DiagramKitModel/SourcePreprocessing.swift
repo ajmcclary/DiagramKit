@@ -19,14 +19,18 @@ public func _mermaidSourceLines(
 
 /// Parse YAML-like frontmatter from a source string.
 /// Returns the stripped diagram source and any parsed DiagramFrontmatter.
+///
+/// The returned source always has `\n` line endings
+/// (`DiagramSourceNormalizer.normalizedLineEndings`), whether or not
+/// frontmatter was present. It used to hand back the original string when
+/// there was no frontmatter, so a CRLF document reached parsers that split
+/// on `"\n"` as one line and failed, or parsed to an empty diagram.
 public func _parseFrontMatterAndStripped(_ source: String) -> _PreprocessResult {
-    let normalized = source
-        .replacingOccurrences(of: "\r\n", with: "\n")
-        .replacingOccurrences(of: "\r", with: "\n")
+    let normalized = DiagramSourceNormalizer.normalizedLineEndings(source)
     guard normalized.contains("%%{") || _firstNonEmptyLineIsFrontmatterFence(normalized) else {
-        return (source, nil)
+        return (normalized, nil)
     }
-    return _parseFrontMatterAndStrippedSlow(normalized, originalSource: source)
+    return _parseFrontMatterAndStrippedSlow(normalized, originalSource: normalized)
 }
 
 private func _firstNonEmptyLineIsFrontmatterFence(_ source: String) -> Bool {

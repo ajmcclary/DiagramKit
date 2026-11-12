@@ -18,9 +18,14 @@ public enum DiagramLoader {
     /// - Throws: `DiagramError` on fatal parse failures. Throws a loader-level
     ///   error when no importer claims the source.
     public static func parseImportResult(
-        _ source: String,
+        _ rawSource: String,
         registry: ImporterRegistry
     ) throws -> DiagramImportResult {
+        // Probe and parse the `\n` form: importer probes match on whole
+        // lines (a Mermaid `---` frontmatter fence, a format keyword), and a
+        // CRLF line never equals them, so a CRLF document could be claimed
+        // by the wrong importer.
+        let source = DiagramSourceNormalizer.normalizedLineEndings(rawSource)
         guard let importer = registry.importer(for: source) else {
             let preview = source.prefix(40).trimmingCharacters(in: .whitespacesAndNewlines)
             throw DiagramError.unrecognizedFormat(
@@ -72,6 +77,7 @@ public enum DiagramLoader {
                 "no importer registered for format '\(formatID.rawValue)' in registry"
             )
         }
+        let source = DiagramSourceNormalizer.normalizedLineEndings(source)
         return try withImporterFormat(importer.parse(source), importer: importer)
     }
 
