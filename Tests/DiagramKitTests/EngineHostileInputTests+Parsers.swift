@@ -175,4 +175,29 @@ extension EngineHostileInputTests {
         let result = await Self.runAllStages("packet-beta\n0-319999: \"a\"")
         _ = try result.get()
     }
+
+    // MARK: - Radar: ticks
+
+    @Test("radar ticks outside 0...100 throw a typed error", arguments: ["-1", "101", "2000000000", "99999999999999999999"])
+    func radarTicksOutOfRange(_ ticks: String) async throws {
+        let source = "radar-beta\naxis a,b,c\ncurve x{1,2,3}\nticks \(ticks)"
+        let result = await Self.runAllStages(source)
+        #expect {
+            try result.get()
+        } throws: { error in
+            if case RadarParserError.invalidTicksValue = error { return true }
+            return false
+        }
+    }
+
+    @Test("radar ticks 0 and 100 are accepted", arguments: ["0", "100"])
+    func radarTicksInRange(_ ticks: String) async throws {
+        let source = "radar-beta\naxis a,b,c\ncurve x{1,2,3}\nticks \(ticks)"
+        let imported = try await Self.runAllStages(source).get()
+        guard case .radar(let radar) = imported.document.payload else {
+            Issue.record("expected radar")
+            return
+        }
+        #expect(radar.options.ticks == Int(ticks))
+    }
 }

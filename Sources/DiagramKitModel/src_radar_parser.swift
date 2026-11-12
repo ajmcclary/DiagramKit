@@ -1,6 +1,9 @@
 import Foundation
 import DiagramKitCommon
 
+/// Largest `ticks` value the radar parser accepts.
+let radarMaxTicks = 100
+
 public func parseRadarDiagram(
     source: String,
     frontmatter: DiagramFrontmatter? = nil
@@ -172,8 +175,11 @@ public func parseRadarDiagram(
 
         if lower.hasPrefix("ticks") {
             let val = _parseKeywordValue(trimmed, keyword: "ticks") ?? ""
-            guard let n = Int(val) else {
-                throw RadarParserError.invalidTicksValue("Invalid ticks value at line \(i + 1): '\(val)'", line: i + 1)
+            // The layout builds one graticule ring per tick (`0..<ticks`),
+            // so a negative count trapped and a huge one never finished.
+            // 0 draws no rings, as upstream does.
+            guard let n = _parseBoundedInt(val, in: 0...radarMaxTicks) else {
+                throw RadarParserError.invalidTicksValue("Invalid ticks value at line \(i + 1): '\(val)' (expected a whole number from 0 to \(radarMaxTicks))", line: i + 1)
             }
             ticks = n
             i += 1
