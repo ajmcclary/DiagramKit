@@ -151,4 +151,28 @@ extension EngineHostileInputTests {
         #expect(diagram.blockDatabase["a"]?.widthInColumns == 2)
         #expect(diagnostics.isEmpty)
     }
+
+    // MARK: - Packet: bit ranges at the Int limit
+
+    @Test("packet ranges reaching Int.max throw instead of trapping", arguments: [
+        "packet-beta\n0-9223372036854775807: \"a\"",
+        "packet-beta\n0-15: \"a\"\n16-9223372036854775807: \"b\"",
+        "packet-beta\n+1: \"b\"\n+9223372036854775807: \"a\"",
+        "packet-beta\n0-320000: \"a\"",
+    ])
+    func packetHugeRange(_ source: String) async throws {
+        let result = await Self.runAllStages(source)
+        #expect {
+            try result.get()
+        } throws: { error in
+            if case PacketParserError.maxPacketSizeExceeded = error { return true }
+            return false
+        }
+    }
+
+    @Test("packet range filling exactly the row limit still parses")
+    func packetRangeAtLimit() async throws {
+        let result = await Self.runAllStages("packet-beta\n0-319999: \"a\"")
+        _ = try result.get()
+    }
 }

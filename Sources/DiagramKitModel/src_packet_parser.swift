@@ -368,6 +368,16 @@ public func _normalizePacketBlocks(
     }
 
     let maxRows = 10_000
+    // Every bit index must fit in `maxRows` rows. Checking start/end/bits
+    // against that bound before any row arithmetic keeps the splitter below
+    // free of overflow (`end` used to saturate to `Int.max`, and then
+    // `segmentEnd + 1` trapped). A non-positive or absurd `bitsPerRow`
+    // cannot produce a valid layout either (`start % bitsPerRow`).
+    let bitsPerRow = config.bitsPerRow
+    guard bitsPerRow > 0, bitsPerRow <= Int.max / maxRows else {
+        throw PacketParserError.maxPacketSizeExceeded
+    }
+    let maxBitIndex = maxRows * bitsPerRow - 1
     var rows: [PacketRow] = []
     var currentRow: PacketRow = []
     var lastBit = -1
@@ -437,10 +447,12 @@ public func _normalizePacketBlocks(
         if start != lastBit + 1 {
             throw PacketParserError.notContiguous(expected: lastBit + 1, found: start)
         }
+        if end > maxBitIndex {
+            throw PacketParserError.maxPacketSizeExceeded
+        }
         lastBit = end
 
         // Row splitting
-        let bitsPerRow = config.bitsPerRow
         var segmentStart = start
         let segmentEnd = end
         var segmentBits = bits
