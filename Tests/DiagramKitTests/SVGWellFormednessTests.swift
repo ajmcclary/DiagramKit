@@ -112,7 +112,13 @@ struct SVGWellFormednessTests {
         let failures: [String] = try await DiagramEngine._runOnWorker {
             var failures: [String] = []
             for (name, source, format) in try corpusInputs() {
-                guard let svg = try? DiagramPipeline.renderSVG(source: source, idPolicy: .stable, sourceFormat: format) else {
+                let svg: String
+                do {
+                    svg = try DiagramPipeline.renderSVG(source: source, idPolicy: .stable, sourceFormat: format)
+                } catch {
+                    // A corpus entry that stops rendering is a failure here,
+                    // not a skip.
+                    failures.append("[\(name)] threw \(error)")
                     continue
                 }
                 let problems = svgProblems(svg)
