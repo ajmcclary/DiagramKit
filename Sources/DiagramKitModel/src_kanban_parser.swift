@@ -342,7 +342,6 @@ private func _applyKanbanDecoration(_ decoration: (icon: String?, cssClasses: St
 
 public func _stripKanbanComment(_ line: String) -> String {
     var result = ""
-    var inSingleQuote = false
     var inDoubleQuote = false
     var inBrace = 0
     let chars = Array(line)
@@ -351,13 +350,13 @@ public func _stripKanbanComment(_ line: String) -> String {
     while i < chars.count {
         let ch = chars[i]
 
-        if !inSingleQuote && !inDoubleQuote && inBrace == 0 {
+        if !inDoubleQuote && inBrace == 0 {
             if ch == "%" && i + 1 < chars.count && chars[i + 1] == "%" {
                 return result.trimmingCharacters(in: .whitespacesAndNewlines)
             }
         }
 
-        if !inDoubleQuote && !inSingleQuote && inBrace > 0 {
+        if !inDoubleQuote && inBrace > 0 {
             if ch == "{" { inBrace += 1 }
             else if ch == "}" { inBrace -= 1 }
             result.append(ch)
@@ -365,9 +364,10 @@ public func _stripKanbanComment(_ line: String) -> String {
             continue
         }
 
-        if ch == "'" && !inDoubleQuote && inBrace == 0 { inSingleQuote.toggle() }
-        else if ch == "\"" && !inSingleQuote && inBrace == 0 { inDoubleQuote.toggle() }
-        else if ch == "@" && !inSingleQuote && !inDoubleQuote && inBrace == 0 && i + 1 < chars.count && chars[i + 1] == "{" {
+        // Node text quotes with `"` only; an apostrophe (`t1[Don't do]`) is
+        // text. Single quotes stay quotes inside `@{ … }` metadata.
+        if ch == "\"" && inBrace == 0 { inDoubleQuote.toggle() }
+        else if ch == "@" && !inDoubleQuote && inBrace == 0 && i + 1 < chars.count && chars[i + 1] == "{" {
             inBrace = 1
             result.append(ch)
             result.append(chars[i + 1])
@@ -444,8 +444,13 @@ public func _parseSingleKanbanNode(
 
     if label.isEmpty { label = id ?? "" }
 
-    let finalLabel = _kbnSanitizeText(metaLabel ?? _kbnStripQuotes(label))
-    let finalId = _kbnSanitizeText(id ?? finalLabel)
+    // The label is display text: keep it raw. The SVG renderer escapes it
+    // at the sink, and the CG and ASCII renderers draw it as is, so an
+    // escaped model string showed up as `R&amp;D` there. The id keeps its
+    // historical derivation from the escaped label so element ids are
+    // unchanged.
+    let finalLabel = metaLabel ?? _kbnStripQuotes(label)
+    let finalId = _kbnSanitizeText(id ?? _kbnSanitizeText(finalLabel))
     let generatedId = finalId.isEmpty ? kbnGenerator() : finalId
 
     return (
@@ -481,7 +486,7 @@ public func _extractBracketContentAfterId(_ text: String) -> (id: String?, conte
             i += 1
             continue
         }
-        if ch == "\"" || ch == "'" { quoteChar = ch; i += 1; continue }
+        if ch == "\"" { quoteChar = ch; i += 1; continue }
 
         let remaining = String(chars[i...])
         if remaining.hasPrefix("[") { return _bracketContentAt(remaining, i, chars, shape: .rect) }
@@ -595,14 +600,12 @@ public func _extractBracketContent(_ text: String) -> (content: String, type: Ka
 
 public func _findMatchingDelimiter(_ text: String, open: String, close: String) -> String.Index? {
     var depth = 1
-    var inSingle = false
     var inDouble = false
     var i = text.index(text.startIndex, offsetBy: open.count)
     while i < text.endIndex {
         let ch = text[i]
-        if ch == "'" && !inDouble { inSingle.toggle(); i = text.index(after: i); continue }
-        if ch == "\"" && !inSingle { inDouble.toggle(); i = text.index(after: i); continue }
-        if !inSingle && !inDouble {
+        if ch == "\"" { inDouble.toggle(); i = text.index(after: i); continue }
+        if !inDouble {
             if _matchAt(text, needle: open, index: i) {
                 depth += 1
                 i = text.index(i, offsetBy: open.count)
@@ -651,7 +654,7 @@ public func _splitIdLabel(_ text: String) -> (id: String?, label: String) {
             i += 1
             continue
         }
-        if ch == "\"" || ch == "'" { quoteChar = ch; i += 1; continue }
+        if ch == "\"" { quoteChar = ch; i += 1; continue }
 
         if ch == "[" || ch == "(" || ch == "{" || ch == "@" {
             let idPart = String(chars[0..<i]).trimmingCharacters(in: .whitespacesAndNewlines)

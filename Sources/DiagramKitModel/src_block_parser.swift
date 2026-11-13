@@ -721,7 +721,9 @@ private func populateBlockDB(
             node.label = node.id
         }
     }
-    node.label = sanitizeBlockText(node.label)
+    // Labels stay raw in the model; the SVG renderer escapes at the sink
+    // and the CG/ASCII renderers draw the text itself (an escaped model
+    // string showed up there as `It&#39;s`).
 
     if let existing = db[node.id] {
         var merged = existing
