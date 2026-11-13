@@ -201,6 +201,11 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
     // Flatten the JSON into key-value pairs and apply through registered bindings.
     let pairs = InitDirectiveParser.flatten(object, prefix: "")
     applied = _applyBindings(pairs, to: &frontmatter) || applied
+    // JSON object order is not preserved by `JSONSerialization`; sort so the
+    // recorded entries (and any export written from them) are deterministic.
+    frontmatter.sourceEntries += pairs
+        .map { DiagramFrontmatterEntry(path: "config.\($0.path)", value: $0.value.raw) }
+        .sorted { $0.path < $1.path }
 
     return applied
 }
@@ -368,6 +373,7 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     guard !pairs.isEmpty else { return nil }
 
     var frontmatter = DiagramFrontmatter()
+    frontmatter.sourceEntries = pairs.map { DiagramFrontmatterEntry(path: $0.path, value: $0.value.raw) }
     var hasContent = false
 
     // Handle global keys and title inline

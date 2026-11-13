@@ -48,8 +48,11 @@ public struct MermaidImporter: DiagramSourceImporter {
         }
         let fmTheme = frontmatter?.shared.theme
         let fmLayout = frontmatter?.shared.layout
-        if fmTheme != nil || fmLayout != nil {
-            document.frontmatter = DiagramDocumentFrontmatter(theme: fmTheme, layout: fmLayout)
+        let preserved = Self.preservedEntries(frontmatter?.sourceEntries ?? [])
+        if fmTheme != nil || fmLayout != nil || !preserved.isEmpty {
+            document.frontmatter = DiagramDocumentFrontmatter(
+                theme: fmTheme, layout: fmLayout, preservedEntries: preserved
+            )
         }
 
         if let fmDiagnostics = frontmatter?.diagnostics, !fmDiagnostics.isEmpty {
@@ -57,5 +60,13 @@ public struct MermaidImporter: DiagramSourceImporter {
         }
 
         return DiagramImportResult(document: document, diagnostics: diagnostics)
+    }
+
+    /// The frontmatter settings the document does not model itself, in the
+    /// canonical order the exporter writes them.
+    static func preservedEntries(_ entries: [DiagramFrontmatterEntry]) -> [DiagramFrontmatterEntry] {
+        DiagramFrontmatterEntry.canonicalized(
+            entries.filter { !DiagramFrontmatterEntry.modelledPaths.contains($0.path) }
+        )
     }
 }

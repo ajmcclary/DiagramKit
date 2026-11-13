@@ -195,7 +195,15 @@ private func _scanEdgeOpBody(_ text: String) -> _ParsedEdgeOp? {
                 case "x":
                     op.arrowHeadEnd = .cross
                     i += 1
-                default: break
+                default:
+                    // `---` (and longer) with no head is upstream's open
+                    // link: no arrowhead, normal length at three dashes.
+                    // It used to keep the `.arrow` default, so `A --- B`
+                    // drew an arrow (and an export of it wrote `-->`).
+                    if dashCount >= 3 {
+                        op.arrowHeadEnd = .none
+                        op.minlen = dashCount - 3
+                    }
                 }
             } else {
                 op.arrowHeadEnd = .none

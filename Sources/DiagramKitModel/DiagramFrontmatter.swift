@@ -27,6 +27,11 @@ public struct DiagramFrontmatter: Sendable {
     /// unsafe colors or style values). Merged into `DiagramImportResult` by
     /// the importer.
     public var diagnostics: [DiagramDiagnostic]
+    /// Every setting read from the YAML block and from `%%{init}%%`
+    /// directives, flattened, in the order applied (init-directive paths are
+    /// prefixed with `config.`, as the YAML form spells them). Kept so an
+    /// exporter can write back settings no typed section models.
+    public var sourceEntries: [DiagramFrontmatterEntry] = []
 
     public init(
         shared: SharedFrontmatter = SharedFrontmatter(),

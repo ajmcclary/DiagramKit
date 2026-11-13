@@ -77,7 +77,7 @@ import DiagramKit
         )
 
         let result = try MermaidExporter().export(DiagramDocument(payload: .flowchart(graph)))
-        #expect(result.source.contains("A -- goes to --> B"))
+        #expect(result.source.contains("A -->|goes to| B"))
 
         let reparsed = try MermaidImporter().parse(result.source).document
         guard case .flowchart(let reparsedGraph) = reparsed.payload else {

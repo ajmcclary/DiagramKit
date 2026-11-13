@@ -139,13 +139,37 @@ public struct DiagramDocumentFrontmatter: Sendable, Equatable, Hashable {
     public var theme: String?
     /// Layout preset name ("adaptive"; nil/absent = hierarchical default).
     public var layout: String?
+    /// Every other frontmatter / init-directive setting the source carried
+    /// (`config.flowchart.curve`, `config.themeVariables.primaryColor`, …),
+    /// as flattened paths in source order. `theme`, `layout` and the title
+    /// are not repeated here: they live in `theme`, `layout` and
+    /// `DiagramDocument.title`. The Mermaid exporter writes these back so a
+    /// canvas edit does not delete the author's configuration.
+    public var preservedEntries: [DiagramFrontmatterEntry]
 
-    public init(theme: String? = nil, layout: String? = nil) {
+    public init(
+        theme: String? = nil,
+        layout: String? = nil,
+        preservedEntries: [DiagramFrontmatterEntry] = []
+    ) {
         self.theme = theme
         self.layout = layout
+        self.preservedEntries = preservedEntries
     }
 
-    public var isEmpty: Bool { theme == nil && layout == nil }
+    public var isEmpty: Bool { theme == nil && layout == nil && preservedEntries.isEmpty }
+}
+
+/// One flattened frontmatter setting: a dot-separated path under the
+/// frontmatter root (`config.flowchart.curve`) and its unquoted value.
+public struct DiagramFrontmatterEntry: Sendable, Equatable, Hashable {
+    public var path: String
+    public var value: String
+
+    public init(path: String, value: String) {
+        self.path = path
+        self.value = value
+    }
 }
 
 public struct DiagramDocument: Sendable {

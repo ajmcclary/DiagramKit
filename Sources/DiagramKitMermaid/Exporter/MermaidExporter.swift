@@ -119,21 +119,23 @@ public struct MermaidExporter: DiagramExporter {
         to result: DiagramExportResult
     ) -> DiagramExportResult {
         guard !result.source.isEmpty else { return result }
-        var lines: [String] = []
+        var entries: [DiagramFrontmatterEntry] = []
         if let title = document.title, !title.isEmpty {
-            lines.append("title: \(singleLineTitle(title))")
+            entries.append(DiagramFrontmatterEntry(path: "title", value: singleLineTitle(title)))
         }
-        var configLines: [String] = []
         if let theme = document.frontmatter?.theme, !theme.isEmpty {
-            configLines.append("  theme: \(theme)")
+            entries.append(DiagramFrontmatterEntry(path: "config.theme", value: theme))
         }
         if let layout = document.frontmatter?.layout, !layout.isEmpty {
-            configLines.append("  layout: \(layout)")
+            entries.append(DiagramFrontmatterEntry(path: "config.layout", value: layout))
         }
-        if !configLines.isEmpty {
-            lines.append("config:")
-            lines.append(contentsOf: configLines)
+        // Settings the document does not model (`config.flowchart.curve`,
+        // `config.themeVariables.*`, …) are written back as read, so an edit
+        // made through `DiagramEditor` keeps them.
+        entries += (document.frontmatter?.preservedEntries ?? []).filter {
+            !DiagramFrontmatterEntry.modelledPaths.contains($0.path)
         }
+        let lines = DiagramFrontmatterEntry.yamlLines(for: entries)
         guard !lines.isEmpty else { return result }
         let frontmatter = "---\n" + lines.joined(separator: "\n") + "\n---\n"
         return DiagramExportResult(
