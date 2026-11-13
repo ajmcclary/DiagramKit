@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 #if canImport(CoreGraphics)
 import CoreGraphics
 #endif
@@ -58,14 +59,18 @@ public func layoutRadarDiagram(_ diagram: RadarDiagram) -> PositionedRadarDiagra
     }
 
     var graticules: [PositionedRadarGraticule] = []
+    // `ticks` also arrives through `config.radar.ticks` and from models
+    // built by hand: a negative count trapped the range, a huge one
+    // allocated gigabytes. The parser's own bound is 0…100.
+    let ticks = min(max(options.ticks, 0), 100)
     if options.graticule == .circle {
-        for i in 0..<options.ticks {
-            let r = radius * Double(i + 1) / Double(options.ticks)
+        for i in 0..<ticks {
+            let r = radius * Double(i + 1) / Double(ticks)
             graticules.append(PositionedRadarGraticule(type: .circle, radius: r))
         }
     } else {
-        for i in 0..<options.ticks {
-            let r = radius * Double(i + 1) / Double(options.ticks)
+        for i in 0..<ticks {
+            let r = radius * Double(i + 1) / Double(ticks)
             var pts: [CGPoint] = []
             for j in 0..<numAxes {
                 let angle = (2.0 * Double(j) * Double.pi) / Double(numAxes) - Double.pi / 2
@@ -215,7 +220,7 @@ private func _svgNum(_ n: Double) -> String {
     guard n.isFinite else { return "0" }
     let nearestInt = n.rounded()
     if abs(n - nearestInt) < 1e-9 {
-        return String(Int(nearestInt))
+        return _integralText(nearestInt)
     }
     var s = String(format: "%.6f", n)
     while s.hasSuffix("0") { s = String(s.dropLast()) }

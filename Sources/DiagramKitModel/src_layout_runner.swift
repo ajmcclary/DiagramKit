@@ -55,13 +55,30 @@ func _layoutGraphSyncWithConfig(
 /// patch as a spacing scale so `config.layout: adaptive` frontmatter
 /// visibly loosens the arrangement while LayoutConfig stays authoritative.
 private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout ElkGraphNode) {
-    let p = Int(config.padding)
+    // LayoutConfig is public and unvalidated, and hosts fill it from user
+    // JSON (`{"padding": 1e19}` reached `Int(Double)` and trapped). Every
+    // value is clamped here, so no caller can trap or blow up the layout.
+    let defaults = LayoutConfig()
+    let p = _layoutSpacing(config.padding, default: defaults.padding)
     let adaptive = elkGraph.layoutOptions["diagramkit.layoutPreset"] == ElkLayoutOptions.Preset.adaptive.rawValue
     let spacingScale = adaptive ? 1.4 : 1.0
-    elkGraph.layoutOptions["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing * spacingScale))"
-    elkGraph.layoutOptions["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(Int(config.layerSpacing * spacingScale))"
+    let nodeSpacing = _layoutSpacing(config.nodeSpacing * spacingScale, default: defaults.nodeSpacing * spacingScale)
+    let layerSpacing = _layoutSpacing(config.layerSpacing * spacingScale, default: defaults.layerSpacing * spacingScale)
+    let componentSpacing = _layoutSpacing(config.componentSpacing, default: defaults.componentSpacing)
+    elkGraph.layoutOptions["elk.spacing.nodeNode"] = "\(nodeSpacing)"
+    elkGraph.layoutOptions["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(layerSpacing)"
     elkGraph.layoutOptions["elk.padding"] = "[top=\(p),left=\(p),bottom=\(p),right=\(p)]"
-    elkGraph.layoutOptions["elk.spacing.componentComponent"] = "\(Int(config.componentSpacing))"
+    elkGraph.layoutOptions["elk.spacing.componentComponent"] = "\(componentSpacing)"
+}
+
+/// Largest spacing or padding the layout accepts, in points.
+let _maxLayoutSpacing = 1_000
+
+/// `value` truncated to an integer in `0…_maxLayoutSpacing`; non-finite
+/// values take `default`.
+func _layoutSpacing(_ value: Double, default fallback: Double) -> Int {
+    let finite = value.isFinite ? value : fallback
+    return Int(min(max(finite, 0), Double(_maxLayoutSpacing)))
 }
 
 func _layoutGraphSyncFromLayoutEngine(

@@ -96,3 +96,16 @@ public func _parseBoundedInt<S: StringProtocol>(_ text: S, in range: ClosedRange
     guard let value = Int(String(text)), range.contains(value) else { return nil }
     return value
 }
+
+// MARK: - Integer text for computed doubles
+
+/// The integer text of `value` — a computed or user-supplied `Double`
+/// that is already integral (or has just been rounded): exact digits for
+/// any finite magnitude, `"0"` for NaN and ±inf. `String(Int(value))`
+/// trapped for anything at or beyond 2^63 (a sankey value of 1e20, an
+/// autonumber start of 1e20).
+public func _integralText(_ value: Double) -> String {
+    guard value.isFinite else { return "0" }
+    if let integral = _safeInt(value) { return String(integral) }
+    return String(format: "%.0f", value)
+}

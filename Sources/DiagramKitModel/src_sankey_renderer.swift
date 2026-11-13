@@ -247,7 +247,7 @@ private func _centralNodeLayer(_ positioned: PositionedSankeyDiagram) -> Int {
 private func _sankeyFormatValue(_ v: Double) -> String {
     let rounded = (v * 100).rounded() / 100
     if !rounded.isFinite { return "0" }
-    if rounded == rounded.rounded() { return String(Int(rounded)) }
+    if rounded == rounded.rounded() { return _integralText(rounded) }
     let str = String(format: "%.2f", rounded)
     if str.hasSuffix("0") {
         return String(format: "%.1f", rounded)

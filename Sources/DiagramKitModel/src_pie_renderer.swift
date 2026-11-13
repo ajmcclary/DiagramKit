@@ -136,7 +136,7 @@ public func renderPieSvg(
 private func _pieR(_ n: Double) -> String {
     let rounded = (n * 10).rounded() / 10
     if rounded.isFinite && abs(rounded) < 1e15 && rounded == rounded.rounded() {
-        return String(Int(rounded))
+        return _integralText(rounded)
     }
     if !rounded.isFinite { return "0" }
     return String(format: "%.1f", rounded)

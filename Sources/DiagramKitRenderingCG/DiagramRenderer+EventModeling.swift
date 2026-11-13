@@ -83,7 +83,7 @@ extension DiagramRenderer {
         context.setStrokeColor(strokeColor.cgColor)
         context.setLineWidth(1)
 
-        let path = CGPath(roundedRect: rect, cornerWidth: 3, cornerHeight: 3, transform: nil)
+        let path = _safeCGRoundedRect(rect, cornerWidth: 3, cornerHeight: 3)
         context.addPath(path)
         context.fillPath()
         context.addPath(path)
@@ -112,7 +112,7 @@ extension DiagramRenderer {
         // Fill
         let fillColor = _emParseColor(box.fill)
         context.setFillColor(fillColor.cgColor)
-        let path = CGPath(roundedRect: rect, cornerWidth: 3, cornerHeight: 3, transform: nil)
+        let path = _safeCGRoundedRect(rect, cornerWidth: 3, cornerHeight: 3)
         context.addPath(path)
         context.fillPath()
 

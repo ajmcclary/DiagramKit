@@ -381,7 +381,7 @@ extension DiagramRenderer {
 
     private func _roundedRect(x: Double, y: Double, width: Double, height: Double, radius: Double) -> CGPath {
         let rect = CGRect(x: x, y: y, width: width, height: height)
-        let path = CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil)
+        let path = _safeCGRoundedRect(rect, cornerWidth: radius, cornerHeight: radius)
         return path
     }
 

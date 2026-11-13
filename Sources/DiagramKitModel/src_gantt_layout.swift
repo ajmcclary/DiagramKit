@@ -206,7 +206,7 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
         }
         if isMilestone { labelClasses.append("milestoneText") }
         if isVert { labelClasses.append("vertText") }
-        labelClasses.append("width-\(Int(ceil(textWidth)))")
+        labelClasses.append("width-\(_integralText(ceil(textWidth)))")
 
         let positioned = PositionedGanttTask(
             task: task,

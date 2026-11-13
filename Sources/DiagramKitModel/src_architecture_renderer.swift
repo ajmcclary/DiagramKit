@@ -48,10 +48,10 @@ public func renderArchitectureSvg(
     svg += ".edge { stroke-width: \(edgeWidth); stroke: \(edgeColor); fill: none; }\n"
     svg += ".arrow { fill: \(arrowColor); }\n"
     svg += ".node-bkg { fill: none; stroke: \(groupBorderColor); stroke-width: \(groupBorderWidth); stroke-dasharray: 8; }\n"
-    svg += ".arch-service-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
-    svg += ".arch-group-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); }\n"
-    svg += ".arch-edge-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
-    svg += ".arch-diagram-title { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; font-weight: 600; }\n"
+    svg += ".arch-service-label { font-family: \(font); font-size: \(_integralText(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
+    svg += ".arch-group-label { font-family: \(font); font-size: \(_integralText(fontSize))px; fill: \(fgColor); }\n"
+    svg += ".arch-edge-label { font-family: \(font); font-size: \(_integralText(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
+    svg += ".arch-diagram-title { font-family: \(font); font-size: \(_integralText(fontSize))px; fill: \(fgColor); text-anchor: middle; font-weight: 600; }\n"
     svg += "</style>\n"
 
     if let title = positioned.diagramTitle, !title.isEmpty {
@@ -206,7 +206,7 @@ private func _iconSvg(for iconName: String?, iconText: String?, cx: Double, cy: 
     let y = cy - halfIcon
 
     if let iconText = iconText, !iconText.isEmpty {
-        return "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(Int(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(SVG.escapeText(iconText))</text>\n"
+        return "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(_integralText(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(SVG.escapeText(iconText))</text>\n"
     }
 
     if let iconName = iconName?.trimmingCharacters(in: .whitespaces), !iconName.isEmpty {
@@ -349,7 +349,7 @@ private func _arrowPoints(cx: Double, cy: Double, angle: Double) -> String {
 
 private func _fmt(_ d: Double) -> String {
     let r = round(d * 10) / 10
-    return (r == floor(r)) ? String(Int(r)) : String(r)
+    return (r == floor(r)) ? _integralText(r) : String(r)
 }
 
 private let _cloudPath = "M24 12c0-4.4-3.6-8-8-8-3 0-5.6 1.7-7 4.2C7 7.5 5.3 7 3.6 7.6 1.3 8.5 0 10.9 0 13.5 0 17.1 2.9 20 6.5 20H30c3.3 0 6-2.7 6-6 0-3.3-2.7-6-6-6h-.5c-.5-2.4-2.6-4-4.9-4-1.5 0-2.8.6-3.7 1.7C20.3 12.3 20 12 20 12h-4z"

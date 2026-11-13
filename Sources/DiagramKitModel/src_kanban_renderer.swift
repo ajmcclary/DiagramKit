@@ -63,7 +63,7 @@ public func renderKanbanSvg(
 
         svg += "<g id=\"\(SVG.escapeAttribute(diagramId))-\(SVG.escapeAttribute(section.id))\" class=\"cluster \(sectionClass)\">\n"
         svg += "<rect x=\"\(sx)\" y=\"\(sy)\" width=\"\(sw)\" height=\"\(sh)\" rx=\"5\" ry=\"5\" fill=\"\(sectionFill)\" stroke=\"\(sectionStroke)\" stroke-width=\"1\"/>\n"
-        svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(SVG.escapeText(section.label))</text>\n"
+        svg += "<text x=\"\(_integralText(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(SVG.escapeText(section.label))</text>\n"
         svg += "</g>\n"
     }
     svg += "</g>\n"

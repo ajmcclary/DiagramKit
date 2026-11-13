@@ -83,7 +83,7 @@ private func _reqSvgOpenTag(
 ) -> String {
     var tag = original_src_theme.svgOpenTag(width, height, colors, transparent)
     if config.useMaxWidth {
-        tag = tag.replacingOccurrences(of: "width=\"\(Int(width))\"", with: "width=\"100%\"")
+        tag = tag.replacingOccurrences(of: "width=\"\(_integralText(width))\"", with: "width=\"100%\"")
     }
     return tag
 }

@@ -205,7 +205,7 @@ enum D2C4Mapper {
                 case .c4Technology(let targetID, let value):
                     if let idx = shapeDeclarationsByAlias[targetID] {
                         shapes[idx].technology = value
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         relationships[edgeIdx].technology = value
                     }
                 case .c4Description(let targetID, let value):
@@ -213,13 +213,13 @@ enum D2C4Mapper {
                         shapes[idx].description = value
                     } else if let bidx = boundaryDeclarationsByAlias[targetID] {
                         boundaries[bidx].description = value
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         relationships[edgeIdx].description = value
                     }
                 case .c4Sprite(let targetID, let value):
                     if let idx = shapeDeclarationsByAlias[targetID] {
                         shapes[idx].sprite = value
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         relationships[edgeIdx].sprite = value
                     }
                 case .c4Tag(let targetID, let value):
@@ -227,7 +227,7 @@ enum D2C4Mapper {
                         shapes[idx].tags = value
                     } else if let bidx = boundaryDeclarationsByAlias[targetID] {
                         boundaries[bidx].tags = value
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         relationships[edgeIdx].tags = value
                     }
                 case .c4Link(let targetID, let value):
@@ -235,7 +235,7 @@ enum D2C4Mapper {
                         shapes[idx].link = value
                     } else if let bidx = boundaryDeclarationsByAlias[targetID] {
                         boundaries[bidx].link = value
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         relationships[edgeIdx].link = value
                     }
                 case .c4BoundaryKind(let targetID, let raw):
@@ -257,7 +257,7 @@ enum D2C4Mapper {
                         if let v = parsed["bg"] { boundaries[bidx].bgColor = v }
                         if let v = parsed["font"] { boundaries[bidx].fontColor = v }
                         if let v = parsed["border"] { boundaries[bidx].borderColor = v }
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         if let v = parsed["text"] { relationships[edgeIdx].textColor = v }
                         if let v = parsed["line"] { relationships[edgeIdx].lineColor = v }
                     }

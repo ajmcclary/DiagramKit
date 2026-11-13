@@ -151,7 +151,7 @@ extension DiagramRenderer {
                     ctx.stroke(centeredRect)
                     ctx.restoreGState()
                 } else {
-                    let path = CGPath(roundedRect: rect, cornerWidth: 3, cornerHeight: 3, transform: nil)
+                    let path = _safeCGRoundedRect(rect, cornerWidth: 3, cornerHeight: 3)
 
                     let fillHex: String
                     let strokeHex: String

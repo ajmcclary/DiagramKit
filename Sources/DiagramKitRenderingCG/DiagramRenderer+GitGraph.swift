@@ -73,7 +73,7 @@ extension DiagramRenderer {
             for bl in pg.branchLabels {
                 ctx.saveGState()
                 let rect = CGRect(x: bl.x + bl.bkgX, y: bl.y + bl.bkgY, width: bl.bkgWidth, height: bl.bkgHeight)
-                let roundedPath = CGPath(roundedRect: rect, cornerWidth: bl.borderRadius, cornerHeight: bl.borderRadius, transform: nil)
+                let roundedPath = _safeCGRoundedRect(rect, cornerWidth: bl.borderRadius, cornerHeight: bl.borderRadius)
                 ctx.setFillColor(surfaceColor)
                 ctx.addPath(roundedPath)
                 ctx.fillPath()

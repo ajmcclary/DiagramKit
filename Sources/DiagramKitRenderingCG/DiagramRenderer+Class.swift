@@ -303,7 +303,7 @@ extension DiagramRenderer {
         context.setStrokeColor(theme.effectiveLine().cgColor)
         context.setLineWidth(1.5)
         context.setLineDash(phase: 0, lengths: [6, 4])
-        let roundedPath = CGPath(roundedRect: rect, cornerWidth: 4, cornerHeight: 4, transform: nil)
+        let roundedPath = _safeCGRoundedRect(rect, cornerWidth: 4, cornerHeight: 4)
         context.addPath(roundedPath)
         context.strokePath()
         context.restoreGState()

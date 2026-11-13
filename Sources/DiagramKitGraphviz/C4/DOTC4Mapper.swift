@@ -204,7 +204,7 @@ enum DOTC4Mapper {
                         if let v = parsed["bg"]     { boundaries[bidx].bgColor = v }
                         if let v = parsed["font"]   { boundaries[bidx].fontColor = v }
                         if let v = parsed["border"] { boundaries[bidx].borderColor = v }
-                    } else if let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+                    } else if let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                         if let v = parsed["text"] { relationships[edgeIdx].textColor = v }
                         if let v = parsed["line"] { relationships[edgeIdx].lineColor = v }
                     }
@@ -228,7 +228,7 @@ enum DOTC4Mapper {
                 boundaryUpdate(&boundaries[bidx])
                 return
             }
-            if let edgeUpdate, let edgeIdx = Int(targetID), edgeIdx < relationships.count {
+            if let edgeUpdate, let edgeIdx = Int(targetID), relationships.indices.contains(edgeIdx) {
                 edgeUpdate(&relationships[edgeIdx])
             }
         }

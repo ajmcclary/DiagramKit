@@ -43,7 +43,7 @@ extension DiagramRenderer {
                 width: CGFloat(section.width),
                 height: CGFloat(section.height)
             )
-            let path = CGPath(roundedRect: rect, cornerWidth: CGFloat(section.rx), cornerHeight: CGFloat(section.ry), transform: nil)
+            let path = _safeCGRoundedRect(rect, cornerWidth: CGFloat(section.rx), cornerHeight: CGFloat(section.ry))
             context.addPath(path)
             context.setFillColor(surfaceColor.cgColor)
             context.setStrokeColor(borderColor.cgColor)
@@ -69,7 +69,7 @@ extension DiagramRenderer {
                 height: CGFloat(card.height)
             )
 
-            let path = CGPath(roundedRect: cardRect, cornerWidth: CGFloat(card.rx), cornerHeight: CGFloat(card.ry), transform: nil)
+            let path = _safeCGRoundedRect(cardRect, cornerWidth: CGFloat(card.rx), cornerHeight: CGFloat(card.ry))
             context.addPath(path)
             context.setFillColor(surfaceColor.cgColor)
             context.setStrokeColor(borderColor.cgColor)

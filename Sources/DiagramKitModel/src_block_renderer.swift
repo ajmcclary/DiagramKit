@@ -23,7 +23,7 @@ public func renderBlockSvg(
     let width = viewBoxW + 10
     let markerIds = BlockMarkerIds(diagramId: diagramId)
 
-    let _viewBoxWFmt = viewBoxW.rounded() == viewBoxW ? String(Int(viewBoxW)) : String(viewBoxW)
+    let _viewBoxWFmt = viewBoxW.rounded() == viewBoxW ? _integralText(viewBoxW) : String(viewBoxW)
     let _builder = SVGDocumentBuilder(
         width: viewBoxW, height: viewBoxH,
         colors: colors, transparent: transparent,
@@ -33,7 +33,7 @@ public func renderBlockSvg(
         viewBoxX: viewBoxX, viewBoxY: viewBoxY
     )
     var _openTag = _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"")
-    _openTag = _openTag.replacingOccurrences(of: "width=\"\(_viewBoxWFmt)\"", with: "width=\"\(Int(width))\"")
+    _openTag = _openTag.replacingOccurrences(of: "width=\"\(_viewBoxWFmt)\"", with: "width=\"\(_integralText(width))\"")
     svg += _openTag + "\n"
 
     let accessibilityMarkup = _builder.accessibility()

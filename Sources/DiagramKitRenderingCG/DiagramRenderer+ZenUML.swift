@@ -86,7 +86,7 @@ extension DiagramRenderer {
         in context: CGContext
     ) {
         let rect = CGRect(x: p.x - p.width / 2, y: p.y, width: p.width, height: p.height)
-        let roundedPath = CGPath(roundedRect: rect, cornerWidth: 4, cornerHeight: 4, transform: nil)
+        let roundedPath = _safeCGRoundedRect(rect, cornerWidth: 4, cornerHeight: 4)
 
         context.saveGState()
         context.setFillColor(bgColor)

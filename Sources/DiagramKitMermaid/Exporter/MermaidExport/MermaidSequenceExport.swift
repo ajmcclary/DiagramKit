@@ -143,7 +143,7 @@ enum MermaidSequenceExport {
                     if start == 1 && step == 1 {
                         lines.append("  autonumber")
                     } else {
-                        lines.append("  autonumber \(Int(start))")
+                        lines.append("  autonumber \(_integralText(start))")
                     }
                 }
 

@@ -87,7 +87,7 @@ extension DiagramRenderer {
         default:
             // Rectangle
             let roundedRect = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height)
-            let bezierPath = CGPath(roundedRect: roundedRect, cornerWidth: 2.5, cornerHeight: 2.5, transform: nil)
+            let bezierPath = _safeCGRoundedRect(roundedRect, cornerWidth: 2.5, cornerHeight: 2.5)
             context.setFillColor(fillColor)
             context.setStrokeColor(strokeColor)
             context.setLineWidth(0.5)
@@ -123,7 +123,7 @@ extension DiagramRenderer {
         let fontColor = DiagramColorParser.cgHex(boundary.fontColor ?? C4RenderConstants.defaultBoundaryAndRelColor) ?? BMColor.black.cgColor
 
         let rect = CGRect(x: boundary.x, y: boundary.y, width: boundary.width, height: boundary.height)
-        let bezierPath = CGPath(roundedRect: rect, cornerWidth: 2.5, cornerHeight: 2.5, transform: nil)
+        let bezierPath = _safeCGRoundedRect(rect, cornerWidth: 2.5, cornerHeight: 2.5)
 
         context.saveGState()
         context.setStrokeColor(strokeColor)

@@ -147,7 +147,7 @@ extension DiagramRenderer {
                         let keyText = attr.keys.joined(separator: ",")
                         let keyWidth = config.textMetrics.estimateTextWidth(keyText, fontSize: 9, fontWeight: 600) + 8
                         let badgeRect = CGRect(x: entity.x + 6, y: rowY - 7, width: keyWidth, height: 14)
-                        let badgePath = BMBezierPath(roundedRect: badgeRect, cornerRadius: 2)
+                        let badgePath = _safeBezierRoundedRect(badgeRect, cornerRadius: 2)
                         ctx.setFillColor(self.theme.keyBadgeColor().cgColor)
                         ctx.addPath(badgePath.bm_cgPath)
                         ctx.fillPath()
@@ -190,7 +190,7 @@ extension DiagramRenderer {
                 let textW = config.textMetrics.estimateTextWidth(rel.label, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 8
                 let textH = config.fontSizeEdgeLabel + 6
                 let bgRect = CGRect(x: mid.x - textW / 2, y: mid.y - textH / 2, width: textW, height: textH)
-                let bgPath = BMBezierPath(roundedRect: bgRect, cornerRadius: 2)
+                let bgPath = _safeBezierRoundedRect(bgRect, cornerRadius: 2)
                 ctx.setFillColor(self.theme.background.cgColor)
                 ctx.addPath(bgPath.bm_cgPath)
                 ctx.fillPath()

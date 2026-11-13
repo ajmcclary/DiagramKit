@@ -256,8 +256,8 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     let reduxRadius: Double = useReduxGeometry ? 7 : 10
     let reduxInnerRadius: Double = useReduxGeometry ? 5 : 6
     let reduxCross: Double = useReduxGeometry ? 4 : 5
-    let reduxRStr = "\(Int(reduxRadius))"
-    let reduxInnerRStr = "\(Int(reduxInnerRadius))"
+    let reduxRStr = "\(_integralText(reduxRadius))"
+    let reduxInnerRStr = "\(_integralText(reduxInnerRadius))"
     let reduxCrossD = reduxCross
 
     // Commit bullets

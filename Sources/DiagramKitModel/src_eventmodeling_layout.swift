@@ -366,7 +366,7 @@ private func formatBoxText(
     }
 
     if let data = dataContent, !data.isEmpty {
-        html += "<br/><br/><code style=\"text-align: left; display: block; max-width:\(Int(EMPDefaults.textMaxWidth))px\">\(data)</code>"
+        html += "<br/><br/><code style=\"text-align: left; display: block; max-width:\(_integralText(EMPDefaults.textMaxWidth))px\">\(data)</code>"
     }
 
     return html

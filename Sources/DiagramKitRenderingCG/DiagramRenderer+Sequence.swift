@@ -62,7 +62,7 @@ extension DiagramRenderer {
                 ctx.setStrokeColor(fillColor.copy(alpha: 0.6) ?? fillColor)
                 ctx.setLineWidth(1.0)
                 ctx.setLineDash(phase: 0, lengths: [6, 4])
-                let path = BMBezierPath(roundedRect: boxRect, cornerRadius: 4)
+                let path = _safeBezierRoundedRect(boxRect, cornerRadius: 4)
                 ctx.addPath(path.bm_cgPath)
                 ctx.strokePath()
                 ctx.setLineDash(phase: 0, lengths: [])
@@ -166,7 +166,7 @@ extension DiagramRenderer {
                 // Sequence number
                 if msg.sequenceVisible, let num = msg.sequenceNumber {
                     let numX = msg.isSelf ? msg.x1 - 18 : min(msg.x1, msg.x2) - 18
-                    self._drawTextInFlipped("\(Int(num))", at: CGPoint(x: numX, y: msg.y - 2),
+                    self._drawTextInFlipped("\(_integralText(num))", at: CGPoint(x: numX, y: msg.y - 2),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
                         font: cfg.fontResolver.edgeLabelFont(),
@@ -337,7 +337,7 @@ extension DiagramRenderer {
 
     private func _drawActorRectangle(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
         let box = CGRect(x: actor.x - actor.width / 2, y: actor.y, width: actor.width, height: actor.height)
-        let path = BMBezierPath(roundedRect: box, cornerRadius: 4)
+        let path = _safeBezierRoundedRect(box, cornerRadius: 4)
         context.setFillColor(theme.effectiveSurface().cgColor)
         context.addPath(path.bm_cgPath)
         context.fillPath()

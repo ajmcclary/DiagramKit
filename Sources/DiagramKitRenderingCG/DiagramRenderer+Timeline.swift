@@ -25,7 +25,7 @@ extension DiagramRenderer {
             // 1. Section nodes
             for section in timeline.sections {
                 let sectionRect = CGRect(x: section.x, y: section.y, width: section.width, height: section.height)
-                let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: cornerRadius)
+                let path = _safeBezierRoundedRect(sectionRect, cornerRadius: cornerRadius)
 
                 let colorIdx = section.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
@@ -56,7 +56,7 @@ extension DiagramRenderer {
             // 2. Task nodes
             for task in timeline.tasks {
                 let taskRect = CGRect(x: task.x, y: task.y, width: task.width, height: task.height)
-                let path = BMBezierPath(roundedRect: taskRect, cornerRadius: cornerRadius)
+                let path = _safeBezierRoundedRect(taskRect, cornerRadius: cornerRadius)
 
                 let colorIdx = task.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
@@ -98,7 +98,7 @@ extension DiagramRenderer {
             // 3. Event nodes (with brightness via lighter fill)
             for event in timeline.events {
                 let eventRect = CGRect(x: event.x, y: event.y, width: event.width, height: event.height)
-                let path = BMBezierPath(roundedRect: eventRect, cornerRadius: cornerRadius)
+                let path = _safeBezierRoundedRect(eventRect, cornerRadius: cornerRadius)
 
                 let colorIdx = event.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]

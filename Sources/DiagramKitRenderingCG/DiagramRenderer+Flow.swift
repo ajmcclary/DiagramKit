@@ -182,7 +182,7 @@ extension DiagramRenderer {
             // Fill header band at top of group box
             let headerY = group.y
             let headerRect = CGRect(x: group.x, y: headerY, width: group.width, height: group.headerHeight)
-            let headerPath = BMBezierPath(roundedRect: headerRect, cornerRadius: 0)
+            let headerPath = _safeBezierRoundedRect(headerRect, cornerRadius: 0)
             context.setFillColor(theme.subgraphHeaderColor().cgColor)
             context.addPath(headerPath.bm_cgPath)
             context.fillPath()
@@ -234,7 +234,7 @@ extension DiagramRenderer {
             height: size.height + padding
         )
 
-        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: self.tokens.edgeLabelCornerRadius)
+        let pillPath = _safeBezierRoundedRect(pillRect, cornerRadius: self.tokens.edgeLabelCornerRadius)
         context.setFillColor(theme.background.cgColor)
         context.addPath(pillPath.bm_cgPath)
         context.fillPath()

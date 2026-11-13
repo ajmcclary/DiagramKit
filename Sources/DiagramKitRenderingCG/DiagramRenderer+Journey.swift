@@ -73,7 +73,7 @@ extension DiagramRenderer {
             // 2. Section rectangles
             for section in journey.sections {
                 let sectionRect = CGRect(x: section.x, y: section.y, width: section.width, height: section.height)
-                let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: 3)
+                let path = _safeBezierRoundedRect(sectionRect, cornerRadius: 3)
 
                 if let fillColor = DiagramColorParser.cgHex(section.fill) {
                     ctx.setFillColor(fillColor)
@@ -111,7 +111,7 @@ extension DiagramRenderer {
             // 3. Tasks
             for task in journey.tasks {
                 let taskRect = CGRect(x: task.x, y: task.y, width: task.rectWidth, height: task.rectHeight)
-                let path = BMBezierPath(roundedRect: taskRect, cornerRadius: 3)
+                let path = _safeBezierRoundedRect(taskRect, cornerRadius: 3)
 
                 if let fillColor = DiagramColorParser.cgHex(task.fill) {
                     ctx.setFillColor(fillColor)

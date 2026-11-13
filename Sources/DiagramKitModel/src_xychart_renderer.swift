@@ -111,10 +111,8 @@ public func renderXYChartSvg(
             : chart.gridLines.map(\.y1)
         let xBaseRaw = xTickPositions.count > 1 ? abs(xTickPositions[1] - xTickPositions[0]) : plotArea.width / 6
         let yBaseRaw = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
-        let xBase = (xBaseRaw.isFinite && abs(xBaseRaw) < 1e15) ? xBaseRaw : plotArea.width / 6
-        let yBase = (yBaseRaw.isFinite && abs(yBaseRaw) < 1e15) ? yBaseRaw : plotArea.height / 6
-        let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
-        let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
+        let xGap = _xyChartGridGap(base: xBaseRaw, extent: plotArea.width)
+        let yGap = _xyChartGridGap(base: yBaseRaw, extent: plotArea.height)
         let xAnchor = xTickPositions.first ?? plotArea.x
         let yAnchor = yVals.first ?? plotArea.y
         let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
@@ -586,7 +584,7 @@ private func _formatTipValue(_ v: Double) -> String {
         formatter.numberStyle = .decimal
         formatter.groupingSeparator = ","
         formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: v)) ?? String(Int(v))
+        return formatter.string(from: NSNumber(value: v)) ?? _integralText(v)
     }
     return abs(v) < 10 ? String(format: "%.1f", v) : String(format: "%.0f", v)
 }
@@ -595,3 +593,15 @@ private func _r(_ n: Double) -> String {
     _svgNum(n)
 }
 
+
+/// Spacing of the native grid-dot lattice, shared by the SVG and CG
+/// renderers: ~20 pt dots between tick positions. `base` is the distance
+/// between two ticks; a non-finite, huge, zero or tiny base (two ticks at one
+/// position) falls back to a sixth of the plot extent, and the result is at
+/// least 2 pt, so the dot loops end and stay small.
+public func _xyChartGridGap(base: Double, extent: Double) -> Double {
+    let fallback = extent.isFinite && extent > 0 ? extent / 6 : 20
+    let usable = (base.isFinite && base >= 2 && base < 1e15) ? base : fallback
+    let gap = usable / Double(max(1, _safeInt((usable / 20).rounded()) ?? 1))
+    return gap.isFinite && gap >= 2 ? gap : 2
+}

@@ -2,6 +2,7 @@
 #if canImport(CoreGraphics)
 import Foundation
 import DiagramKitModel
+import DiagramKitCommon
 import CoreGraphics
 import CoreText
 #if canImport(UIKit)
@@ -46,8 +47,10 @@ extension DiagramRenderer {
                     : chart.gridLines.map(\.y1)
                 let xBase = xTicks.count > 1 ? abs(xTicks[1] - xTicks[0]) : plotArea.width / 6
                 let yBase = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
-                let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
-                let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
+                // Same guard as the SVG twin: a huge or non-finite tick
+                // spacing trapped `Int(…)`, a zero one never ended.
+                let xGap = _xyChartGridGap(base: xBase, extent: plotArea.width)
+                let yGap = _xyChartGridGap(base: yBase, extent: plotArea.height)
                 let xAnchor = xTicks.first ?? plotArea.x
                 let yAnchor = yVals.first ?? plotArea.y
                 let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
@@ -111,7 +114,7 @@ extension DiagramRenderer {
                 if native {
                     let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
                     let cr = min(8, bar.width / 2, bar.height / 2)
-                    let barPath = CGPath(roundedRect: barRect, cornerWidth: cr, cornerHeight: cr, transform: nil)
+                    let barPath = _safeCGRoundedRect(barRect, cornerWidth: cr, cornerHeight: cr)
                     ctx.addPath(barPath)
                     ctx.setFillColor(fillColor)
                     ctx.fillPath()
@@ -239,7 +242,7 @@ extension DiagramRenderer {
                     if item.type == .bar {
                         let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
                         let swatchRect = CGRect(x: item.x, y: sy - 5, width: 12, height: 10)
-                        let swatchPath = CGPath(roundedRect: swatchRect, cornerWidth: 2, cornerHeight: 2, transform: nil)
+                        let swatchPath = _safeCGRoundedRect(swatchRect, cornerWidth: 2, cornerHeight: 2)
                         ctx.addPath(swatchPath)
                         ctx.setFillColor(fillColor)
                         ctx.fillPath()

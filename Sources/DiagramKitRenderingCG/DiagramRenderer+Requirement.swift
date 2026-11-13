@@ -54,7 +54,7 @@ extension DiagramRenderer {
                 let textW = config.textMetrics.estimateTextWidth(edge.labelText, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 8
                 let textH = config.fontSizeEdgeLabel + 6
                 let bgRect = CGRect(x: lp.x - textW / 2, y: lp.y - textH / 2, width: textW, height: textH)
-                let bgPath = BMBezierPath(roundedRect: bgRect, cornerRadius: 2)
+                let bgPath = _safeBezierRoundedRect(bgRect, cornerRadius: 2)
                 ctx.setFillColor(self.theme.background.cgColor)
                 ctx.addPath(bgPath.bm_cgPath)
                 ctx.fillPath()
