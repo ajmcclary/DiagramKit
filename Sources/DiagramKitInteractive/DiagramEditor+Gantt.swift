@@ -94,7 +94,7 @@ extension DiagramEditor {
                 base = try await _exportAsync(document).source
             }
             let current = document
-            let (edited, newDocument) = try await Self._runOnWorker {
+            let (edited, newDocument, line) = try await Self._runOnWorker {
                 try Self._resizeGanttTaskInSource(
                     base, document: current, taskId: taskId, newEndTime: newEndTime, readBack: readBack
                 )
@@ -102,6 +102,7 @@ extension DiagramEditor {
             try await _commitMutation(
                 newDocument: newDocument,
                 savedSource: edited,
+                scope: .singleLine(line),
                 actionName: mutation.undoActionName
             )
             return
@@ -131,7 +132,7 @@ extension DiagramEditor {
         taskId: String,
         newEndTime: Date,
         readBack: @Sendable (String, DiagramFormatID) throws -> DiagramDocument
-    ) throws -> (source: String, document: DiagramDocument) {
+    ) throws -> (source: String, document: DiagramDocument, line: Int) {
         guard case .gantt(let model) = document.payload else {
             throw DiagramEditorError.unsupportedMutation(mutation: "resizeTask", diagramType: document.type.rawValue)
         }
@@ -203,7 +204,7 @@ extension DiagramEditor {
                   reread.tasks[index].id == taskId,
                   reread.tasks[index].startTime == task.startTime,
                   reread.tasks[index].endTime == newEndTime else { continue }
-            return (edited, back)
+            return (edited, back, lineIndex)
         }
         throw refuse("no spelling of its end in this gantt reads back as the requested date")
     }

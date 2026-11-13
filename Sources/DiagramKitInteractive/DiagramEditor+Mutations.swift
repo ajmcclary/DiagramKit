@@ -49,6 +49,44 @@ extension DiagramEditor {
     /// from the worker leaves state untouched.
     func _performInner(_ mutation: DiagramMutation) async throws {
         let newDocument = try _apply(mutation, to: document)
+        switch mutation {
+        case .setTitle, .setTheme, .setLayoutPreset:
+            // Not about the diagram's body: edit the settings in the source
+            // and keep every other line as written (owner ruling,
+            // 2026-11-12 review). If the text cannot be edited that way the
+            // export below is checked to leave the body unchanged.
+            let scope: _EditScope = document.sourceFormat == .mermaid ? .preambleOnly : .wholeExport
+            if preferredExportFormat == .mermaid, document.sourceFormat == .mermaid,
+               let readBack = exportRegistry.readBack, let source {
+                let current = document
+                let edited = try await Self._runOnWorker {
+                    Self._editPreambleInSource(source, oldDocument: current, newDocument: newDocument, readBack: readBack)
+                }
+                if let edited {
+                    try await _commitMutation(
+                        newDocument: edited.document,
+                        savedSource: edited.source,
+                        scope: scope,
+                        actionName: mutation.undoActionName,
+                        updateSelection: { [self] previous, document in
+                            _selectionAfterMutation(previousSelection: previous, in: document)
+                        }
+                    )
+                    return
+                }
+            }
+            try await _commitMutation(
+                newDocument: newDocument,
+                scope: scope,
+                actionName: mutation.undoActionName,
+                updateSelection: { [self] previous, document in
+                    _selectionAfterMutation(previousSelection: previous, in: document)
+                }
+            )
+            return
+        default:
+            break
+        }
         try await _commitMutation(
             newDocument: newDocument,
             actionName: mutation.undoActionName,
@@ -70,6 +108,7 @@ extension DiagramEditor {
         newDocument: DiagramDocument,
         mutationDiagnostics: [DiagramDiagnostic] = [],
         savedSource: String? = nil,
+        scope: _EditScope = .wholeExport,
         actionName: String,
         updateSelection: ((_ previous: DiagramSelection?, _ in: DiagramDocument) -> DiagramSelection?)? = nil
     ) async throws {
@@ -86,7 +125,7 @@ extension DiagramEditor {
                 throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
             }
         }
-        try await _checkExport(exportResult.source, of: newDocument, replacing: document)
+        try await _checkExport(exportResult.source, of: newDocument, replacing: document, scope: scope)
 
         let oldDocument = document
         let oldSource = source

@@ -53,6 +53,35 @@ private func tasks(_ document: DiagramDocument) -> [GanttTask] {
     return []
 }
 
+/// Nil when `saved` is `original` with only frontmatter/directive lines
+/// for title or theme added or changed; otherwise what else changed.
+func settingsOnlyChange(from original: String, to saved: String) -> String? {
+    var remaining = saved.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    var lost: [String] = []
+    for line in original.split(separator: "\n", omittingEmptySubsequences: false).map(String.init) {
+        if let i = remaining.firstIndex(of: line) {
+            remaining.remove(at: i)
+        } else {
+            let t = line.trimmingCharacters(in: .whitespaces)
+            if !(t.hasPrefix("title:") || t.hasPrefix("theme:") || t.hasPrefix("%%{")) { lost.append(line) }
+        }
+    }
+    let allowedNew = remaining.filter { line in
+        let t = line.trimmingCharacters(in: .whitespaces)
+        return !(t == "---" || t == "config:" || t.hasPrefix("title:") || t.hasPrefix("theme:") || t.hasPrefix("%%{") || t.isEmpty)
+    }
+    if !lost.isEmpty { return "lost lines \(lost)" }
+    if !allowedNew.isEmpty { return "new lines \(allowedNew)" }
+    // The body (everything from the header on) is unchanged and in place.
+    let header = original.split(separator: "\n", omittingEmptySubsequences: false)
+        .first { $0.trimmingCharacters(in: .whitespaces).lowercased().hasPrefix("gantt") }
+    if let header, let range = original.range(of: String(header)) {
+        let body = original[range.lowerBound...]
+        if !saved.hasSuffix(body) { return "the body moved or changed" }
+    }
+    return nil
+}
+
 @Suite("Gantt canvas edits change only the edited task's line") @MainActor
 struct GanttEditFidelityTests {
 
@@ -137,6 +166,22 @@ struct GanttEditFidelityTests {
         #expect(saved.contains("After        :a3, after a1, 3d"))
         let a3 = try #require(tasks(edit.document).first { $0.id == "a3" })
         #expect(a3.startTime == a1.endTime.addingTimeInterval(2 * 86400))
+    }
+
+    @Test("a title change and a theme change on every corpus gantt change only those settings' lines")
+    func titleAndThemeChangeOnlyTheirLines() async throws {
+        var failures: [String] = []
+        for (name, source) in try ganttInputs() {
+            for edit in [DiagramMutation.setTitle("Renamed plan"), .setTheme("nord")] {
+                let editor = try editor(source)
+                try await editor.perform(edit)
+                let saved = try #require(editor.source)
+                if let problem = settingsOnlyChange(from: source, to: saved) {
+                    failures.append("[\(name)] \(edit): \(problem)\n\(saved)")
+                }
+            }
+        }
+        #expect(failures.isEmpty, "\(failures.joined(separator: "\n\n"))")
     }
 
     @Test("a gantt with excludes refuses a resize with the typed error and keeps its source")
