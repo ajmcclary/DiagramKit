@@ -4,15 +4,29 @@ import Testing
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
 
+/// CPU time consumed by the calling thread.
+fileprivate func _threadCPUSeconds() -> TimeInterval {
+    var ts = timespec()
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts)
+    return TimeInterval(ts.tv_sec) + TimeInterval(ts.tv_nsec) / 1_000_000_000
+}
+
 /// Inputs from the review of the parser remediation (round 1): lines that
 /// made a parse-side regex backtrack super-linearly. Each must parse (or
 /// throw a typed error) within a second.
 extension EngineHostileInputTests {
 
+    /// CPU seconds the parse takes on its worker thread. Wall time also
+    /// counts time spent waiting for a core, and with the rest of the
+    /// suite running in parallel that alone passed a second (seen in the
+    /// 2026-11-12 remediation, on macOS and in the Linux container); a
+    /// super-linear pattern still costs seconds of CPU.
     fileprivate static func parseTime(_ source: String) async -> TimeInterval {
-        let start = Date()
-        _ = try? await DiagramEngine.parseImportResult(source: source)
-        return Date().timeIntervalSince(start)
+        (try? await DiagramEngine._runOnWorker { () -> TimeInterval in
+            let start = _threadCPUSeconds()
+            _ = try? DiagramPipeline.parseImportResult(source)
+            return _threadCPUSeconds() - start
+        }) ?? .infinity
     }
 
     static let stylePrePassInputs: [String] = {
