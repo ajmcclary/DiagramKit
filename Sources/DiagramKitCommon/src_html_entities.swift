@@ -28,22 +28,66 @@ public enum _HTMLEntities {
     /// Upstream's `encodeEntities` pre-pass: on a `style` / `classDef` /
     /// `linkStyle` line that has a `:…#…;` colour, drop the line's last `;`
     /// before entity decoding, so `fill:#000;` stays a colour instead of
-    /// decoding as the entity `#000;` (a NUL; `#333;` became `ō`). Mirrors
-    /// upstream's `/style.*:\S*#.*;/` and `/classDef.*:\S*#.*;/`, which are
-    /// unanchored and so also cover `linkStyle`.
+    /// decoding as the entity `#000;` (a NUL; `#333;` became `ō`).
+    ///
+    /// Upstream's patterns are `/style.*:\S*#.*;/` and
+    /// `/classDef.*:\S*#.*;/` (unanchored, case-sensitive, so `linkStyle`
+    /// is *not* covered upstream; it is named explicitly here). Run as a
+    /// regex they backtrack super-linearly on a line of repeated
+    /// `style:` tokens, so the same condition is evaluated in one linear
+    /// scan by `_lineHasStyleColourTerminator`.
     public static func stripStyleStatementTerminators(_ text: String) -> String {
         guard text.contains("#"), text.contains(";") else { return text }
         var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var changed = false
         for index in lines.indices {
             let line = lines[index]
-            guard line.contains(";"), line.contains("#"),
-                  line.range(of: #"(?:style|classDef).*:\S*#.*;"#, options: .regularExpression) != nil,
-                  let last = line.lastIndex(of: ";") else { continue }
+            guard _lineHasStyleColourTerminator(line), let last = line.lastIndex(of: ";") else { continue }
             lines[index].remove(at: last)
             changed = true
         }
         return changed ? lines.joined(separator: "\n") : text
+    }
+
+    /// `true` when `line` matches `(?:style|classDef|linkStyle).*:\S*#.*;`:
+    /// after the first keyword there is a `:` followed by a run of
+    /// non-whitespace characters that reaches a `#`, and a `;` comes after
+    /// that `#`. Linear in the line length.
+    static func _lineHasStyleColourTerminator(_ line: String) -> Bool {
+        let chars = Array(line.utf8)
+        guard let lastSemicolon = chars.lastIndex(of: UInt8(ascii: ";")) else { return false }
+        // End of the earliest keyword occurrence (the earliest start gives
+        // the regex the most room, and every later match is also a match
+        // from it).
+        var keywordEnd: Int?
+        let keywords: [[UInt8]] = [Array("style".utf8), Array("classDef".utf8), Array("linkStyle".utf8)]
+        var position = 0
+        search: while position < chars.count {
+            for keyword in keywords where position + keyword.count <= chars.count
+                && chars[position..<(position + keyword.count)].elementsEqual(keyword) {
+                keywordEnd = position + keyword.count
+                break search
+            }
+            position += 1
+        }
+        guard let start = keywordEnd else { return false }
+        var colonInRun = false
+        var index = start
+        while index < lastSemicolon {
+            let byte = chars[index]
+            switch byte {
+            case UInt8(ascii: " "), UInt8(ascii: "\t"), UInt8(ascii: "\r"), 0x0B, 0x0C:
+                colonInRun = false
+            case UInt8(ascii: ":"):
+                colonInRun = true
+            case UInt8(ascii: "#"):
+                if colonInRun { return true }
+            default:
+                break
+            }
+            index += 1
+        }
+        return false
     }
 
     public static func decode(_ text: String) -> String {
