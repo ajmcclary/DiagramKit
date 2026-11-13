@@ -48,7 +48,11 @@ public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     }
 
     let parser = ZenUMLRecursiveDescentParser(tokens: tokens)
-    guard let ast = parser.parseProg() else {
+    let parsedAST = parser.parseProg()
+    if parser.nestingLimitExceeded {
+        throw DiagramInputLimitError(.nestingDepth, "ZenUML block")
+    }
+    guard let ast = parsedAST else {
         diagram.errors = parser.errors
         return (diagram, [])
     }
@@ -487,6 +491,12 @@ private final class ZenUMLRecursiveDescentParser {
     var pos: Int = 0
     var errors: [ZenUMLParseError] = []
     var participantOrder: [String] = []  // deterministic encounter order
+    /// Current block nesting. Recursive descent uses one stack frame chain
+    /// per level, so deep nesting (1,500 `A.m(){` on one line) overflowed
+    /// the stack; past `_maxParserNestingDepth` the parser stops and the
+    /// entry point throws `DiagramInputLimitError`.
+    private var blockDepth = 0
+    private(set) var nestingLimitExceeded = false
 
     init(tokens: [ZenUMLToken]) {
         self.tokens = tokens
@@ -748,6 +758,13 @@ private final class ZenUMLRecursiveDescentParser {
     }
 
     private func parseBlock() -> ZenUMLASTNode? {
+        blockDepth += 1
+        defer { blockDepth -= 1 }
+        if blockDepth > _maxParserNestingDepth {
+            nestingLimitExceeded = true
+            pos = tokens.count
+            return nil
+        }
         var statements: [ZenUMLASTNode] = []
         while pos < tokens.count {
             skipNewlines()

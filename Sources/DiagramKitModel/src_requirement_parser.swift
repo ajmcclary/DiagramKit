@@ -204,7 +204,7 @@ private func _parseRequirementDiagram(lines: [String], frontmatter: DiagramFront
 
     // Find header
     let sourceIter = lines.makeIterator()
-    var remainingLines: [String] = []
+    var remainingLines: ArraySlice<String> = []  // O(1) removeFirst
 
     var foundHeader = false
     for line in sourceIter {

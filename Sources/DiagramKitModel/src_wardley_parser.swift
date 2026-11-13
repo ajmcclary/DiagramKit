@@ -783,16 +783,20 @@ private func extractNameAndRest(_ text: String) -> (name: String, rest: String) 
 
     // If quoted, extract quoted string
     if trimmed.hasPrefix("\"") {
-        var chars = Array(trimmed.dropFirst())
+        // Index walk, not `removeFirst()` per character (quadratic: a
+        // 200 KB quoted name took seconds).
+        let chars = Array(trimmed.dropFirst())
+        var index = 0
         var nameChars: [Character] = []
-        while !chars.isEmpty {
-            let ch = chars.removeFirst()
+        while index < chars.count {
+            let ch = chars[index]
+            index += 1
             if ch == "\"" {
                 break
             }
             nameChars.append(ch)
         }
-        let rest = String(chars).trimmingCharacters(in: .whitespaces)
+        let rest = String(chars[index...]).trimmingCharacters(in: .whitespaces)
         return (String(nameChars), rest)
     }
 
@@ -861,11 +865,13 @@ private func parseEvolveStatementRest(_ rest: String, sourceLine: String) throws
     }
 
     if trimmed.hasPrefix("\"") {
-        var chars = Array(trimmed.dropFirst())
+        let chars = Array(trimmed.dropFirst())
+        var index = 0
         var nameChars: [Character] = []
         var escaped = false
-        while !chars.isEmpty {
-            let ch = chars.removeFirst()
+        while index < chars.count {
+            let ch = chars[index]
+            index += 1
             if escaped {
                 nameChars.append(ch)
                 escaped = false
@@ -877,7 +883,7 @@ private func parseEvolveStatementRest(_ rest: String, sourceLine: String) throws
                 continue
             }
             if ch == "\"" {
-                let targetText = String(chars).trimmingCharacters(in: .whitespaces)
+                let targetText = String(chars[index...]).trimmingCharacters(in: .whitespaces)
                 guard let target = Double(targetText) else {
                     throw WardleyMapParserError.evolveMissingTarget(sourceLine)
                 }
@@ -968,16 +974,20 @@ private func splitOnArrow(_ text: String) -> [String] {
     var i = 0
     while i < chars.count {
         let ch = chars[i]
+        // Both quote branches must advance `i`; they used to `continue`
+        // without it, so any `"` in an evolution line looped forever.
         if inQuote {
             current.append(ch)
             if ch == "\"" {
                 inQuote = false
             }
+            i += 1
             continue
         }
         if ch == "\"" {
             inQuote = true
             current.append(ch)
+            i += 1
             continue
         }
         if ch == "-" && i + 1 < chars.count && chars[i + 1] == ">" {

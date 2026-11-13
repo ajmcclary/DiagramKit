@@ -779,6 +779,14 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
 
             let cleanedId = nsId.replacingOccurrences(of: "`", with: "")
             if hasBrace {
+                // Nested and dotted namespaces both add levels; each level
+                // copies its whole subtree (value types), so very deep
+                // nesting was super-linear (800 levels took 20 s).
+                let enclosingLevels = namespaceStack.last.map { $0.split(separator: ".").count } ?? 0
+                try _checkParserNestingDepth(
+                    enclosingLevels + cleanedId.split(separator: ".").count,
+                    "class namespace \"\(cleanedId)\""
+                )
                 let qualifiedId = addNamespace(id: cleanedId, label: nsLabel, explicit: true)
                 namespaceStack.append(qualifiedId)
             }

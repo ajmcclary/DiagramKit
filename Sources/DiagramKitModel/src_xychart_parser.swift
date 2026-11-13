@@ -964,6 +964,9 @@ private class XYChartTokenParser {
                 _ = advance()
                 break
             }
+            // `advance()` never moves past `.eof`, so an unterminated
+            // `accDescr {` must stop here or it loops forever.
+            if peek() == .eof { break }
             if peek() == .newline {
                 txt += "\n"
                 _ = advance()
