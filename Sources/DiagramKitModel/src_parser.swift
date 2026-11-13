@@ -527,10 +527,14 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
             .replacingOccurrences(of: "{{SIDL}}", with: SIDL)
     }
 
+    // Statement keywords that cannot stand alone as a state id. Matched
+    // case-sensitively: `End`, `Left` and `Start` are ordinary state names
+    // (`Start --> End` is about the most common state diagram there is).
+    // Transitions never consult this filter; the `-->` already makes both
+    // operands state ids.
     func isStateKeyword(_ s: String) -> Bool {
-        let lower = s.lowercased()
-        let keywords: Set<String> = ["state", "note", "class", "classdef", "style", "click", "direction", "hide", "scale", "end", "left", "right", "of", "href"]
-        return keywords.contains(lower)
+        let keywords: Set<String> = ["state", "note", "class", "classDef", "style", "click", "direction", "hide", "scale", "end", "left", "right", "of", "href"]
+        return keywords.contains(s)
     }
     func isValidStateID(_ s: String) -> Bool {
         !s.isEmpty && !isStateKeyword(s)
@@ -791,14 +795,14 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
                 startCount += 1
                 sourceId = "\(parentID)_start"
                 _registerStateNode(&graph, &compositeStack, ParsedNode(id: sourceId, label: "", shape: .stateStart))
-            } else if !compositeStateIds.contains(sourceId), isValidStateID(sourceId) {
+            } else if !compositeStateIds.contains(sourceId), !sourceId.isEmpty {
                 _ensureStateNode(&graph, &compositeStack, sourceId)
             }
             if targetId == "[*]" {
                 endCount += 1
                 targetId = "\(parentID)_end"
                 _registerStateNode(&graph, &compositeStack, ParsedNode(id: targetId, label: "", shape: .stateEnd))
-            } else if !compositeStateIds.contains(targetId), isValidStateID(targetId) {
+            } else if !compositeStateIds.contains(targetId), !targetId.isEmpty {
                 _ensureStateNode(&graph, &compositeStack, targetId)
             }
 
