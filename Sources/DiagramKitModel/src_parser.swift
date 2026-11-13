@@ -1293,9 +1293,19 @@ private func _consumeNode(_ text: String, graph: inout _WorkingGraph, subgraphSt
     return _ConsumedNode(id: nodeId, remaining: remaining)
 }
 
+/// Registers a node mention. Only the explicit form (`A[Start]`, `A((x))`)
+/// reaches here for an existing node; bare mentions of a known id are not
+/// re-registered. As upstream's `addVertex` does, a later explicit
+/// declaration sets the label and shape even when the node was first
+/// mentioned bare (`A --> B` then `A[Start]`); the first mention used to
+/// win, and a canvas edit then wrote the bare form back over the user's
+/// declaration. Other attributes (metadata, descriptions) are kept.
 private func _registerNode(_ graph: inout _WorkingGraph, _ subgraphStack: inout [ParsedSubgraph], _ node: ParsedNode) {
-    let isNew = graph.nodesById[node.id] == nil
-    if isNew {
+    if var existing = graph.nodesById[node.id] {
+        existing.label = node.label
+        existing.shape = node.shape
+        graph.nodesById[node.id] = existing
+    } else {
         graph.upsertNode(node)
     }
     _trackInSubgraph(&subgraphStack, node.id)

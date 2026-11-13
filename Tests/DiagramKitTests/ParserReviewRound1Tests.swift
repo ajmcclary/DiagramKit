@@ -86,6 +86,47 @@ struct ParserReviewRound1Tests {
         graph.nodesInOrder.first { $0.id == id }.map { ($0.node.label, "\($0.node.shape)") }
     }
 
+    @Test("a later explicit declaration sets the node's label and shape")
+    func laterDeclarationWins() async throws {
+        let graph = try await Self.flowchart("flowchart TD\nA --> B\nA[Start]")
+        #expect(Self.node(graph, "A")?.label == "Start")
+        #expect(Self.node(graph, "A")?.shape == "rectangle")
+        #expect(graph.edges.map { "\($0.source)->\($0.target)" } == ["A->B"])
+    }
+
+    @Test("an explicit declaration followed by a bare mention keeps the declaration")
+    func bareMentionDoesNotReset() async throws {
+        let graph = try await Self.flowchart("flowchart TD\nA[Start] --> B\nB --> A")
+        #expect(Self.node(graph, "A")?.label == "Start")
+    }
+
+    @Test("a later shape-only or label-only declaration updates the node")
+    func shapeOnlyAndLabelOnly() async throws {
+        let graph = try await Self.flowchart("flowchart TD\nA --> B\nA((A))\nB --> C\nB(Second)")
+        #expect(Self.node(graph, "A")?.shape == "circle")
+        #expect(Self.node(graph, "A")?.label == "A")
+        #expect(Self.node(graph, "B")?.label == "Second")
+        #expect(Self.node(graph, "B")?.shape == "rounded")
+    }
+
+    @Test("a node first mentioned in a subgraph and declared outside it keeps its membership and takes the declaration")
+    func declaredOutsideSubgraph() async throws {
+        let graph = try await Self.flowchart("""
+        flowchart TD
+        subgraph Backend
+          API --> DB
+        end
+        Client --> API
+        API[API gateway]
+        Client[/User/] ==> API
+        """)
+        #expect(Self.node(graph, "API")?.label == "API gateway")
+        #expect(Self.node(graph, "Client")?.label == "User")
+        #expect(Self.node(graph, "Client")?.shape == "parallelogram")
+        #expect(graph.subgraphs.first?.nodeIds.contains("API") == true)
+        #expect(graph.subgraphs.first?.nodeIds.contains("Client") == false)
+    }
+
     @Test("composites that list each other still keep one of them at the root")
     func cycleStillPlacedAtRoot() async throws {
         let result = try await DiagramEngine.parseImportResult(source: "block-beta\nblock:a\n  b\nend\nblock:b\n  a\nend")
@@ -136,4 +177,17 @@ struct NestingLimitConsistencyTests {
         ("c4", c4), ("architecture", architecture), ("block", block),
     ]
 
+    @Test("exactly the limit is accepted", arguments: families.map(\.0))
+    func atLimit(_ family: String) async throws {
+        let make = try #require(Self.families.first { $0.0 == family }?.1)
+        _ = try await DiagramEngine.parseImportResult(source: make(_maxParserNestingDepth))
+    }
+
+    @Test("one past the limit is rejected", arguments: families.map(\.0))
+    func pastLimit(_ family: String) async throws {
+        let make = try #require(Self.families.first { $0.0 == family }?.1)
+        await #expect(throws: DiagramInputLimitError.self) {
+            _ = try await DiagramEngine.parseImportResult(source: make(_maxParserNestingDepth + 1))
+        }
+    }
 }
