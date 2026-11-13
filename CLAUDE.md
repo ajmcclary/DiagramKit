@@ -120,9 +120,13 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   `String.parseDiagram()` keep their single-return shape for callers that
   don't need diagnostics.
 - `MermaidImporter` populates `DiagramImportResult.diagnostics` for
-  diagnostic-emitting families (currently C4 \$boundary mismatch and
-  Kanban duplicate-node warnings; other Mermaid families surface only
-  layout-tier diagnostics via `PositionedGraph`).
+  diagnostic-emitting families (among them C4 \$boundary mismatch,
+  Kanban duplicate-node warnings, block self-nesting and clamped column
+  spans, and flowchart/state unclosed subgraphs or composites and
+  unrecognised state statements; other Mermaid families surface only
+  layout-tier diagnostics via `PositionedGraph`). Parsers that meet
+  nesting deeper than `_maxParserNestingDepth` (100) throw the
+  recoverable `DiagramInputLimitError`.
 - The Mermaid-prefixed public alias cohort (`MermaidParser`,
   `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`,
   `MermaidStructuralError`, `renderMermaidSVG`, etc.) has been removed,
