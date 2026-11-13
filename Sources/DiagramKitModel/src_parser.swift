@@ -55,6 +55,9 @@ private enum _ParserEntryError: Error, LocalizedError, _RecoverableDiagramError 
 }
 
 private struct _WorkingGraph {
+    /// Parse-tier warnings (an unclosed subgraph or composite state at the
+    /// end of the source). Not part of the parsed graph.
+    var diagnostics: [DiagramDiagnostic] = []
     var direction: ParsedDirection
     var rendererType: String? = nil
     var nodesById: [String: ParsedNode] = [:]
@@ -224,20 +227,44 @@ private func _parseMermaidEntry(_ text: String, config: original_src_types.Flowc
     let header = lines[0]
     let parsed: ParsedGraph
     let diagramType: DiagramType
+    var diagnostics: [DiagramDiagnostic] = []
 
     if _regexTest(#"^stateDiagram(-v2)?\s*$"#, header, caseInsensitive: true) {
-        parsed = try _parseStateDiagram(lines, stateConfig: stateConfig)
+        parsed = try _parseStateDiagram(_expandingSingleLineStateBodies(lines), stateConfig: stateConfig, diagnostics: &diagnostics)
         diagramType = .stateDiagram
     } else {
-        parsed = try _parseFlowchart(_mermaidFlowchartSourceLines(from: text), config: config)
+        parsed = try _parseFlowchart(_mermaidFlowchartSourceLines(from: text), config: config, diagnostics: &diagnostics)
         diagramType = .flowchart
     }
 
     let document = DiagramDocument(payload: diagramType == .stateDiagram ? .stateDiagram(parsed) : .flowchart(parsed))
-    return (document, [])
+    return (document, diagnostics)
 }
 
-private func _parseFlowchart(_ lines: [String], config: original_src_types.FlowchartConfig? = nil) throws -> ParsedGraph {
+/// `state Single { a --> b }` written on one line becomes the three lines
+/// the composite parser expects (`state Single {`, `a --> b`, `}`); it used
+/// to match nothing and was dropped.
+private func _expandingSingleLineStateBodies(_ lines: [String]) -> [String] {
+    var result: [String] = []
+    for line in lines {
+        if line.hasPrefix("state "), line.hasSuffix("}"),
+           let groups = _regexGroups(#"^(state\s+[^{}]+?)\s*\{\s*([^{}]*?)\s*\}$"#, line),
+           let head = groups[safe: 1], let body = groups[safe: 2], !body.isEmpty {
+            result.append(head + " {")
+            result.append(body)
+            result.append("}")
+        } else {
+            result.append(line)
+        }
+    }
+    return result
+}
+
+private func _parseFlowchart(
+    _ lines: [String],
+    config: original_src_types.FlowchartConfig? = nil,
+    diagnostics: inout [DiagramDiagnostic]
+) throws -> ParsedGraph {
     guard let header = lines.first else {
         throw _ParserEntryError.invalidHeader("")
     }
@@ -502,10 +529,29 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
         _parseEdgeLine(line, graph: &graph, subgraphStack: &subgraphStack)
     }
 
+    // A `subgraph` still open at the end of the source used to vanish with
+    // no trace. Close it there, keep its contents, and say so.
+    while let open = subgraphStack.popLast() {
+        diagnostics.append(.lossyTransform(
+            .subgraphFlatten,
+            message: "[Flowchart] subgraph \"\(open.id)\" has no matching end; closed at the end of the diagram",
+            location: nil
+        ))
+        if !subgraphStack.isEmpty {
+            _appendSubgraphChild(&subgraphStack, open)
+        } else {
+            graph.subgraphs.append(open)
+        }
+    }
+
     return graph.toParsedGraph()
 }
 
-private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_types.StateConfig? = nil) throws -> ParsedGraph {
+private func _parseStateDiagram(
+    _ lines: [String],
+    stateConfig: original_src_types.StateConfig? = nil,
+    diagnostics: inout [DiagramDiagnostic]
+) throws -> ParsedGraph {
     var graph = _WorkingGraph(direction: .TD)
     if let sc = stateConfig { graph.stateConfig = sc }
 
@@ -847,6 +893,30 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         // --- standalone: state <id> ---
         if let sim = _regexGroups(sPat(#"^state\s+({{SID}})\s*$"#), line),
            let id = sim[safe: 1], isValidStateID(id) { _ensureStateNode(&graph, &compositeStack, id); continue }
+
+        // Nothing matched (for example a state id containing `-`, which
+        // upstream rejects). The line used to be dropped silently.
+        diagnostics.append(.featureDropped(
+            .diagramFamilyUnsupported,
+            message: "[State] statement not recognised and skipped: \(line.prefix(80))",
+            location: nil
+        ))
+    }
+
+    // A composite state still open at the end of the source used to vanish
+    // with no trace. Close it there, keep its contents, and say so.
+    while let open = compositeStack.popLast() {
+        diagnostics.append(.lossyTransform(
+            .subgraphFlatten,
+            message: "[State] composite state \"\(open.id)\" has no closing }; closed at the end of the diagram",
+            location: nil
+        ))
+        let processed = _splitConcurrentRegions(open, &graph)
+        if !compositeStack.isEmpty {
+            _appendSubgraphChild(&compositeStack, processed)
+        } else {
+            graph.subgraphs.append(processed)
+        }
     }
 
     return graph.toParsedGraph()

@@ -547,7 +547,22 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
 
     let securityLevel = frontmatter?.shared.securityLevel?.lowercased()
 
-    let bodyLines = Array(lines[(headerIdx + 1)...])
+    // `class One { +foo() }` on one line becomes `class One {`, `+foo()`,
+    // `}` (upstream accepts a one-line body; the class-open rules here only
+    // accept `{` at the end of a line, so the class used to be dropped).
+    var bodyLines: [String] = []
+    for line in lines[(headerIdx + 1)...] {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("class "), trimmed.hasSuffix("}"),
+           let groups = _groups(#"^(class\s+[^{}]+?)\s*\{\s*([^{}]*?)\s*\}$"#, trimmed),
+           let head = groups[safe: 1], let body = groups[safe: 2], !body.isEmpty {
+            bodyLines.append(head + " {")
+            bodyLines.append(body)
+            bodyLines.append("}")
+        } else {
+            bodyLines.append(line)
+        }
+    }
 
     func storeNamespace(_ namespace: ClassNamespace) {
         diagram.namespaceMap[namespace.id] = namespace
