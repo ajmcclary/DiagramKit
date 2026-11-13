@@ -126,6 +126,11 @@ extension DiagramEditor {
             }
         }
         try await _checkExport(exportResult.source, of: newDocument, replacing: document, scope: scope)
+        // The text is written with the line ending the source used (CRLF
+        // when most of its lines end so), so an edit does not touch every
+        // line of a Windows-authored file.
+        let savedText = source.map { Self._withLineEnding(exportResult.source, Self._dominantLineEnding($0)) }
+            ?? exportResult.source
 
         let oldDocument = document
         let oldSource = source
@@ -133,7 +138,7 @@ extension DiagramEditor {
         let oldSelection = selection
 
         _commitDocument(newDocument)
-        _commitSource(exportResult.source)
+        _commitSource(savedText)
         _commitDiagnostics(mutationDiagnostics + exportResult.diagnostics)
         if let updateSelection {
             selection = updateSelection(oldSelection, newDocument)

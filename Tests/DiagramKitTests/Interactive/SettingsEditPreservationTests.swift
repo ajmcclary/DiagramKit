@@ -74,7 +74,7 @@ struct SettingsEditPreservationTests {
             try await editor.perform(.setTitle("New"))
             Issue.record("applied")
         } catch DiagramEditorError.exportWouldLoseContent(let details) {
-            #expect(details.contains("not only its settings"), "\(details)")
+            #expect(details.contains("not only the setting"), "\(details)")
         }
         #expect(editor.source == source)
         #expect(!editor.canUndo)

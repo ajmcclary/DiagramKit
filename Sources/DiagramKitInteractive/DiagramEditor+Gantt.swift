@@ -89,7 +89,7 @@ extension DiagramEditor {
            let readBack = exportRegistry.readBack {
             let base: String
             if let source {
-                base = source
+                base = DiagramSourceNormalizer.normalizedLineEndings(source)
             } else {
                 base = try await _exportAsync(document).source
             }
@@ -141,10 +141,10 @@ extension DiagramEditor {
         }
         let task = model.tasks[index]
         func refuse(_ why: String) -> DiagramEditorError {
-            .exportWouldLoseContent(details: "task '\(taskId)' cannot be resized on the canvas: \(why)")
+            .exportWouldLoseContent(details: "task \u{201C}\(task.task)\u{201D} cannot be resized on the canvas: \(why)")
         }
         if !model.excludes.isEmpty {
-            throw refuse("the gantt excludes days (`excludes`), so the dates a resize writes would not say where the bar ends; edit the source")
+            throw refuse("the chart excludes days, so the dates a resize would write would not show where the bar ends")
         }
 
         // The task's line, found in one pass: task lines follow the model's
@@ -209,7 +209,7 @@ extension DiagramEditor {
                 return result
             }
         }
-        throw refuse("no spelling of its end in this gantt reads back as the requested date")
+        throw refuse("no way of writing its end in this chart gives the date you dragged to")
     }
 
     /// The edit of `lines[lineIndex]` that makes task `index` end at

@@ -51,7 +51,9 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// The mutation's export would lose or change content beyond the
     /// mutation: it would not read back as the edited diagram, or a
     /// comment, frontmatter or click/link line of the source would be
-    /// dropped. The document and source are unchanged.
+    /// dropped. The document and source are unchanged. `details` says in
+    /// plain words what would be lost; the description, shown as is, adds
+    /// that the change can be made in the source instead.
     case exportWouldLoseContent(details: String)
 
     public var errorDescription: String? {
@@ -81,7 +83,7 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
         case .unknownThemeName(let name):
             return "Unknown theme name '\(name)'"
         case .exportWouldLoseContent(let details):
-            return "The edit was not applied: \(details)"
+            return "The edit was not applied because \(details). You can make this change in the source instead."
         }
     }
 }

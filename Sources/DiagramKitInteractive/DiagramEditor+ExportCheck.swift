@@ -7,6 +7,7 @@
 // frontmatter and init directives, click/link lines — must still be there
 // unless the mutation removed what it belongs to.
 
+import Foundation
 import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
@@ -36,16 +37,16 @@ extension DiagramEditor {
                 do {
                     reparsed = try readBack(source, format)
                 } catch {
-                    return "the saved text would not parse: \(error.localizedDescription)"
+                    return "the saved text would not be valid (\(error.localizedDescription.trimmingCharacters(in: CharacterSet(charactersIn: ". "))))"
                 }
                 let expected = _modelFingerprint(newDocument)
                 let actual = _modelFingerprint(reparsed)
                 if expected != actual {
-                    return "the saved text would not read back as the edited diagram (\(Self._firstDifference(expected, actual)))"
+                    return "saving it would lose or change \(Self._plainThing(expected, actual))"
                 }
             }
             if format != .mermaid {
-                return Self._lostSourceLine(from: oldSource, to: source, oldDocument: oldDocument, newDocument: newDocument)
+                return Self._lostSourceLine(from: oldSource, to: source, format: format, oldDocument: oldDocument, newDocument: newDocument)
             }
             if let problem = Self._untargetedLineChange(
                 from: oldSource, to: source, scope: scope, newDocument: newDocument, oldDocument: oldDocument
@@ -76,6 +77,7 @@ extension DiagramEditor {
     nonisolated static func _lostSourceLine(
         from oldSource: String?,
         to source: String,
+        format: DiagramFormatID,
         oldDocument: DiagramDocument,
         newDocument: DiagramDocument
     ) -> String? {
@@ -88,13 +90,94 @@ extension DiagramEditor {
         var available: [Substring: Int] = [:]
         let newText = DiagramSourceNormalizer.normalizedLineEndings(source)
         for line in newText.split(separator: "\n") { available[line, default: 0] += 1 }
+        // A comment is never the edit's target: every comment line, and
+        // every trailing comment, comes back unchanged (one that names a
+        // renamed element keeps its old wording). Only a non-comment line
+        // naming an element the edit changed may be rewritten.
+        let syntax = _CommentSyntax(format)
+        var inBlock = false
         for line in DiagramSourceNormalizer.normalizedLineEndings(oldSource).split(separator: "\n") {
-            if line.trimmingCharacters(in: .whitespaces).isEmpty { continue }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty { continue }
+            let isComment = syntax.isCommentLine(trimmed, inBlock: &inBlock)
             if let count = available[line], count > 0 { available[line] = count - 1; continue }
-            if targets.contains(where: { _mentions(line, $0) }) { continue }
-            return "the line '\(line.trimmingCharacters(in: .whitespaces))' would be lost or rewritten"
+            if isComment {
+                return "saving it would lose the comment \u{201C}\(trimmed)\u{201D}"
+            }
+            if targets.contains(where: { _mentions(line, $0) }) {
+                if let trailing = syntax.trailingComment(trimmed), !newText.contains(trailing) {
+                    return "saving it would lose the comment \u{201C}\(trailing)\u{201D}"
+                }
+                continue
+            }
+            return "saving it would lose or rewrite the line \u{201C}\(trimmed)\u{201D}"
         }
         return nil
+    }
+
+    /// Comment syntax of the formats other than Mermaid (whose comments
+    /// the importer records).
+    struct _CommentSyntax {
+        let linePrefixes: [String]
+        let blockOpen: String?
+        let blockClose: String?
+        let trailingMarkers: [String]
+
+        init(_ format: DiagramFormatID) {
+            switch format {
+            case .d2: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["#"], nil, nil, [" #"])
+            case .graphviz: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["//", "#"], "/*", "*/", [" //"])
+            case .plantuml: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["'"], "/'", "'/", [])
+            case .structurizr: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["//", "#"], "/*", "*/", [" //"])
+            default: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["#", "//", "'", "%%"], "/*", "*/", [])
+            }
+        }
+
+        func isCommentLine(_ trimmed: String, inBlock: inout Bool) -> Bool {
+            if inBlock {
+                if let close = blockClose, trimmed.contains(close) { inBlock = false }
+                return true
+            }
+            if let open = blockOpen, let close = blockClose, trimmed.hasPrefix(open) {
+                inBlock = !trimmed.dropFirst(open.count).contains(close)
+                return true
+            }
+            return linePrefixes.contains { trimmed.hasPrefix($0) }
+        }
+
+        /// The comment at the end of a statement line (outside quotes).
+        func trailingComment(_ trimmed: String) -> String? {
+            var inQuote = false
+            var index = trimmed.startIndex
+            while index < trimmed.endIndex {
+                if trimmed[index] == "\"" { inQuote.toggle() }
+                if !inQuote {
+                    for marker in trailingMarkers where trimmed[index...].hasPrefix(marker) {
+                        return trimmed[trimmed.index(after: index)...].trimmingCharacters(in: .whitespaces)
+                    }
+                }
+                index = trimmed.index(after: index)
+            }
+            return nil
+        }
+    }
+
+    /// What a model mismatch would lose, in plain words.
+    nonisolated static func _plainThing(_ expected: String, _ actual: String) -> String {
+        let location = _fingerprintDifferenceLocation(expected, actual)
+        let words = ((location.field ?? "") + " " + (location.type ?? "")).lowercased()
+        let table: [(String, String)] = [
+            ("acctitle", "the accessibility title"), ("accdescr", "the accessibility description"),
+            ("note", "a note"), ("link", "a link"), ("interaction", "a link"), ("href", "a link"), ("tooltip", "a tooltip"),
+            ("style", "a style"), ("css", "a style"), ("class", "a style class"), ("fill", "a style"),
+            ("label", "a label"), ("descr", "a label"), ("text", "a label"), ("title", "the title"),
+            ("edge", "a connection"), ("relationship", "a connection"), ("message", "a message"),
+            ("subgraph", "a group"), ("nodeids", "a group"), ("children", "a group"), ("namespace", "a group"),
+            ("shape", "a shape"), ("direction", "the direction"), ("config", "a diagram setting"),
+            ("task", "a task"), ("section", "a section"),
+            ("node", "an element"), ("entit", "an element"), ("actor", "a participant"), ("class", "a class"),
+        ]
+        return table.first { words.contains($0.0) }?.1 ?? "part of the diagram"
     }
 
     /// Whether `line` names `id` as a whole word.
@@ -159,6 +242,25 @@ extension DiagramEditor {
         return ids
     }
 
+    /// The line ending most lines of `text` use: CRLF or LF.
+    nonisolated static func _dominantLineEnding(_ text: String) -> String {
+        var crlf = 0, lf = 0
+        var previous: Unicode.Scalar?
+        for scalar in text.unicodeScalars {
+            if scalar == "\n" {
+                if previous == "\r" { crlf += 1 } else { lf += 1 }
+            }
+            previous = scalar
+        }
+        return crlf > lf ? "\r\n" : "\n"
+    }
+
+    /// `text` with every line ending written as `ending`.
+    nonisolated static func _withLineEnding(_ text: String, _ ending: String) -> String {
+        let normalized = DiagramSourceNormalizer.normalizedLineEndings(text)
+        return ending == "\n" ? normalized : normalized.replacingOccurrences(of: "\n", with: ending)
+    }
+
     /// What part of the source an edit is about. A structural edit of a
     /// type whose export reads back exactly re-exports the body
     /// (`wholeExport`); an edit that does not concern the body (title,
@@ -190,9 +292,9 @@ extension DiagramEditor {
         case .singleLine(let index):
             let a = old.split(separator: "\n", omittingEmptySubsequences: false)
             let b = new.split(separator: "\n", omittingEmptySubsequences: false)
-            guard a.count == b.count else { return "the edit would add or remove lines" }
+            guard a.count == b.count else { return "saving it would add or remove lines of the source" }
             if let i = a.indices.first(where: { $0 != index && a[$0] != b[$0] }) {
-                return "the edit would change the line '\(a[i].trimmingCharacters(in: .whitespaces))'"
+                return "saving it would also change the line \u{201C}\(a[i].trimmingCharacters(in: .whitespaces))\u{201D}"
             }
             return nil
         case .preambleOnly:
@@ -202,7 +304,7 @@ extension DiagramEditor {
             guard old.hasPrefix(preamble) else { return nil }
             let body = old.dropFirst(preamble.count)
             guard new.hasSuffix(body) else {
-                return "the edit would change the diagram's lines, not only its settings"
+                return "saving it would rewrite the diagram's lines, not only the setting"
             }
             // In the preamble, only the lines of the settings that changed
             // may differ.
@@ -219,7 +321,7 @@ extension DiagramEditor {
                 let key = trimmed.split(separator: ":", maxSplits: 1).first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
                 if changedKeys.contains(key) { continue }
                 if trimmed.hasPrefix("%%{"), changedKeys.contains("theme") || changedKeys.contains("layout") { continue }
-                return "the edit would change the line '\(trimmed)'"
+                return "saving it would also change the line \u{201C}\(trimmed)\u{201D}"
             }
             return nil
         }
@@ -273,7 +375,7 @@ extension DiagramEditor {
             || newDocument.frontmatter?.theme != oldDocument.frontmatter?.theme
             || newDocument.frontmatter?.layout != oldDocument.frontmatter?.layout
         if !configChanged, !source.hasPrefix(annotations.preamble) {
-            return "the frontmatter or init directives would change"
+            return "saving it would change the frontmatter or init directive"
         }
         var available: [String: Int] = [:]
         for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
@@ -285,14 +387,14 @@ extension DiagramEditor {
             return true
         }
         for comment in annotations.comments where !take(comment.line) {
-            return "the comment '\(comment.line.trimmingCharacters(in: .whitespaces))' would be lost"
+            return "saving it would lose the comment \u{201C}\(comment.line.trimmingCharacters(in: .whitespaces))\u{201D}"
         }
         let ids = _elementIDs(in: newDocument)
         for (key, lines) in annotations.verbatimStatements.sorted(by: { $0.key < $1.key }) {
             // A click or link line goes with its element.
             if let ids, let target = _verbatimTarget(key), !ids.contains(target) { continue }
             for line in lines where !take(line) {
-                return "the line '\(line.trimmingCharacters(in: .whitespaces))' would be lost"
+                return "saving it would lose the line \u{201C}\(line.trimmingCharacters(in: .whitespaces))\u{201D}"
             }
         }
         return nil

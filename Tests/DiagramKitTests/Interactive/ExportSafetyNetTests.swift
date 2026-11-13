@@ -208,7 +208,15 @@ struct NonMermaidSafetyNetTests {
                     }
                     counts.accepted += 1
                     let saved = edit.source ?? ""
+                    let syntax = DiagramEditor._CommentSyntax(format)
+                    var inBlock = false
                     for line in source.split(separator: "\n") where !line.trimmingCharacters(in: .whitespaces).isEmpty {
+                        // A comment is never exempt, even one naming the
+                        // renamed node.
+                        if syntax.isCommentLine(line.trimmingCharacters(in: .whitespaces), inBlock: &inBlock) {
+                            if !saved.contains(line) { failures.append("[\(entry.id)-\(name)] lost comment '\(line)'") }
+                            continue
+                        }
                         if !saved.contains(line) && !DiagramEditor._mentions(line, node?.id ?? "title") && !line.contains("title") {
                             failures.append("[\(entry.id)-\(name)] lost '\(line)'")
                         }

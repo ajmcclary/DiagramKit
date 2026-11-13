@@ -169,14 +169,13 @@ private func _describe(_ value: Any, into out: inout String, depth: Int) {
     }
 }
 
-/// Where two fingerprints first differ, named by the innermost type and
-/// field around that point, with a little of each side.
-public func _fingerprintDifference(_ expected: String, _ actual: String) -> String {
+/// The innermost type and field around the first difference of two
+/// fingerprints: the field is the last `name=` before it, the type the
+/// `Name{` whose brace is still open there.
+public func _fingerprintDifferenceLocation(_ expected: String, _ actual: String) -> (type: String?, field: String?, offset: Int) {
     let a = Array(expected), b = Array(actual)
     var i = 0
     while i < a.count, i < b.count, a[i] == b[i] { i += 1 }
-    // The field is the last `name=` before the difference; the type is the
-    // `Name{` whose brace is still open there.
     var field: String?
     var typeName: String?
     var depth = 0
@@ -201,6 +200,14 @@ public func _fingerprintDifference(_ expected: String, _ actual: String) -> Stri
         }
         j -= 1
     }
+    return (typeName, field, i)
+}
+
+/// Where two fingerprints first differ, named by the innermost type and
+/// field around that point, with a little of each side.
+public func _fingerprintDifference(_ expected: String, _ actual: String) -> String {
+    let a = Array(expected), b = Array(actual)
+    let (typeName, field, i) = _fingerprintDifferenceLocation(expected, actual)
     func window(_ chars: [Character]) -> String {
         let start = max(0, i - 40), end = min(chars.count, i + 60)
         return (start > 0 ? "…" : "") + String(chars[start..<end]) + (end < chars.count ? "…" : "")
