@@ -188,7 +188,14 @@ private func _bmToAsciiTypeGraph(_ graph: original_src_ascii_converter.AsciiGrap
     )
 }
 
-private func _bmDrawGraph(_ graph: inout AsciiGraph) {
+private func _bmDrawGraph(_ graph: inout AsciiGraph) throws {
+    let work = _asciiFlowchartDrawWork(graph)
+    guard work <= _asciiFlowchartDrawBudget else {
+        throw DiagramInputLimitError(
+            .layoutSize,
+            "the ASCII drawing would take about \(Int(work / 1_000_000)) million cell operations (limit \(Int(_asciiFlowchartDrawBudget / 1_000_000)) million); render it as SVG or an image instead"
+        )
+    }
     _ = drawGraph(&graph)
 }
 
@@ -489,7 +496,7 @@ public final class original_src_ascii_index {
     }
 
     private static func drawGraph(_ graph: inout AsciiGraphModel) throws {
-        _bmDrawGraph(&graph.drawGraph)
+        try _bmDrawGraph(&graph.drawGraph)
     }
 
     private static func canvasToString(

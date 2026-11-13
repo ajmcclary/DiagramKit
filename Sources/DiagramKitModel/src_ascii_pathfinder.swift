@@ -101,10 +101,23 @@ final class original_src_ascii_pathfinder {
         from: GridCoord,
         to: GridCoord
     ) -> [GridCoord]? {
+        var explored = 0
+        return getPath(grid, from: from, to: to, explored: &explored)
+    }
+
+    /// As `getPath(_:from:to:)`, adding the number of cells explored to
+    /// `explored` so a caller can bound the total over many searches.
+    public static func getPath(
+        _ grid: [String: AsciiNode],
+        from: GridCoord,
+        to: GridCoord,
+        explored: inout Int
+    ) -> [GridCoord]? {
         var pq = MinHeap()
+        var costSoFar: [String: Int] = [original_src_ascii_converter.gridKey(from): 0]
+        defer { explored += costSoFar.count }
         pq.push(PQItem(coord: from, priority: 0))
 
-        var costSoFar: [String: Int] = [original_src_ascii_converter.gridKey(from): 0]
         var cameFrom: [String: GridCoord?] = [original_src_ascii_converter.gridKey(from): nil]
 
         // Cap explored cells to prevent unbounded search on hostile inputs.

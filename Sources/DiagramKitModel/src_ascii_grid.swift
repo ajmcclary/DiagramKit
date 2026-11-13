@@ -319,7 +319,18 @@ open class original_src_ascii_grid {
         }
 
         graph.bundles = []
+        graph.pathCellsExplored = 0
         for edge in graph.edges {
+            // Each edge searches a grid that grows with the diagram, so the
+            // total is roughly edges × grid area: a 50×50 `&` fan-out
+            // (2,500 edges) never finished. Past the budget the ASCII
+            // renderer throws instead.
+            guard graph.pathCellsExplored <= _asciiPathSearchBudget else {
+                throw DiagramInputLimitError(
+                    .layoutSize,
+                    "routing \(graph.edges.count) edges in ASCII needs more than \(_asciiPathSearchBudget / 1_000_000) million search steps; render it as SVG or an image instead"
+                )
+            }
             _determinePath(graph, edge)
             increaseGridSizeForPath(graph, edge.path)
             _determineLabelLine(graph, edge)
@@ -521,8 +532,8 @@ open class original_src_ascii_grid {
         let altFrom = gridCoordDirection(sourceCoord, alternativeDir)
         let altTo = gridCoordDirection(targetCoord, alternativeOppositeDir)
 
-        let preferredPathRaw = original_src_ascii_pathfinder.getPath(graph.grid, from: prefFrom, to: prefTo)
-        let alternativePathRaw = original_src_ascii_pathfinder.getPath(graph.grid, from: altFrom, to: altTo)
+        let preferredPathRaw = original_src_ascii_pathfinder.getPath(graph.grid, from: prefFrom, to: prefTo, explored: &graph.pathCellsExplored)
+        let alternativePathRaw = original_src_ascii_pathfinder.getPath(graph.grid, from: altFrom, to: altTo, explored: &graph.pathCellsExplored)
 
         if let preferredPathRaw, let alternativePathRaw {
             let preferredPath = original_src_ascii_pathfinder.mergePath(preferredPathRaw)
@@ -745,3 +756,7 @@ open class original_src_ascii_grid {
         getEdgesFromNode(graph, node).map(\.to)
     }
 }
+
+/// Most grid cells the flowchart/state ASCII edge router may explore across
+/// all edges of one diagram (see `original_src_ascii_grid.createMapping`).
+public let _asciiPathSearchBudget = 3_000_000

@@ -297,7 +297,14 @@ private func optimizeCircleCenters(
         return totalError
     }
 
-    // Nelder-Mead optimization
+    // Nelder-Mead optimization. Each vertex's loss is computed once and
+    // kept with it: the loop used to call `loss` inside `sort`'s
+    // comparator and again for every test, O(n log n) evaluations per
+    // iteration, so a 12-set union took 14 s and 40 sets never finished.
+    // The cached values are the same numbers, compared in the same order,
+    // so the result is unchanged. Evaluations are also budgeted by the
+    // cost of one evaluation (Σ k³ over the target overlaps), which only
+    // binds for diagrams far larger than any upstream example.
     let n = setCount * 2
     let alpha: Double = 1.0
     let gamma: Double = 2.0
@@ -305,6 +312,13 @@ private func optimizeCircleCenters(
     let sigma: Double = 0.5
     let maxIterations = 400
     let convergenceThreshold = 1e-6 * max(radii.max() ?? 10, 10)
+    let costPerEvaluation = max(1, sortedTargetAreas.reduce(0) { $0 + $1.0.count * $1.0.count * $1.0.count })
+    let maxEvaluations = max(200, 20_000_000 / costPerEvaluation)
+    var evaluations = 0
+    func measuredLoss(_ coords: [Double]) -> Double {
+        evaluations += 1
+        return loss(coords)
+    }
 
     var simplex: [[Double]] = []
     simplex.append(initial)
@@ -313,14 +327,22 @@ private func optimizeCircleCenters(
         point[i] += max(radii[i / 2] * 0.1, 5)
         simplex.append(point)
     }
+    var losses = simplex.map(measuredLoss)
+
+    func sortSimplex() {
+        let order = simplex.indices.sorted { losses[$0] < losses[$1] }
+        simplex = order.map { simplex[$0] }
+        losses = order.map { losses[$0] }
+    }
 
     for _ in 0..<maxIterations {
+        if evaluations > maxEvaluations { break }
         // Sort by loss
-        simplex.sort { loss($0) < loss($1) }
+        sortSimplex()
 
         // Check convergence
-        let bestLoss = loss(simplex[0])
-        let worstLoss = loss(simplex[n])
+        let bestLoss = losses[0]
+        let worstLoss = losses[n]
         if abs(worstLoss - bestLoss) < convergenceThreshold {
             break
         }
@@ -341,32 +363,43 @@ private func optimizeCircleCenters(
         for j in 0..<n {
             reflected[j] = centroid[j] + alpha * (centroid[j] - simplex[n][j])
         }
+        let reflectedLoss = measuredLoss(reflected)
 
-        if loss(reflected) < loss(simplex[n - 1]) {
+        if reflectedLoss < losses[n - 1] {
             // Better than second-worst, keep it
             simplex[n] = reflected
+            losses[n] = reflectedLoss
             continue
         }
 
-        if loss(reflected) < loss(simplex[0]) {
+        if reflectedLoss < losses[0] {
             // Best so far: try expansion
             var expanded = Array(repeating: 0.0, count: n)
             for j in 0..<n {
                 expanded[j] = centroid[j] + gamma * (reflected[j] - centroid[j])
             }
-            simplex[n] = loss(expanded) < loss(reflected) ? expanded : reflected
+            let expandedLoss = measuredLoss(expanded)
+            if expandedLoss < reflectedLoss {
+                simplex[n] = expanded
+                losses[n] = expandedLoss
+            } else {
+                simplex[n] = reflected
+                losses[n] = reflectedLoss
+            }
             continue
         }
 
         // Reflection was worse than second-worst
-        if loss(reflected) < loss(simplex[n]) {
+        if reflectedLoss < losses[n] {
             // Outside contraction
             var contracted = Array(repeating: 0.0, count: n)
             for j in 0..<n {
                 contracted[j] = centroid[j] + rho * (reflected[j] - centroid[j])
             }
-            if loss(contracted) < loss(reflected) {
+            let contractedLoss = measuredLoss(contracted)
+            if contractedLoss < reflectedLoss {
                 simplex[n] = contracted
+                losses[n] = contractedLoss
                 continue
             }
         } else {
@@ -375,8 +408,10 @@ private func optimizeCircleCenters(
             for j in 0..<n {
                 contracted[j] = centroid[j] + rho * (simplex[n][j] - centroid[j])
             }
-            if loss(contracted) < loss(simplex[n]) {
+            let contractedLoss = measuredLoss(contracted)
+            if contractedLoss < losses[n] {
                 simplex[n] = contracted
+                losses[n] = contractedLoss
                 continue
             }
         }
@@ -386,11 +421,12 @@ private func optimizeCircleCenters(
             for j in 0..<n {
                 simplex[i][j] = simplex[0][j] + sigma * (simplex[i][j] - simplex[0][j])
             }
+            losses[i] = measuredLoss(simplex[i])
         }
     }
 
     // Return best
-    simplex.sort { loss($0) < loss($1) }
+    sortSimplex()
     let best = simplex[0]
     var result: [VennPoint] = []
     for i in 0..<setCount {

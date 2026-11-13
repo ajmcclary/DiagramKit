@@ -50,6 +50,9 @@ public struct DiagramInputLimitError: Error, LocalizedError, Equatable, Sendable
     public enum Limit: String, Sendable, Equatable {
         case nestingDepth
         case numericRange
+        /// The diagram is within the parse limits but its layout would
+        /// take more work than the layout is allowed (it used to hang).
+        case layoutSize
     }
 
     public let limit: Limit
@@ -66,6 +69,8 @@ public struct DiagramInputLimitError: Error, LocalizedError, Equatable, Sendable
             return "Nesting is deeper than \(_maxParserNestingDepth) levels: \(detail)"
         case .numericRange:
             return "Number out of range: \(detail)"
+        case .layoutSize:
+            return "The diagram is too large to lay out: \(detail)"
         }
     }
 }

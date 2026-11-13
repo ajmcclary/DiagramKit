@@ -181,6 +181,9 @@ open class original_src_ascii_converter {
         public var offsetX: Int
         public var offsetY: Int
         public var bundles: [EdgeBundle]
+        /// Grid cells the edge router has explored so far (see
+        /// `_asciiPathSearchBudget`).
+        public var pathCellsExplored: Int = 0
 
         public init(
             nodes: [AsciiNode],

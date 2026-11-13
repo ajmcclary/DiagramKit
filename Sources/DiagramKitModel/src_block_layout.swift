@@ -128,13 +128,27 @@ private func getMaxChildSize(block: BlockNode, db: [String: BlockNode]) -> (widt
     return (maxWidth, maxHeight)
 }
 
+/// Most `setBlockSizes` calls one layout may make. The algorithm (upstream's)
+/// sizes every child twice — once bottom-up, once after its siblings are
+/// known — so the work doubles per nesting level: 20 levels took 6 s, 24
+/// never finished. Past this budget the layout throws instead of hanging.
+let _blockSizingCallBudget = 250_000
+
 private func setBlockSizes(
     block: inout BlockNode,
     db: inout [String: BlockNode],
     siblingWidth: Double = 0,
     siblingHeight: Double = 0,
-    padding: Double = 8
-) {
+    padding: Double = 8,
+    budget: inout Int
+) throws {
+    budget -= 1
+    if budget < 0 {
+        throw DiagramInputLimitError(
+            .layoutSize,
+            "block nesting needs more than \(_blockSizingCallBudget) sizing steps; flatten some nested blocks"
+        )
+    }
     if block.size?.width == nil || block.size?.width == 0 {
         block.size = BlockSize(width: siblingWidth, height: siblingHeight, x: 0, y: 0)
     }
@@ -143,7 +157,7 @@ private func setBlockSizes(
 
     for childId in block.children {
         if var child = db[childId] {
-            setBlockSizes(block: &child, db: &db, padding: padding)
+            try setBlockSizes(block: &child, db: &db, padding: padding, budget: &budget)
             db[childId] = child
         }
     }
@@ -174,7 +188,7 @@ private func setBlockSizes(
 
     for childId in block.children {
         if var child = db[childId] {
-            setBlockSizes(block: &child, db: &db, siblingWidth: maxWidth, siblingHeight: effectiveMaxHeight, padding: padding)
+            try setBlockSizes(block: &child, db: &db, siblingWidth: maxWidth, siblingHeight: effectiveMaxHeight, padding: padding, budget: &budget)
             db[childId] = child
         }
     }
@@ -411,7 +425,8 @@ public func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBloc
         }
     }
 
-    setBlockSizes(block: &root, db: &db, siblingWidth: 0, siblingHeight: 0, padding: padding)
+    var sizingBudget = _blockSizingCallBudget
+    try setBlockSizes(block: &root, db: &db, siblingWidth: 0, siblingHeight: 0, padding: padding, budget: &sizingBudget)
     db["root"] = root
 
     guard var positionedRoot = db["root"] else {

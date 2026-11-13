@@ -35,6 +35,35 @@ private func sortSubgraphsByDepth(_ subgraphs: [AsciiSubgraph]) -> [AsciiSubgrap
 // Top-level draw orchestrator
 // ============================================================================
 
+/// Most cell operations the flowchart/state ASCII drawing may take. Every
+/// node, subgraph and edge layer is drawn into (and merged from) a canvas
+/// the size of the whole diagram, so the work is cells × layers: an
+/// 800-node chain, a 50×50 `&` fan-out or 200 nested subgraphs took 50 s to
+/// several minutes. Past this the ASCII renderer throws
+/// `DiagramInputLimitError(.layoutSize)` instead; SVG and image rendering of
+/// the same diagram are unaffected.
+public let _asciiFlowchartDrawBudget: Double = 60_000_000
+
+/// Estimated cell operations `drawGraph` will perform on `graph`.
+public func _asciiFlowchartDrawWork(_ graph: AsciiGraph) -> Double {
+    // The canvas grows while drawing, so size it from the geometry that
+    // will be drawn, not from its current extent.
+    var (maxX, maxY) = getCanvasSize(graph.canvas)
+    for sg in graph.subgraphs {
+        maxX = max(maxX, sg.maxX)
+        maxY = max(maxY, sg.maxY)
+    }
+    for node in graph.nodes {
+        guard let dc = node.drawingCoord else { continue }
+        let (w, h) = node.drawing.map(getCanvasSize) ?? (0, 0)
+        maxX = max(maxX, dc.x + w)
+        maxY = max(maxY, dc.y + h)
+    }
+    let cells = Double(maxX + 1) * Double(maxY + 1)
+    let layers = Double(graph.nodes.count + graph.subgraphs.count * 2 + graph.edges.count * 6 + 12)
+    return cells * layers
+}
+
 public func drawGraph(_ graph: inout AsciiGraph) -> Canvas {
     let useAscii = graph.config.useAscii
     let zero = DrawingCoord(x: 0, y: 0)

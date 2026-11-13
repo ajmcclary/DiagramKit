@@ -16,7 +16,9 @@ public func renderSankeyAscii(_ model: SankeyDiagram) -> String {
         lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
     for link in model.links {
-        lines.append("\(link.source) → \(link.target) : \(String(format: "%g", link.value))")
+        // Node names, as the SVG labels show them (interpolating the node
+        // printed its struct description).
+        lines.append("\(link.source.id) → \(link.target.id) : \(String(format: "%g", link.value))")
     }
     return lines.joined(separator: "\n")
 }
