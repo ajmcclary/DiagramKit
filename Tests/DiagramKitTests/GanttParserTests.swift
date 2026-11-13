@@ -699,8 +699,10 @@ struct GanttParserTests {
         #expect(diagram.tasks[0].endTime == _date(2023, 6, 7))
     }
 
-    @Test("Click href blocks javascript: URLs")
-    func clickBlocksJavascriptUrl() throws {
+    @Test("Click href with a javascript: URL is kept in the model and never rendered as a link")
+    func clickBlocksJavascriptUrl() async throws {
+        // Owner ruling (2026-11-12 review): click lines stay in the model and
+        // are written back exactly; the scheme check is at output time.
         let source = [
             "gantt",
             "dateFormat YYYY-MM-DD",
@@ -709,11 +711,15 @@ struct GanttParserTests {
             "click t1 href \"javascript:alert(1)\"",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        #expect(diagram.tasks[0].link == nil)
+        #expect(diagram.tasks[0].link == "javascript:alert(1)")
+        let svg = try await DiagramEngine.renderSVG(source: source.joined(separator: "\n"))
+        #expect(!svg.contains("javascript:alert(1)"))
     }
 
-    @Test("Click href blocks vbscript: URLs")
-    func clickBlocksVbscriptUrl() throws {
+    @Test("Click href with a vbscript: URL is kept in the model and never rendered as a link")
+    func clickBlocksVbscriptUrl() async throws {
+        // Owner ruling (2026-11-12 review): click lines stay in the model and
+        // are written back exactly; the scheme check is at output time.
         let source = [
             "gantt",
             "dateFormat YYYY-MM-DD",
@@ -722,11 +728,15 @@ struct GanttParserTests {
             "click t1 href \"vbscript:msgbox(1)\"",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        #expect(diagram.tasks[0].link == nil)
+        #expect(diagram.tasks[0].link == "vbscript:msgbox(1)")
+        let svg = try await DiagramEngine.renderSVG(source: source.joined(separator: "\n"))
+        #expect(!svg.contains("vbscript:msgbox(1)"))
     }
 
-    @Test("Click href blocks file: URLs")
-    func clickBlocksFileUrl() throws {
+    @Test("Click href with a file: URL is kept in the model and rendered")
+    func clickBlocksFileUrl() async throws {
+        // Owner ruling (2026-11-12 review): click lines stay in the model and
+        // are written back exactly; the scheme check is at output time.
         let source = [
             "gantt",
             "dateFormat YYYY-MM-DD",
@@ -735,7 +745,9 @@ struct GanttParserTests {
             "click t1 href \"file:///etc/hosts\"",
         ]
         let (diagram, _) = try parseGanttDiagram(source)
-        #expect(diagram.tasks[0].link == nil)
+        #expect(diagram.tasks[0].link == "file:///etc/hosts")
+        let svg = try await DiagramEngine.renderSVG(source: source.joined(separator: "\n"))
+        #expect(svg.contains("file:///etc/hosts"))
     }
 
     @Test("todayMarker commas converted to semicolons")
