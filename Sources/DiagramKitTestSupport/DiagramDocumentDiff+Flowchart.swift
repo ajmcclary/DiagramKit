@@ -130,16 +130,39 @@ private func diffSubgraphs(
         ))
         return deltas
     }
-    for (aSub, bSub) in zip(a, b) where aSub.id != bSub.id {
-        let isAnonymous = aSub.id.hasPrefix("subgraph_") && bSub.id.hasPrefix("subgraph_")
-        if isAnonymous {
-            deltas.append(.loss(.anonymousSubgraphRename(old: aSub.id, new: bSub.id)))
-        } else {
+    for (aSub, bSub) in zip(a, b) {
+        if aSub.id != bSub.id {
+            let isAnonymous = aSub.id.hasPrefix("subgraph_") && bSub.id.hasPrefix("subgraph_")
+            if isAnonymous {
+                deltas.append(.loss(.anonymousSubgraphRename(old: aSub.id, new: bSub.id)))
+            } else {
+                deltas.append(.unexpected(
+                    path: "subgraphs",
+                    detail: "lhs id=\(aSub.id) rhs id=\(bSub.id)"
+                ))
+            }
+        }
+        // Membership, label and direction are what the canvas shows; an
+        // exporter that wrote empty blocks used to pass this check.
+        if Set(aSub.nodeIds) != Set(bSub.nodeIds) {
             deltas.append(.unexpected(
-                path: "subgraphs",
-                detail: "lhs id=\(aSub.id) rhs id=\(bSub.id)"
+                path: "subgraphs[\(aSub.id)].nodeIds",
+                detail: "lhs=\(aSub.nodeIds) rhs=\(bSub.nodeIds)"
             ))
         }
+        if aSub.label != bSub.label {
+            deltas.append(.unexpected(
+                path: "subgraphs[\(aSub.id)].label",
+                detail: "lhs=\(aSub.label) rhs=\(bSub.label)"
+            ))
+        }
+        if aSub.direction != bSub.direction {
+            deltas.append(.unexpected(
+                path: "subgraphs[\(aSub.id)].direction",
+                detail: "lhs=\(aSub.direction?.rawValue ?? "nil") rhs=\(bSub.direction?.rawValue ?? "nil")"
+            ))
+        }
+        deltas.append(contentsOf: diffSubgraphs(a: aSub.children, b: bSub.children))
     }
     return deltas
 }

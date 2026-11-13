@@ -190,15 +190,15 @@ extension DiagramEditor {
                 guard graph.nodesInOrder.contains(where: { $0.id == nodeID }) else {
                     throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
                 }
-                graph.nodesInOrder.removeAll { $0.id == nodeID }
-                graph.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
+                Self._removeEdges(from: &graph) { $0.source == nodeID || $0.target == nodeID }
+                Self._purgeNodes([nodeID], from: &graph)
             } else if id.hasPrefix("edge:") {
                 guard let index = _findEdge(in: graph, selectionElementID: id) else {
                     throw DiagramEditorError.elementNotFound(
                         id: String(id.dropFirst(5)), kind: "edge"
                     )
                 }
-                graph.edges.remove(at: index)
+                Self._removeEdges(from: &graph, at: [index])
             } else if id.hasPrefix("group:") {
                 let groupID = String(id.dropFirst(6))
                 let forest = Self._copySubgraphForest(graph.subgraphs)
@@ -208,10 +208,10 @@ extension DiagramEditor {
                 }
                 let memberIDs = Self._allMemberNodeIDs(in: removed)
                 graph.subgraphs = nextForest
-                graph.nodesInOrder.removeAll { memberIDs.contains($0.id) }
-                graph.edges.removeAll {
+                Self._removeEdges(from: &graph) {
                     memberIDs.contains($0.source) || memberIDs.contains($0.target)
                 }
+                Self._purgeNodes(memberIDs.union(Self._allSubgraphIDs(in: removed)), from: &graph)
             } else {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
@@ -235,6 +235,9 @@ extension DiagramEditor {
                     if entry.id == nodeID {
                         var node = entry.node
                         node.label = label
+                        // `@{ label: … }` overrides the bracket text in
+                        // layout, so a rename must update it too.
+                        if node.properties?.label != nil { node.properties?.label = label }
                         return (id: entry.id, node: node)
                     }
                     return entry
@@ -276,6 +279,76 @@ extension DiagramEditor {
         fm.layout = preset == .adaptive ? LayoutPreset.adaptive.rawValue : nil
         doc.frontmatter = fm.isEmpty ? nil : fm
         return doc
+    }
+
+    // MARK: - Removal helpers
+
+    /// Remove the edges `shouldRemove` selects, keeping every index-keyed
+    /// `linkStyle` on the edge it styled (styles of removed edges are
+    /// dropped, later indices shift down; `default` (-1) is untouched) and
+    /// dropping id-keyed edge state no remaining edge uses.
+    static func _removeEdges(
+        from graph: inout original_src_types.MermaidGraph,
+        where shouldRemove: (original_src_types.MermaidEdge) -> Bool
+    ) {
+        let indices = Set(graph.edges.indices.filter { shouldRemove(graph.edges[$0]) })
+        _removeEdges(from: &graph, at: indices)
+    }
+
+    static func _removeEdges(from graph: inout original_src_types.MermaidGraph, at indices: Set<Int>) {
+        guard !indices.isEmpty else { return }
+        let removedIDs = Set(indices.compactMap { graph.edges.indices.contains($0) ? graph.edges[$0].id : nil })
+        let sortedRemoved = indices.sorted()
+        var linkStyles: [Int: [String: String]] = [:]
+        for (index, style) in graph.linkStyles {
+            if index < 0 {
+                linkStyles[index] = style
+            } else if !indices.contains(index) {
+                // Number of removed edges below `index`.
+                var lower = 0, upper = sortedRemoved.count
+                while lower < upper {
+                    let mid = (lower + upper) / 2
+                    if sortedRemoved[mid] < index { lower = mid + 1 } else { upper = mid }
+                }
+                linkStyles[index - lower] = style
+            }
+        }
+        graph.linkStyles = linkStyles
+        graph.edges = graph.edges.enumerated().filter { !indices.contains($0.offset) }.map(\.element)
+        let remainingIDs = Set(graph.edges.compactMap(\.id))
+        for edgeID in removedIDs where !remainingIDs.contains(edgeID) {
+            graph.edgeClassAssignments[edgeID] = nil
+            graph.edgeProperties[edgeID] = nil
+        }
+    }
+
+    /// Remove the nodes `ids` and everything keyed by them: per-node styles,
+    /// class assignments, click handlers and subgraph membership. Class
+    /// definitions are shared and stay.
+    static func _purgeNodes(_ ids: Set<String>, from graph: inout original_src_types.MermaidGraph) {
+        guard !ids.isEmpty else { return }
+        graph.nodesInOrder.removeAll { ids.contains($0.id) }
+        for id in ids {
+            graph.classAssignments[id] = nil
+            graph.nodeStyles[id] = nil
+            graph.nodeInteractions[id] = nil
+        }
+        func prune(_ subgraphs: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
+            subgraphs.map { subgraph in
+                var copy = subgraph
+                copy.nodeIds.removeAll { ids.contains($0) }
+                copy.children = prune(subgraph.children)
+                return copy
+            }
+        }
+        graph.subgraphs = prune(graph.subgraphs)
+    }
+
+    /// The ids of `sub` and every subgraph nested in it.
+    static func _allSubgraphIDs(in sub: original_src_types.MermaidSubgraph) -> Set<String> {
+        var ids: Set<String> = [sub.id]
+        for child in sub.children { ids.formUnion(_allSubgraphIDs(in: child)) }
+        return ids
     }
 
     // MARK: - Edge matching helpers

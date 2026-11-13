@@ -83,7 +83,7 @@ struct D2StateMapper {
                 ensureNode(open.id)
                 let subgraph = original_src_types.MermaidSubgraph(
                     id: open.id,
-                    label: open.label ?? open.id,
+                    label: (open.label?.isEmpty == false) ? open.label! : open.id,
                     nodeIds: []
                 )
                 subgraphStack.append((subgraph: subgraph, nodeIds: []))
