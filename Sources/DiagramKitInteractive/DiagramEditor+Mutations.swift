@@ -330,6 +330,17 @@ extension DiagramEditor {
         var fm = doc.frontmatter ?? DiagramDocumentFrontmatter()
         fm.layout = preset == .adaptive ? LayoutPreset.adaptive.rawValue : nil
         doc.frontmatter = fm.isEmpty ? nil : fm
+        // The flowchart parser copies the frontmatter layout onto the
+        // graph's config, where the layout factory reads it; do the same so
+        // the model is what the saved text reads as.
+        if case .flowchart(var graph) = doc.payload {
+            var config = graph.config ?? original_src_types.FlowchartConfig()
+            config.layoutPreset = fm.layout
+            let unset = config.curve == nil && config.htmlLabels == nil && config.markdownAutoWrap == nil
+                && config.width == nil && config.inheritDir == nil && config.securityLevel == nil && config.layoutPreset == nil
+            graph.config = unset ? nil : config
+            doc.payload = .flowchart(graph)
+        }
         return doc
     }
 
