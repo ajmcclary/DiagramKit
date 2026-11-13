@@ -148,7 +148,7 @@ private func stripQuadrantInlineComment(_ line: String) -> String {
             continue
         }
 
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" || (ch == "'" && _quadrantApostropheOpensQuote(line, at: index)) {
             quote = ch
             index = line.index(after: index)
             continue
@@ -168,6 +168,15 @@ private func stripQuadrantInlineComment(_ line: String) -> String {
     }
 
     return line.trimmingCharacters(in: .whitespaces)
+}
+
+/// `'` opens a quoted string only at the start of a token. Inside a word
+/// (`A's: [0.1, 0.2]`) it is an apostrophe; treating it as a quote hid the
+/// `:` and `[` that follow and failed the line.
+private func _quadrantApostropheOpensQuote(_ text: String, at index: String.Index) -> Bool {
+    guard index > text.startIndex else { return true }
+    let previous = text[text.index(before: index)]
+    return previous.isWhitespace || previous == ":" || previous == ","
 }
 
 private func firstUnquotedIndex(
@@ -194,7 +203,7 @@ private func firstUnquotedIndex(
             continue
         }
 
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" || (ch == "'" && _quadrantApostropheOpensQuote(string, at: index)) {
             quote = ch
         } else if ch == target {
             return index
@@ -227,7 +236,7 @@ private func lastUnquotedIndex(of target: Character, in string: String) -> Strin
             continue
         }
 
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" || (ch == "'" && _quadrantApostropheOpensQuote(string, at: index)) {
             quote = ch
         } else if ch == target {
             result = index
@@ -259,7 +268,7 @@ private func firstUnquotedClassMarker(in string: String) -> Range<String.Index>?
             continue
         }
 
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" || (ch == "'" && _quadrantApostropheOpensQuote(string, at: index)) {
             quote = ch
         } else if string[index...].hasPrefix(":::") {
             let markerEnd = string.index(index, offsetBy: 3)

@@ -1045,6 +1045,14 @@ private func _normalizeErStyleValue(_ value: String) -> String {
 
 // MARK: - Relationship Parsing (Token-Based)
 
+/// `'` opens a quoted string only at the start of a token; inside a word
+/// (`it's`) it is an apostrophe, and treating it as a quote split the
+/// relationship label into `it s`.
+private func _erApostropheOpensQuote(_ precedingText: String) -> Bool {
+    guard let previous = precedingText.last else { return true }
+    return previous.isWhitespace || previous == ":"
+}
+
 private func _preprocessRelationshipLine(_ line: String) -> String {
     var result = ""
     var inQuote = false
@@ -1068,7 +1076,8 @@ private func _preprocessRelationshipLine(_ line: String) -> String {
             continue
         }
 
-        if ch == "\"" || ch == "'" {
+        // An apostrophe inside a word (`it's`) is text, not a quote.
+        if ch == "\"" || (ch == "'" && _erApostropheOpensQuote(result)) {
             inQuote = true
             quoteChar = ch
             result.append(ch)
@@ -1080,8 +1089,21 @@ private func _preprocessRelationshipLine(_ line: String) -> String {
         var matched = false
         for op in ["--", "..", ".-", "-."] {
             if remaining.hasPrefix(op) {
+                // Cardinality symbols glued to the entity names
+                // (`A||--o{B`): upstream lexes them as their own tokens.
+                if result.count > 2, ["||", "|o", "}|", "}o"].contains(String(result.suffix(2))),
+                   let before = result.dropLast(2).last, !before.isWhitespace {
+                    result.insert(" ", at: result.index(result.endIndex, offsetBy: -2))
+                }
                 result.append(" \(op) ")
                 i = line.index(i, offsetBy: op.count)
+                let afterOp = line[i...]
+                if afterOp.count > 2, ["||", "o|", "|{", "o{"].contains(String(afterOp.prefix(2))),
+                   let next = afterOp.dropFirst(2).first, !next.isWhitespace {
+                    result.append(contentsOf: afterOp.prefix(2))
+                    result.append(" ")
+                    i = line.index(i, offsetBy: 2)
+                }
                 matched = true
                 break
             }
@@ -1236,7 +1258,7 @@ private func _tokenizeRelationshipLine(_ line: String) -> [String] {
                 current.append(ch)
             }
         } else {
-            if ch == "\"" || ch == "'" {
+            if ch == "\"" || (ch == "'" && current.isEmpty) {
                 if !current.isEmpty {
                     tokens.append(current)
                     current = ""

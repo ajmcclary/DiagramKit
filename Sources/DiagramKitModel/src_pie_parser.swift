@@ -129,7 +129,11 @@ private func parseSectionLine(_ line: String) throws -> SectionLineResult {
         throw PieChartParserError.missingLabel(trimmed)
     }
 
-    let valueStr = String(afterLabel[afterLabel.index(after: colonIdx)...]).trimmingCharacters(in: .whitespaces)
+    // A trailing `%% comment` after the value is a comment, as upstream's
+    // lexer treats it (`"B" : 50.05 %% c` used to fail as an invalid value).
+    let valueStr = DiagramSourceNormalizer.strippingInlineComment(
+        String(afterLabel[afterLabel.index(after: colonIdx)...])
+    )
     guard !valueStr.isEmpty else {
         throw PieChartParserError.invalidValue(label, "")
     }
