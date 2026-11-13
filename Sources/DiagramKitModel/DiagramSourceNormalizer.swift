@@ -21,6 +21,36 @@ public enum DiagramSourceNormalizer {
             .replacingOccurrences(of: "\r", with: "\n")
     }
 
+    // MARK: - Inline comments
+
+    /// Returns `line` up to the first `%%` that is not inside a
+    /// double-quoted string, trimmed. Upstream lexers only recognise `%%` at
+    /// a token boundary, so `E["100%% done"]` keeps its label; a plain
+    /// `range(of: "%%")` cut such a line at the label and dropped the rest
+    /// of the statement.
+    public static func strippingInlineComment(_ line: String) -> String {
+        var inQuote = false
+        var previousWasPercent = false
+        var index = line.startIndex
+        while index < line.endIndex {
+            let ch = line[index]
+            if ch == "\"" {
+                inQuote.toggle()
+                previousWasPercent = false
+            } else if ch == "%", !inQuote {
+                if previousWasPercent {
+                    let cut = line.index(before: index)
+                    return String(line[..<cut]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                previousWasPercent = true
+            } else {
+                previousWasPercent = false
+            }
+            index = line.index(after: index)
+        }
+        return line.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     // MARK: - Raw lines
 
     /// Split source into raw lines, no filtering.

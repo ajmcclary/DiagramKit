@@ -85,4 +85,10 @@ struct FlowchartLabelParsingTests {
         #expect(s.shapes["U"] == "trapezoidAlt")
         #expect(s.edges == ["T->U"])
     }
+    @Test("%% inside a quoted label is label text, not a comment")
+    func percentInsideQuotedLabel() async throws {
+        let s = try await Self.summary("flowchart LR\n    E[\"100%% done\"] --> F %% trailing comment")
+        #expect(s.nodes["E"] == "100%% done")
+        #expect(s.edges == ["E->F"])
+    }
 }

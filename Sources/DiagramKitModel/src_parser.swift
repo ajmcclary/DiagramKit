@@ -289,9 +289,7 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
     var idx = 1
     while idx < lines.count {
         var line = lines[idx]
-        if let commentIdx = line.range(of: "%%") {
-            line = String(line[..<commentIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        line = DiagramSourceNormalizer.strippingInlineComment(line)
         guard !line.isEmpty else { idx += 1; continue }
 
         if _regexTest(#"^accDescr\s*\{\s*$"#, line) {
@@ -299,9 +297,7 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
             idx += 1
             while idx < lines.count && !_regexTest(#"^\}\s*$"#, lines[idx]) {
                 var nl = lines[idx]
-                if let commentIdx = nl.range(of: "%%") {
-                    nl = String(nl[..<commentIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-                }
+                nl = DiagramSourceNormalizer.strippingInlineComment(nl)
                 if !nl.isEmpty { descrLines.append(nl) }
                 idx += 1
             }
@@ -549,9 +545,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
     var i = 1
     while i < lines.count {
         var line = lines[i]
-        if let idx = line.range(of: "%%") {
-            line = String(line[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        line = DiagramSourceNormalizer.strippingInlineComment(line)
         guard !line.isEmpty else { i += 1; continue }
 
         // multiline note: "note left/right of <id>" followed by lines until "end note"
@@ -561,9 +555,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
             i += 1
             while i < lines.count && !_regexTest(#"^\s*end\s+note\s*$"#, lines[i], caseInsensitive: true) {
                 var nl = lines[i]
-                if let idx = nl.range(of: "%%") {
-                    nl = String(nl[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-                }
+                nl = DiagramSourceNormalizer.strippingInlineComment(nl)
                 if !nl.isEmpty { noteLines.append(nl) }
                 i += 1
             }
@@ -578,9 +570,7 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
             i += 1
             while i < lines.count && !_regexTest(#"^\}\s*$"#, lines[i]) {
                 var nl = lines[i]
-                if let idx = nl.range(of: "%%") {
-                    nl = String(nl[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-                }
+                nl = DiagramSourceNormalizer.strippingInlineComment(nl)
                 if !nl.isEmpty { descrLines.append(nl) }
                 i += 1
             }

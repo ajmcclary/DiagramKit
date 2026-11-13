@@ -242,8 +242,8 @@ private func _splitEvents(_ text: String) -> [String] {
 }
 
 private func _stripTrailingPercentComment(_ line: String) -> String {
-    guard let range = line.range(of: "%%") else { return line }
-    return String(line[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+    guard line.contains("%%") else { return line }
+    return DiagramSourceNormalizer.strippingInlineComment(line)
 }
 
 private func _timelineKeywordEnd(_ line: String, keyword: String) -> String.Index? {

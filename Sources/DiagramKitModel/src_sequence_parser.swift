@@ -355,11 +355,7 @@ private func _preprocessLine(_ rawLine: String) -> String {
     }
 
     // 4. Strip %% comments
-    if let range = line.range(of: "%%") {
-        line = String(line[..<range.lowerBound])
-    }
-
-    return line.trimmingCharacters(in: .whitespacesAndNewlines)
+    return DiagramSourceNormalizer.strippingInlineComment(line)
 }
 
 // MARK: - Participant Declaration
