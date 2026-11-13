@@ -63,7 +63,10 @@ enum MermaidQuadrantExport {
             }
         }
 
-        for point in model.points {
+        // The parser prepends each point (as upstream does), so the model
+        // holds them in reverse source order; write them back in source
+        // order or every export reverses them.
+        for point in model.points.reversed() {
             let xy = "[\(formatCoord(point.x)), \(formatCoord(point.y))]"
             if let cls = point.className, !cls.isEmpty {
                 lines.append("    \(singleLine(point.text)):::\(cls): \(xy)")

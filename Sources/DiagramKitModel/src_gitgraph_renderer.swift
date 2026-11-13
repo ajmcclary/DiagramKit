@@ -298,10 +298,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                 lines.append("<line x1=\"\(cx - 3)\" y1=\"\(cy + 1)\" x2=\"\(cx)\" y2=\"\(cy - 5)\" stroke=\"\(inverseColor)\" class=\"commit \(safeCommitId) \(typeClass)\" />")
             case .merge:
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxRStr)\" class=\"\(colorClass) \(typeClass)\" fill=\"\(branchColor)\" stroke=\"\(borderColor)\" />")
-                lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxInnerRStr)\" class=\"commit \(typeClass) \(commit.id) commit\(commit.colorIndex)\" fill=\"\(inverseColor)\" />")
+                lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxInnerRStr)\" class=\"commit \(typeClass) \(safeCommitId) commit\(commit.colorIndex)\" fill=\"\(inverseColor)\" />")
             case .reverse:
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxRStr)\" class=\"\(colorClass) \(typeClass)\" fill=\"\(inverseColor)\" stroke=\"\(branchColor)\" />")
-                lines.append("<path d=\"M \(cx - reduxCrossD) \(cy - reduxCrossD) L \(cx + reduxCrossD) \(cy + reduxCrossD) M \(cx + reduxCrossD) \(cy - reduxCrossD) L \(cx - reduxCrossD) \(cy + reduxCrossD)\" stroke=\"\(branchColor)\" class=\"commit \(typeClass) \(commit.id) commit\(commit.colorIndex)\" />")
+                lines.append("<path d=\"M \(cx - reduxCrossD) \(cy - reduxCrossD) L \(cx + reduxCrossD) \(cy + reduxCrossD) M \(cx + reduxCrossD) \(cy - reduxCrossD) L \(cx - reduxCrossD) \(cy + reduxCrossD)\" stroke=\"\(branchColor)\" class=\"commit \(typeClass) \(safeCommitId) commit\(commit.colorIndex)\" />")
             default:
                 lines.append("<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(reduxRStr)\" class=\"\(colorClass) \(typeClass)\" fill=\"\(branchColor)\" stroke=\"\(borderColor)\" />")
             }

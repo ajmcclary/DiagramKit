@@ -77,6 +77,7 @@ let hostileSVGInputs: [(name: String, source: String)] = [
     ("kanban-ticket-url-tab", "---\nconfig:\n  kanban:\n    ticketBaseUrl: \"java\tscript:alert(1)//#TICKET#\"\n---\nkanban\n  todo[Todo]\n    t1[Card]@{ ticket: 'A-1' }"),
     ("gantt-href-tab", "gantt\n  dateFormat YYYY-MM-DD\n  Task :t1, 2024-01-01, 3d\n  click t1 href \"java\tscript:alert(1)\""),
     ("sequence-link-tab", "sequenceDiagram\n  participant A\n  link A: Docs @ java\tscript:alert(1)\n  A->>A: hi"),
+    ("gitgraph-reverse-id", "gitGraph\n   commit id:\"x<script>alert(1)</script>\" type:REVERSE tag:\"<b>t</b>\"\n   commit id:\"y onload=z\" type:HIGHLIGHT"),
     ("journey-markup", "journey\n  title <b>\"J\"</b>\n  section S\n    Task <i>\"x\"</i>: 5: Me"),
 ]
 
