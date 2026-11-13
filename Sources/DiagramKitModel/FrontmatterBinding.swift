@@ -47,6 +47,11 @@ public struct FrontmatterValue: Sendable {
 
     /// Raw string value.
     public var string: String { raw }
+
+    /// The raw value when it is safe to interpolate into SVG CSS
+    /// (`_isSafeCSSThemeValue`), otherwise `nil`. Use it for theme colours
+    /// and lengths that are copied into a `<style>` block.
+    public var cssValue: String? { _isSafeCSSThemeValue(raw) ? raw : nil }
 }
 
 // MARK: - Frontmatter Binding Protocol

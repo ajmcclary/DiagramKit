@@ -27,10 +27,10 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
                     guard let v = value.bool else { return false }; config.useMaxWidth = v
                 case "useWidth":
                     guard let v = value.double else { return false }; config.useWidth = v
-                case "rect_fill": config.rect_fill = value.string
-                case "text_color": config.text_color = value.string
-                case "rect_border_size": config.rect_border_size = value.string
-                case "rect_border_color": config.rect_border_color = value.string
+                case "rect_fill": guard let v = value.cssValue else { return false }; config.rect_fill = v
+                case "text_color": guard let v = value.cssValue else { return false }; config.text_color = v
+                case "rect_border_size": guard let v = value.cssValue else { return false }; config.rect_border_size = v
+                case "rect_border_color": guard let v = value.cssValue else { return false }; config.rect_border_color = v
                 case "rect_min_width":
                     guard let v = value.double else { return false }; config.rect_min_width = v
                 case "rect_min_height":
@@ -53,7 +53,9 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
                 return true
             },
             applyTheme: { key, value, theme in
-                let v = value.string
+                // Theme strings are interpolated into the SVG `<style>` block;
+                // a value that could break out of it is rejected.
+                guard let v = value.cssValue else { return false }
                 switch key {
                 case "requirementBackground": theme.requirementBackground = v
                 case "requirementBorderColor": theme.requirementBorderColor = v

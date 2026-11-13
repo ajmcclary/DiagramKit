@@ -51,7 +51,9 @@ public struct WardleyFrontmatterBinding: FrontmatterBinding {
         } else {
             key = rawKey
         }
-        let v = value.string
+        // Theme strings are interpolated into the SVG `<style>` block; a
+        // value that could break out of it is rejected.
+        guard let v = value.cssValue else { return false }
         switch key {
         case "backgroundColor":       theme.backgroundColor = v; return true
         case "axisColor":             theme.axisColor = v; return true

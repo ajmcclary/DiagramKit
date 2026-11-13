@@ -122,6 +122,21 @@ public func _isSafeCSSStyleValue(_ value: String) -> Bool {
     return true
 }
 
+/// Returns `true` if a theme value (a colour such as `#fff`, `rgb(…)` or
+/// `var(--x)`, or a length such as `2px`) can be interpolated into an SVG
+/// `<style>` block or attribute. Rejects the same breakout substrings as
+/// the other predicates (`<`, `>`, quotes, braces, `url(`, …) and `;`,
+/// but allows the parentheses colour functions need. Bindings that copy
+/// theme strings verbatim check this so a value such as
+/// `x</style><script>…` never reaches a renderer.
+public func _isSafeCSSThemeValue(_ value: String) -> Bool {
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    for bad in _dangerousCSSSubstrings {
+        if trimmed.localizedStandardContains(bad) { return false }
+    }
+    return !trimmed.contains(";")
+}
+
 /// Returns a safe inline style value, falling back to `default` and
 /// appending a `.styleDrop` diagnostic when the input is rejected.
 public func _safeCSSStyleValue(

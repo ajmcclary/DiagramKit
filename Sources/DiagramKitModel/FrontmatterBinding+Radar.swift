@@ -43,19 +43,22 @@ public struct RadarFrontmatterBinding: FrontmatterBinding {
                 // `cScaleN` keys (where N is 0..<cScale.count) target individual
                 // entries in the cScale palette array. Mermaid's init directive
                 // uses this form (`themeVariables.cScale0`).
+                // Theme strings are interpolated into the SVG `<style>` block;
+                // a value that could break out of it is rejected.
                 if key.hasPrefix("cScale"),
                    let index = Int(key.dropFirst("cScale".count)),
                    index >= 0, index < theme.cScale.count {
-                    theme.cScale[index] = value.string
+                    guard let v = value.cssValue else { return false }
+                    theme.cScale[index] = v
                     return true
                 }
                 switch key {
                 case "fontSize":             guard let v = value.double else { return false }; theme.fontSize = v
-                case "titleColor":           theme.titleColor = value.string; return true
-                case "axisColor":            theme.axisColor = value.string; return true
+                case "titleColor":           guard let v = value.cssValue else { return false }; theme.titleColor = v; return true
+                case "axisColor":            guard let v = value.cssValue else { return false }; theme.axisColor = v; return true
                 case "axisStrokeWidth":      guard let v = value.double else { return false }; theme.axisStrokeWidth = v
                 case "axisLabelFontSize":    guard let v = value.double else { return false }; theme.axisLabelFontSize = v
-                case "graticuleColor":       theme.graticuleColor = value.string; return true
+                case "graticuleColor":       guard let v = value.cssValue else { return false }; theme.graticuleColor = v; return true
                 case "graticuleOpacity":     guard let v = value.double else { return false }; theme.graticuleOpacity = v
                 case "graticuleStrokeWidth": guard let v = value.double else { return false }; theme.graticuleStrokeWidth = v
                 case "curveOpacity":         guard let v = value.double else { return false }; theme.curveOpacity = v
