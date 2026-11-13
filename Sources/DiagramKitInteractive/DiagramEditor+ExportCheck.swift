@@ -21,13 +21,15 @@ extension DiagramEditor {
         replacing oldDocument: DiagramDocument,
         scope: _EditScope = .wholeExport
     ) async throws {
-        // Mermaid is the format whose exporters are held to read-back
-        // fidelity; other formats convert, and their check is not on.
-        guard preferredExportFormat == .mermaid else { return }
+        // Every format the editor writes back is checked. For Mermaid the
+        // model check covers the types whose export is proven to read back
+        // and the line check covers what the model does not hold; for the
+        // other formats every type is model-checked, and every line of the
+        // original source the edit is not about must survive verbatim.
         let format = preferredExportFormat
         let oldSource = self.source
         let readBack = exportRegistry.readBack
-        let checksModel = Self._readBackCheckedTypes.contains(newDocument.type)
+        let checksModel = format != .mermaid || Self._readBackCheckedTypes.contains(newDocument.type)
         let problem: String? = try await Self._runOnWorker {
             if let readBack, checksModel {
                 let reparsed: DiagramDocument
@@ -41,6 +43,9 @@ extension DiagramEditor {
                 if expected != actual {
                     return "the saved text would not read back as the edited diagram (\(Self._firstDifference(expected, actual)))"
                 }
+            }
+            if format != .mermaid {
+                return Self._lostSourceLine(from: oldSource, to: source, oldDocument: oldDocument, newDocument: newDocument)
             }
             if let problem = Self._untargetedLineChange(
                 from: oldSource, to: source, scope: scope, newDocument: newDocument, oldDocument: oldDocument
@@ -62,6 +67,97 @@ extension DiagramEditor {
     nonisolated static let _readBackCheckedTypes: Set<DiagramType> = [
         .flowchart, .stateDiagram, .sequenceDiagram, .gantt,
     ]
+
+    /// For a format other than Mermaid: the first line of the original
+    /// source (comments included) that the new text no longer has and that
+    /// does not name an element the edit changed, or nil. Those exporters
+    /// re-write the whole file, so most edits on them are refused today;
+    /// a refused edit says so, a silent loss would not.
+    nonisolated static func _lostSourceLine(
+        from oldSource: String?,
+        to source: String,
+        oldDocument: DiagramDocument,
+        newDocument: DiagramDocument
+    ) -> String? {
+        guard let oldSource else { return nil }
+        var targets = _changedElementIDs(oldDocument, newDocument)
+        // A settings edit is about the line that states the setting.
+        if newDocument.title != oldDocument.title { targets.insert("title") }
+        if newDocument.frontmatter?.theme != oldDocument.frontmatter?.theme { targets.insert("theme") }
+        if newDocument.frontmatter?.layout != oldDocument.frontmatter?.layout { targets.insert("layout") }
+        var available: [Substring: Int] = [:]
+        let newText = DiagramSourceNormalizer.normalizedLineEndings(source)
+        for line in newText.split(separator: "\n") { available[line, default: 0] += 1 }
+        for line in DiagramSourceNormalizer.normalizedLineEndings(oldSource).split(separator: "\n") {
+            if line.trimmingCharacters(in: .whitespaces).isEmpty { continue }
+            if let count = available[line], count > 0 { available[line] = count - 1; continue }
+            if targets.contains(where: { _mentions(line, $0) }) { continue }
+            return "the line '\(line.trimmingCharacters(in: .whitespaces))' would be lost or rewritten"
+        }
+        return nil
+    }
+
+    /// Whether `line` names `id` as a whole word.
+    nonisolated static func _mentions(_ line: Substring, _ id: String) -> Bool {
+        guard !id.isEmpty else { return false }
+        func isWord(_ c: Character) -> Bool { c.isLetter || c.isNumber || c == "_" }
+        var search = line.startIndex
+        while let range = line[search...].range(of: id) {
+            let before = range.lowerBound == line.startIndex ? nil : line[line.index(before: range.lowerBound)]
+            let after = range.upperBound == line.endIndex ? nil : line[range.upperBound]
+            if !(before.map(isWord) ?? false), !(after.map(isWord) ?? false) { return true }
+            search = range.upperBound
+        }
+        return false
+    }
+
+    /// Ids of the elements an edit changed: nodes added, removed or
+    /// altered, the ends of changed edges, changed subgraphs and their
+    /// members (flowchart and state), and the participants of changed
+    /// messages (sequence). Empty for other types.
+    nonisolated static func _changedElementIDs(_ old: DiagramDocument, _ new: DiagramDocument) -> Set<String> {
+        var ids: Set<String> = []
+        switch (old.payload, new.payload) {
+        case (.flowchart(let a), .flowchart(let b)), (.stateDiagram(let a), .stateDiagram(let b)):
+            let nodesA = Dictionary(a.nodesInOrder.map { ($0.id, _canonicalDescription($0.node)) }, uniquingKeysWith: { f, _ in f })
+            let nodesB = Dictionary(b.nodesInOrder.map { ($0.id, _canonicalDescription($0.node)) }, uniquingKeysWith: { f, _ in f })
+            for id in Set(nodesA.keys).union(nodesB.keys) where nodesA[id] != nodesB[id] { ids.insert(id) }
+            var edgesA: [String: Int] = [:]
+            for e in a.edges { edgesA[_canonicalDescription(e), default: 0] += 1 }
+            var changedEdges: [original_src_types.MermaidEdge] = []
+            for e in b.edges {
+                let key = _canonicalDescription(e)
+                if let n = edgesA[key], n > 0 { edgesA[key] = n - 1 } else { changedEdges.append(e) }
+            }
+            for e in a.edges where (edgesA[_canonicalDescription(e)] ?? 0) > 0 { changedEdges.append(e) }
+            for e in changedEdges { ids.insert(e.source); ids.insert(e.target) }
+            func subgraphs(_ list: [original_src_types.MermaidSubgraph], into map: inout [String: (String, [String])]) {
+                for s in list {
+                    map[s.id] = (_canonicalDescription(s), s.nodeIds)
+                    subgraphs(s.children, into: &map)
+                }
+            }
+            var subA: [String: (String, [String])] = [:], subB: [String: (String, [String])] = [:]
+            subgraphs(a.subgraphs, into: &subA)
+            subgraphs(b.subgraphs, into: &subB)
+            for id in Set(subA.keys).union(subB.keys) where subA[id]?.0 != subB[id]?.0 {
+                ids.insert(id)
+                ids.formUnion(subA[id]?.1 ?? [])
+                ids.formUnion(subB[id]?.1 ?? [])
+            }
+        case (.sequenceDiagram(let a), .sequenceDiagram(let b)):
+            let msgsA = a.messages, msgsB = b.messages
+            for i in 0..<max(msgsA.count, msgsB.count) {
+                let x = i < msgsA.count ? msgsA[i] : nil, y = i < msgsB.count ? msgsB[i] : nil
+                if x.map(_canonicalDescription) != y.map(_canonicalDescription) {
+                    for m in [x, y].compactMap({ $0 }) { ids.insert(m.from); ids.insert(m.to) }
+                }
+            }
+        default:
+            break
+        }
+        return ids
+    }
 
     /// What part of the source an edit is about. A structural edit of a
     /// type whose export reads back exactly re-exports the body

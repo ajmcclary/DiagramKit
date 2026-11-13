@@ -144,3 +144,86 @@ struct ExportSafetyNetTests {
     }
 }
 #endif
+#if canImport(UIKit) || canImport(AppKit)
+// Owner ruling (review round 2, I-R2-4): the safety net applies to every
+// format the editor writes back, not only Mermaid.
+
+@Suite("The safety net covers every writable format") @MainActor
+struct NonMermaidSafetyNetTests {
+
+    static let d2Source = """
+    # client side
+    a: "Client" { shape: person }
+    # server side
+    b: "Server"
+    a -> b: "calls"
+    b.style.fill: "#f9f"
+    b.tooltip: "the API"
+    """
+
+    @Test("a rename in a small D2 file that would lose its comments, label, tooltip or style is refused and the source kept")
+    func d2RenameRefused() async throws {
+        let document = try DiagramLoader.parseDocument(Self.d2Source, as: .d2, registry: DiagramPipeline.defaultRegistry)
+        let edit = DiagramEditor(document: document, preferredExportFormat: .d2,
+                                 exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: Self.d2Source)
+        guard case .flowchart(let graph) = document.payload, let node = graph.nodesInOrder.first else {
+            Issue.record("not a flowchart"); return
+        }
+        do {
+            try await edit.perform(.setLabel(of: DiagramSelection(diagramType: .flowchart, elementID: "node:\(node.id)"), to: node.node.label))
+            Issue.record("applied:\n\(edit.source ?? "")")
+        } catch DiagramEditorError.exportWouldLoseContent {
+        }
+        #expect(edit.source == Self.d2Source)
+        #expect(!edit.canUndo)
+    }
+
+    @Test("a benign rename on every non-Mermaid corpus source either keeps every untouched line or is refused with the source kept")
+    func benignRenameEveryFormat() async throws {
+        var tally: [String: (accepted: Int, total: Int)] = [:]
+        var failures: [String] = []
+        for entry in try DiagramCorpus.load() {
+            for (name, source) in (entry.sources ?? [:]).sorted(by: { $0.key < $1.key }) where name != "mermaid" {
+                let format = DiagramFormatID(rawValue: name)
+                guard let document = try? DiagramLoader.parseDocument(source, as: format, registry: DiagramPipeline.defaultRegistry),
+                      DiagramPipeline.defaultExportRegistry.exporter(named: format)?.supportedDiagramTypes.contains(document.type) == true
+                else { continue }
+                let node: (id: String, label: String)?
+                switch document.payload {
+                case .flowchart(let g), .stateDiagram(let g): node = g.nodesInOrder.first.map { ($0.id, $0.node.label) }
+                default: node = nil
+                }
+                // The benign edit: rename the first node; on types without
+                // nodes, change the title.
+                let key = node == nil ? "\(name) (title)" : name
+                let edit = DiagramEditor(document: document, preferredExportFormat: format,
+                                         exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
+                var counts = tally[key] ?? (0, 0)
+                counts.total += 1
+                do {
+                    if let node {
+                        try await edit.perform(.setLabel(of: DiagramSelection(diagramType: document.type, elementID: "node:\(node.id)"), to: node.label + " 2"))
+                    } else {
+                        try await edit.perform(.setTitle("Renamed"))
+                    }
+                    counts.accepted += 1
+                    let saved = edit.source ?? ""
+                    for line in source.split(separator: "\n") where !line.trimmingCharacters(in: .whitespaces).isEmpty {
+                        if !saved.contains(line) && !DiagramEditor._mentions(line, node?.id ?? "title") && !line.contains("title") {
+                            failures.append("[\(entry.id)-\(name)] lost '\(line)'")
+                        }
+                    }
+                } catch DiagramEditorError.exportWouldLoseContent {
+                    if edit.source != source { failures.append("[\(entry.id)-\(name)] refused but source changed") }
+                } catch {
+                    failures.append("[\(entry.id)-\(name)] \(error)")
+                }
+                tally[key] = counts
+            }
+        }
+        print("BENIGN-RENAME " + tally.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.accepted)/\($0.value.total)" }.joined(separator: ", "))
+        #expect(!tally.isEmpty)
+        #expect(failures.isEmpty, "\(failures.joined(separator: "\n"))")
+    }
+}
+#endif
