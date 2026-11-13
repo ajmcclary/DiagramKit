@@ -247,9 +247,7 @@ private func _parseMermaidEntry(_ text: String, config: original_src_types.Flowc
 private func _expandingSingleLineStateBodies(_ lines: [String]) -> [String] {
     var result: [String] = []
     for line in lines {
-        if line.hasPrefix("state "), line.hasSuffix("}"),
-           let groups = _regexGroups(#"^(state\s+[^{}]+?)\s*\{\s*([^{}]*?)\s*\}$"#, line),
-           let head = groups[safe: 1], let body = groups[safe: 2], !body.isEmpty {
+        if line.hasPrefix("state "), let (head, body) = _splitOneLineBody(line) {
             result.append(head + " {")
             result.append(body)
             result.append("}")
@@ -258,6 +256,26 @@ private func _expandingSingleLineStateBodies(_ lines: [String]) -> [String] {
         }
     }
     return result
+}
+
+/// Splits `head { body }` (one `{`, one `}` at the end, non-empty head and
+/// body) into its trimmed head and body; `nil` for any other shape. A plain
+/// scan: the regex it replaces (`^(state\s+[^{}]+?)\s*\{\s*([^{}]*?)\s*\}$`)
+/// backtracked quadratically on long runs of spaces.
+func _splitOneLineBody(_ line: String) -> (head: String, body: String)? {
+    let trimmed = line.trimmingCharacters(in: .whitespaces)
+    guard trimmed.hasSuffix("}"),
+          let open = trimmed.firstIndex(of: "{") else { return nil }
+    let close = trimmed.index(before: trimmed.endIndex)
+    guard open < close else { return nil }
+    let inner = trimmed[trimmed.index(after: open)..<close]
+    guard !inner.contains("{"), !inner.contains("}") else { return nil }
+    let head = trimmed[..<open].trimmingCharacters(in: .whitespaces)
+    let body = inner.trimmingCharacters(in: .whitespaces)
+    // The head is `keyword name…`: it must hold more than the keyword and
+    // no brace of its own.
+    guard !body.isEmpty, !head.contains("}"), head.contains(where: \.isWhitespace) else { return nil }
+    return (head, body)
 }
 
 private func _parseFlowchart(

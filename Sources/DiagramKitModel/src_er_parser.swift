@@ -671,7 +671,13 @@ private struct _EntityBlockResult {
 
 private func _parseStandaloneEntity(_ line: String) -> _EntityParseResult? {
     // ENTITY [alias]:::className (put more specific patterns first)
-    if let groups = _groups(#"^([^\[]+)\s*\[([^\]]+)\]\s*:::\s*(.+)$"#, line) {
+    //
+    // The name and alias runs are possessive (`++`): `[^\[]` also matches
+    // whitespace, so with a plain `+` a long whitespace run without `[`
+    // was split against the following `\s*` in every way (quadratic). A
+    // successful match always ends the name at the first `[`, so the
+    // possessive form matches exactly the same lines.
+    if let groups = _groups(#"^([^\[]++)\s*\[([^\]]++)\]\s*:::\s*(.+)$"#, line) {
         let name = groups[1].trimmingCharacters(in: .whitespaces)
         guard _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
@@ -681,7 +687,7 @@ private func _parseStandaloneEntity(_ line: String) -> _EntityParseResult? {
     }
     
     // ENTITY [alias]
-    if let groups = _groups(#"^([^\[]+)\s*\[([^\]]+)\]\s*$"#, line) {
+    if let groups = _groups(#"^([^\[]++)\s*\[([^\]]++)\]\s*$"#, line) {
         let name = groups[1].trimmingCharacters(in: .whitespaces)
         guard _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
@@ -706,8 +712,13 @@ private func _parseStandaloneEntity(_ line: String) -> _EntityParseResult? {
 }
 
 private func _parseEntityBlock(_ line: String) -> _EntityBlockResult? {
+    // The name is a quoted string or a run without `[ : { }` (every name
+    // `_isStandaloneEntityName` accepts), and the class list cannot hold
+    // `{` and is trimmed by the pattern itself. With `(\S+)` and `(.+?)`
+    // those runs overlapped the separators that follow them, and a long
+    // line of `[`, `:` or spaces backtracked quadratically.
     // ENTITY:::className { ... } or ENTITY:::className{} 
-    if let groups = _groups(#"^(\S+)\s*:::\s*(.+?)\s*\{$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*:::\s*([^\s{](?:[^{]*[^\s{])?)\s*\{$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let classStr = groups[2].trimmingCharacters(in: .whitespaces)
         let classNames = classStr.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -715,7 +726,7 @@ private func _parseEntityBlock(_ line: String) -> _EntityBlockResult? {
     }
 
     // ENTITY:::className{}
-    if let groups = _groups(#"^(\S+)\s*:::\s*(.+?)\s*\{\s*\}$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*:::\s*([^\s{](?:[^{]*[^\s{])?)\s*\{\s*\}$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let classStr = groups[2].trimmingCharacters(in: .whitespaces)
         let classNames = classStr.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -723,7 +734,7 @@ private func _parseEntityBlock(_ line: String) -> _EntityBlockResult? {
     }
 
     // ENTITY [alias]:::className { ... }
-    if let groups = _groups(#"^(\S+)\s*\[([^\]]+)\]\s*:::\s*(.+?)\s*\{$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*\[([^\]]+)\]\s*:::\s*([^\s{](?:[^{]*[^\s{])?)\s*\{$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
         let classStr = groups[3].trimmingCharacters(in: .whitespaces)
@@ -732,7 +743,7 @@ private func _parseEntityBlock(_ line: String) -> _EntityBlockResult? {
     }
 
     // ENTITY [alias]:::className{}
-    if let groups = _groups(#"^(\S+)\s*\[([^\]]+)\]\s*:::\s*(.+?)\s*\{\s*\}$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*\[([^\]]+)\]\s*:::\s*([^\s{](?:[^{]*[^\s{])?)\s*\{\s*\}$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
         let classStr = groups[3].trimmingCharacters(in: .whitespaces)
@@ -741,14 +752,14 @@ private func _parseEntityBlock(_ line: String) -> _EntityBlockResult? {
     }
 
     // ENTITY [alias] { ... }
-    if let groups = _groups(#"^(\S+)\s*\[([^\]]+)\]\s*\{$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*\[([^\]]+)\]\s*\{$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
         return _EntityBlockResult(id: name, alias: alias, classNames: [], hasAttributes: true, inlineContent: nil)
     }
 
     // ENTITY [alias]{}
-    if let groups = _groups(#"^(\S+)\s*\[([^\]]+)\]\s*\{\s*\}$"#, line) {
+    if let groups = _groups(#"^("[^"]*"|[^\s\[:{}"]+)\s*\[([^\]]+)\]\s*\{\s*\}$"#, line) {
         guard let name = groups[safe: 1], _isStandaloneEntityName(name) else { return nil }
         let alias = _stripQuotes(groups[2].trimmingCharacters(in: .whitespaces))
         return _EntityBlockResult(id: name, alias: alias, classNames: [], hasAttributes: false, inlineContent: nil)

@@ -553,9 +553,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
     var bodyLines: [String] = []
     for line in lines[(headerIdx + 1)...] {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
-        if trimmed.hasPrefix("class "), trimmed.hasSuffix("}"),
-           let groups = _groups(#"^(class\s+[^{}]+?)\s*\{\s*([^{}]*?)\s*\}$"#, trimmed),
-           let head = groups[safe: 1], let body = groups[safe: 2], !body.isEmpty {
+        if trimmed.hasPrefix("class "), let (head, body) = _splitOneLineBody(trimmed) {
             bodyLines.append(head + " {")
             bodyLines.append(body)
             bodyLines.append("}")
@@ -898,7 +896,11 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         }
 
         // Class definition: class ClassName { ... }, class ClassName ~T~ { ... }, class ClassName ~T~
-        if let groups = _groups(#"^class\s+(\S+?)\s*(?:~(\w+)~)?\s*(\{\s*)$"#, rawLine) {
+        // `\s*+` (possessive) before the optional generic: two adjacent
+        // `\s*` split a long run of spaces in every way before failing
+        // (`class A` + 8,000 spaces + `}` took seconds). The generic never
+        // starts with whitespace, so the matches are unchanged.
+        if let groups = _groups(#"^class\s+(\S+?)\s*+(?:~(\w+)~)?\s*(\{\s*)$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let genericType = groups[safe: 2]
             let (className, _) = _splitClassNameAndType(idRaw)
@@ -910,7 +912,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             addClassToCurrentNamespace(className)
             continue
         }
-        if let groups = _groups(#"^class\s+(\S+?)\s*(?:~(\w+)~)?\s*$"#, rawLine) {
+        if let groups = _groups(#"^class\s+(\S+?)\s*+(?:~(\w+)~)?\s*$"#, rawLine) {
             let idRaw = groups[safe: 1] ?? ""
             let genericType = groups[safe: 2]
             let (className, _) = _splitClassNameAndType(idRaw)

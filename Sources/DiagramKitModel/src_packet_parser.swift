@@ -201,7 +201,10 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
 // MARK: - Block line parsing
 
 private let blockPrefixPattern = try! NSRegularExpression(
-    pattern: #"^\s*(\+)?\s*(\d+)(?:\s*-\s*(\d+))?\s*:\s*(.*)$"#,
+    // The first `\s*+` is possessive: two adjacent `\s*` split a long
+    // whitespace run in every way before failing (quadratic). `(\+)?`
+    // never starts with whitespace, so the matches are unchanged.
+    pattern: #"^\s*+(\+)?\s*(\d+)(?:\s*-\s*(\d+))?\s*:\s*(.*)$"#,
     options: []
 )
 

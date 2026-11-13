@@ -54,6 +54,18 @@ struct ParserReviewRound1Tests {
         #expect(graph.edges.map { "\($0.source)->\($0.target)" } == ["A->B", "C->D"])
     }
 
+    @Test("one-line bodies still parse after the regex was replaced")
+    func oneLineBodiesStillParse() async throws {
+        let state = try await DiagramEngine.parse("stateDiagram-v2\n    state Single {   a --> b   }")
+        if case .stateDiagram(let graph) = state.payload {
+            #expect(graph.subgraphs.map(\.id) == ["Single"])
+        } else { Issue.record("expected state") }
+        let cls = try await DiagramEngine.parse("classDiagram\n    class One <<interface>> { +foo() }")
+        if case .classDiagram(let diagram) = cls.payload {
+            #expect(diagram.classMap["One"]?.methods.map(\.id) == ["foo"])
+        } else { Issue.record("expected class") }
+    }
+
     private static func node(_ graph: ParsedGraphModel, _ id: String) -> (label: String, shape: String)? {
         graph.nodesInOrder.first { $0.id == id }.map { ($0.node.label, "\($0.node.shape)") }
     }

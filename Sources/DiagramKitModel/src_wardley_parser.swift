@@ -394,7 +394,10 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
 
                 // Extract name (up to [)
                 let (compName, compRest) = extractNameAndRest(rest)
-                guard let coordMatch = compRest.range(of: #"\[(\d+\.?\d*)\]"#, options: .regularExpression) else {
+                // `\d+(?:\.\d*)?`, not `\d+\.?\d*`: the same numbers, but
+                // without two digit runs splitting a long unterminated
+                // `[111…` in every way (quadratic).
+                guard let coordMatch = compRest.range(of: #"\[(\d+(?:\.\d*)?)\]"#, options: .regularExpression) else {
                     throw WardleyMapParserError.missingCoordinate("pipeline component '\(compName)'")
                 }
                 let coordStr = String(compRest[coordMatch])

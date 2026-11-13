@@ -44,9 +44,18 @@ extension EngineHostileInputTests {
         return [er1, er2, er3, er4, wardley, classOpen]
     }()
 
+    @Test("parse-side regexes found by the sweep are linear", arguments: sweepInputs)
+    func sweepFoundRegexesLinear(_ source: String) async {
+        #expect(await Self.parseTime(source) < 1)
+    }
+
     @Test("style-colour pre-pass is linear on repeated style/classDef tokens", arguments: stylePrePassInputs)
     func stylePrePassLinear(_ source: String) async {
         #expect(await Self.parseTime(source) < 1)
     }
 
+    @Test("one-line state and class bodies are linear on long space runs", arguments: oneLineBodyInputs)
+    func oneLineBodyLinear(_ source: String) async {
+        #expect(await Self.parseTime(source) < 1)
+    }
 }
