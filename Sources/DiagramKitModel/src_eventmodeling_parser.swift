@@ -159,7 +159,9 @@ public func parseEventModeling(
 
     // Validate cross-references
     let frameNameSet = Set(diagram.frames.map(\.name))
-    let frameByName = Dictionary(uniqueKeysWithValues: diagram.frames.map { ($0.name, $0) })
+    // Frame names are unique here (duplicates threw `duplicateFrameId`
+    // above); keep the first if that ever changes rather than trapping.
+    let frameByName = Dictionary(diagram.frames.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
     for frame in diagram.frames {
         for srcName in frame.sourceFrameNames {
             guard let sourceFrame = frameByName[srcName] else {
