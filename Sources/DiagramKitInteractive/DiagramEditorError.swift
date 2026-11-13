@@ -48,6 +48,12 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// `setTheme` received a name absent from the DiagramTheme catalog.
     case unknownThemeName(name: String)
 
+    /// The mutation's export would lose or change content beyond the
+    /// mutation: it would not read back as the edited diagram, or a
+    /// comment, frontmatter or click/link line of the source would be
+    /// dropped. The document and source are unchanged.
+    case exportWouldLoseContent(details: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -74,6 +80,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Invalid image URL '\(url)' (http/https with a host required)"
         case .unknownThemeName(let name):
             return "Unknown theme name '\(name)'"
+        case .exportWouldLoseContent(let details):
+            return "The edit was not applied: \(details)"
         }
     }
 }

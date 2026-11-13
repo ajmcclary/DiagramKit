@@ -14,8 +14,25 @@ import DiagramKitModel
 public struct ExporterRegistry: Sendable {
     private var exportersByID: [DiagramFormatID: any DiagramExporter]
 
+    /// Parses exported text back into a document, so a caller can prove an
+    /// export kept everything the model holds. `DiagramEditor` uses it to
+    /// refuse a canvas edit whose saved text would lose content. Nil when
+    /// the registry was built without one (no read-back check).
+    /// `DiagramPipeline.defaultExportRegistry` sets it to the default
+    /// importer registry.
+    public var readBack: (@Sendable (_ source: String, _ format: DiagramFormatID) throws -> DiagramDocument)?
+
     public init(exportersByID: [DiagramFormatID: any DiagramExporter] = [:]) {
         self.exportersByID = exportersByID
+    }
+
+    /// This registry with `readBack` set.
+    public func readingBack(
+        with readBack: @escaping @Sendable (_ source: String, _ format: DiagramFormatID) throws -> DiagramDocument
+    ) -> Self {
+        var copy = self
+        copy.readBack = readBack
+        return copy
     }
 
     /// All registered exporters as an array, sorted deterministically by
@@ -31,9 +48,9 @@ public struct ExporterRegistry: Sendable {
     /// Returns a new registry with `exporter` registered under its format ID.
     /// Replaces any existing exporter with the same format ID.
     public func registering(_ exporter: any DiagramExporter) -> Self {
-        var dict = exportersByID
-        dict[exporter.formatID] = exporter
-        return ExporterRegistry(exportersByID: dict)
+        var copy = self
+        copy.exportersByID[exporter.formatID] = exporter
+        return copy
     }
 
     /// The exporter registered for the given format ID, or `nil`.

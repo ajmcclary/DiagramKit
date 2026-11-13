@@ -126,6 +126,13 @@ public func _verbatimStatementKey(_ line: String) -> String? {
         let key = _sourceStatementKey(trimmed)
         return key == first ? nil : key
     case "link":
+        // Class and flowchart `link X "url"` is the same statement as
+        // `click X href "url"`; a sequence `link actor: label @ url` has a
+        // colon in its first token.
+        let firstToken = rest.drop(while: { $0 == " " || $0 == "\t" }).prefix(while: { $0 != " " && $0 != "\t" })
+        if !firstToken.isEmpty, !firstToken.contains(":") {
+            return "click \(firstToken)"
+        }
         let head = rest.split(separator: "@", maxSplits: 1).first.map(String.init) ?? String(rest)
         let collapsed = head.replacingOccurrences(of: "\"", with: "")
             .split(whereSeparator: { $0 == " " || $0 == "\t" }).joined(separator: " ")

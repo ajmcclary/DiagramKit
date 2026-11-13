@@ -1166,7 +1166,9 @@ private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraph
         var arrowHeadStart = edgeOp.arrowHeadStart
         var arrowHeadEnd = edgeOp.arrowHeadEnd
         var style = edgeOp.style
-        let minlen = edgeOp.minlen
+        // Extra length only; a normal-length edge is nil however it was
+        // spelled (`-->` scans as 0, `-- text -->` as nil).
+        let minlen = edgeOp.minlen.flatMap { $0 > 0 ? $0 : nil }
         var edgeProps: original_src_types.NodeProperties?
 
         remaining = String(remaining.dropFirst(edgeOp.consumedLength)).trimmingCharacters(in: .whitespacesAndNewlines)

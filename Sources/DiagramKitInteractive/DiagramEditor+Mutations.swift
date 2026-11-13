@@ -61,7 +61,8 @@ extension DiagramEditor {
     /// Shared transaction: exports `newDocument`, snapshots the current
     /// state, commits the new document/source/diagnostics (optionally
     /// updating selection), and registers an undo entry. Atomic — a
-    /// throw from `_exportAsync` propagates with no state change. The
+    /// throw from `_exportAsync` or `_checkExport` propagates with no
+    /// state change. The
     /// family-specific `_performXInner` methods all funnel here so the
     /// commit sequence, diagnostic layering, and undo registration stay
     /// in one place.
@@ -77,6 +78,7 @@ extension DiagramEditor {
         } catch {
             throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
         }
+        try await _checkExport(exportResult.source, of: newDocument, replacing: document)
 
         let oldDocument = document
         let oldSource = source

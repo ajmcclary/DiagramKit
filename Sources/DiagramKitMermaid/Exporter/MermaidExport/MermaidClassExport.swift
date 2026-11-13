@@ -129,6 +129,25 @@ enum MermaidClassExport {
             lines.append("  classDef \(styleClass.id) \(joinedStyles)")
         }
 
+        // Interactions. A `link` / `click` line read from source comes back
+        // verbatim (it is keyed `click <class>`); this is the form for one
+        // made in the model.
+        for cls in model.classes {
+            let id = aliasMap[cls.id] ?? MermaidExportHelpers.sanitizeIdentifier(cls.id).sanitized
+            if let link = cls.link {
+                var line = "  click \(id) href \"\(link)\""
+                if let tip = cls.tooltip { line += " \"\(tip)\"" }
+                if let target = cls.linkTarget, target != "_self" { line += " \(target)" }
+                if link.contains("\"") || (cls.tooltip ?? "").contains("\"") {
+                    diagnostics.append(MermaidExportDiagnostics.unsupportedFeature(
+                        "class link", detail: "a '\"' in the URL or tooltip of \(cls.id) cannot be written"))
+                }
+                lines.append(line)
+            } else if cls.haveCallback {
+                lines.append("  click \(id) call callback()" + (cls.tooltip.map { " \"\($0)\"" } ?? ""))
+            }
+        }
+
         let source = lines.joined(separator: "\n") + "\n"
         return DiagramExportResult(source: source, diagnostics: diagnostics)
     }

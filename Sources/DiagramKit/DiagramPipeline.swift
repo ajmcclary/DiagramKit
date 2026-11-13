@@ -56,7 +56,9 @@ public enum DiagramPipeline {
         registry = registry.registering(DOTExporter())
         registry = registry.registering(StructurizrExporter())
         registry = registry.registering(PlantUMLExporter())
-        return registry
+        return registry.readingBack { source, format in
+            try DiagramLoader.parseDocument(source, as: format, registry: defaultRegistry)
+        }
     }()
 
     // MARK: - Parse
