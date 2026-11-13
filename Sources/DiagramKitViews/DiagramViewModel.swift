@@ -26,6 +26,17 @@ public final class DiagramViewModel {
     public private(set) var diagramBounds: CGRect = .zero
     public private(set) var preparedDiagram: PreparedDiagram?
 
+    /// Bumped by every `prepare()`. A preparation publishes only while its
+    /// generation is still current, so when two calls overlap the result
+    /// for the older source can never overwrite the newer one
+    /// (`DiagramLayer` has the same guard).
+    private var preparationGeneration: UInt64 = 0
+
+    /// Test hook: used instead of `DiagramViewPreparerEnvironment.current`
+    /// when set, so tests can control completion order without replacing
+    /// the process-wide preparer other tests use.
+    var _preparerOverride: DiagramViewPreparer?
+
     public init(
         source: String = "",
         theme: DiagramTheme = .default,
@@ -45,6 +56,8 @@ public final class DiagramViewModel {
     /// off the main actor; only the result publication happens on the
     /// main actor.
     public func prepare() async {
+        preparationGeneration &+= 1
+        let generation = preparationGeneration
         parseError = nil
 
         guard !source.isEmpty else {
@@ -58,7 +71,7 @@ public final class DiagramViewModel {
         let snapshotConfig = layoutConfig
         let snapshotSourceFormat = sourceFormat
 
-        let preparer = DiagramViewPreparerEnvironment.current
+        let preparer = _preparerOverride ?? DiagramViewPreparerEnvironment.current
 
         do {
             let prepared = if let preparer {
@@ -76,9 +89,11 @@ public final class DiagramViewModel {
                     sourceFormat: snapshotSourceFormat
                 )
             }
+            guard generation == preparationGeneration else { return }
             preparedDiagram = prepared
             diagramBounds = prepared.bounds
         } catch {
+            guard generation == preparationGeneration else { return }
             _reportDiagramIssueIfNeeded(error, operation: "DiagramViewModel.prepare")
             parseError = error
         }
