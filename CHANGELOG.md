@@ -4,8 +4,83 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
-### Fixed
+## [0.1.0-beta.9] - 2026-11-13
 
+Remediates the 2026-11-12 full review of the package (parsing, layout,
+rendering, export and the interactive editor).
+
+### Changed — what a consumer will notice
+
+- **Canvas edits keep the user's source faithful.** After a `DiagramEditor`
+  mutation, the saved Mermaid text keeps flowchart subgraph members inside
+  their blocks, reproduces state and sequence diagrams exactly (notes,
+  composites, regions, every arrow type, boxes, blocks, autonumber,
+  `create`/`destroy`, `link`/`links`/`properties`), writes frontmatter and
+  `%%{init}%%` directives back verbatim, keeps `%%` comments in place
+  (trailing ones too, on flowchart lines and on state and sequence lines
+  before the first unquoted `:`), and keeps `click`/`link` lines as written.
+  The source's dominant line ending (CRLF or LF) is kept.
+- **An edit that would lose content is refused.** The editor reads the
+  exported text back and compares it with the edited model (Mermaid
+  flowchart, state, sequence and gantt), and checks that every comment,
+  preamble line and `click`/`link` line of the original is still there
+  unless the edit removed its element. Otherwise the mutation throws the new
+  `DiagramEditorError.exportWouldLoseContent(details:)`, whose description
+  reads "The edit was not applied because … You can make this change in the
+  source instead.", and the source, document and undo stack are unchanged.
+  The check is active when the editor's registry has a read-back;
+  `DiagramPipeline.defaultExportRegistry` sets one.
+- **Canvas write-back is not available for D2, DOT, PlantUML and
+  Structurizr sources in this release.** Every writing mutation on such a
+  document (including writing Mermaid for it) is refused with
+  `exportWouldLoseContent` before any export. The new
+  `DiagramEditor.supportsCanvasEditing` tells a host up front so it can
+  disable its editing controls; selection, inspection, layout and rendering
+  are unaffected.
+- **Title, theme and layout edits change only their own lines.**
+  `setTitle`, `setTheme` and `setLayoutPreset` edit the preamble key in place
+  (YAML key, init-directive value, or a new frontmatter block) and keep every
+  line from the diagram header on byte for byte, on every Mermaid type.
+- **A gantt resize changes only that task's line.** Durations stay
+  durations and dates stay dates in the gantt's `dateFormat`; dependent tasks
+  move as in Mermaid. A resize on a gantt with `excludes` is refused.
+- **Hostile and oversized inputs end in typed errors** instead of traps or
+  hangs. The new `DiagramInputLimitError` (`limit`, `detail`) is thrown with
+  `.nestingDepth` for nesting deeper than 100 (inclusive: 100 levels parse,
+  101 throw) in block, class namespaces, ZenUML, treemap, C4 and
+  architecture; `.layoutSize` when a layout would take too much work (block
+  nesting lays out to 15 levels in a single chain; 16–100 parse and then
+  throw); and `.textDrawingSize` when ASCII drawing of a flowchart or state
+  diagram would exceed 150 million cell operations or 3 million path-search
+  steps (SVG and image rendering are unaffected; a 150-node tree now draws).
+  Packet and radar values out of range throw their existing typed errors.
+- **SVG output is escaped through one path.** Every renderer's text and
+  attribute sinks go through `SVG.escapeText` / `escapeAttribute`, which also
+  drop characters XML 1.0 forbids; every corpus SVG parses as XML. Theme
+  values that could break out of a style block are rejected. **URL schemes
+  are checked at output**: parsers keep every link in the model (custom
+  schemes such as `obsidian://` round-trip and render as links), and only
+  `javascript:`, `data:` and `vbscript:` are withheld at each SVG link sink.
+- **CRLF and CR sources parse in every family**, through every importer
+  (`DiagramLoader` normalises line endings before probing).
+- **Flowchart parsing fixes that change results:** a later explicit
+  declaration (`A[Start]` after `A --> B`) sets the node's label and shape;
+  subgraph membership follows upstream (every node mentioned in a body is
+  listed, and a node listed by two subgraphs belongs to the first to close);
+  quoted labels may contain their closing bracket; `;` inside node text and
+  multi-line markdown strings are kept; `A--text-->B` is one labelled edge;
+  `A --- B` is an open link. A `"` in a quoted label is exported as `#quot;`.
+- **Other parsing changes:** states named like keywords (`End`, `Start`)
+  are ordinary states; one-line `state X { … }` and `class X { … }` bodies
+  parse; an unclosed subgraph or composite is closed at end of input with a
+  warning; `%%` inside a double-quoted string, inside mindmap node shapes,
+  and after the first unquoted `:` in state/sequence descriptions is text;
+  sequence entity codes (`#59;`, `#35;`) are text; gantt directives need a
+  token boundary; frontmatter nests keys by relative indentation and bounds
+  numbers (non-finite → nil, magnitude clamped to 1e6); init-directive JSON
+  `0`/`1` are numbers; kanban and block model labels are raw text (not
+  HTML-escaped); a quoted ER entity name is one entity; unspaced class/ER
+  relationships parse.
 - `DiagramView` now takes the size SwiftUI proposes. It used to fall back to
   the native view's `intrinsicContentSize` (the diagram's natural size) with
   default compression resistance, so it could grow but never shrink: a
@@ -17,6 +92,68 @@ All notable changes to DiagramKit are documented in this file.
   when that is proposed below natural. **Behaviour change:** in a stack the
   view is now compressible like a resizable image; a host that relied on it
   holding its natural size should add `.fixedSize()`.
+
+### Added
+
+- New public enum cases that an exhaustive `switch` outside the package must
+  handle: `DiagramEditorError.exportWouldLoseContent(details:)` and
+  `DiagnosticCategory.exportReadBackMismatch`. New type
+  `DiagramInputLimitError` with `Limit` cases `.nestingDepth`,
+  `.numericRange`, `.layoutSize` and `.textDrawingSize`.
+- `DiagramEditor.supportsCanvasEditing`.
+- `DiagramSourceAnnotations`, `DiagramSourceComment`,
+  `DiagramSourceCommentAnchor`, `DiagramDocument.sourceAnnotations` and
+  `DiagramDocument.sourceFormat` (the source's preamble, comments and
+  `click`/`link` lines as written).
+- `ExporterRegistry.readBack` and `readingBack(with:)`. A same-format export
+  through `DiagramExportLoader` that does not read back exactly carries an
+  `exportReadBackMismatch` warning naming the first differing field.
+- `FrontmatterValue.cssValue`, `FrontmatterValue.maxNumericMagnitude`, and
+  `DiagramSourceNormalizer.normalizedLineEndings(_:)`,
+  `strippingInlineComment(_:)` and `flowchartStatements(_:separators:)`.
+
+### Fixed
+
+- **Editor:** Group moves the selected nodes out of their old groups and
+  nests the new group in their innermost common subgraph; a sequence message
+  drag moves only that message (with its own activation and
+  `create`/`destroy`); Rearrange/Adaptive layout presets apply on every
+  flowchart and state diagram; deleting a node or edge keeps `linkStyle`
+  indices and per-node state consistent; stale `DiagramViewModel`
+  preparations are dropped.
+- **Parsing:** block diagrams stay a bounded tree (self, mutual and cyclic
+  nesting is ignored with a diagnostic; composite membership wins regardless
+  of statement order; huge column spans are clamped to 1000); packet bit
+  indices, radar ticks and frontmatter numbers are bounded before arithmetic;
+  super-linear regexes in state, treemap, class, ER, packet, wardley,
+  sequence and the style-colour pre-pass are linear; wardley and
+  eventmodeling loops on unterminated quotes end; pie trailing comments,
+  unspaced ER cardinalities and in-word apostrophes parse; a style colour
+  ending in `;` is not decoded as an entity, and decoding never produces
+  control characters.
+- **Layout and rendering:** block, venn and large ASCII flowchart layouts no
+  longer hang; D2/DOT tree imports are bounded and containment cycles are
+  repaired in every imported model; duplicate subgraph ids no longer trap;
+  computed numbers go through shared guards (sankey values ≥ 1e19, huge
+  layout configs, extreme gantt dates); ASCII xychart bars stay on the
+  canvas; ASCII C4 no longer recurses on a self-parented boundary; SVG CSS
+  variables resolve in one pass, in style regions only; gitGraph
+  reverse-commit classes are escaped; quadrant point order is kept.
+- **Export:** the Mermaid flowchart export is lossless on the corpus;
+  state and sequence exports reproduce the model; kanban and block labels,
+  C4 titles and boundaries, and the cheap class losses round-trip.
+
+### Tests
+
+- 116 corpus snapshot baseline files were re-recorded for intended output
+  changes (SVG escaping in sequence, PlantUML, timeline, journey, sankey,
+  wardley, treemap, eventmodeling, block and class; sankey ASCII node names; the
+  `dot-3`/`dot-4` open link, `state-6-choice-fork` now drawing `End`,
+  `state-8-notes` drawing all three notes). `CorpusRoundTripTests` known
+  divergences are down from 16 to 8. New suites cover CRLF across the whole
+  corpus, hostile-input sweeps (bounded by thread CPU time), export fidelity
+  and edit preservation for flowchart, state, sequence and gantt, and the
+  editor's safety net.
 
 ## [0.1.0-beta.8] - 2026-11-09
 

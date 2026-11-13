@@ -26,7 +26,7 @@ differ from Apple output. Native images and UI views are Apple-only.
 Add the package to your `Package.swift`, pinning this prerelease exactly:
 
 ```swift
-.package(url: "https://github.com/ajmcclary/DiagramKit.git", exact: "0.1.0-beta.5")
+.package(url: "https://github.com/ajmcclary/DiagramKit.git", exact: "0.1.0-beta.9")
 ```
 
 Add the `DiagramKit` product to your target:
