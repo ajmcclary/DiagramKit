@@ -36,9 +36,12 @@ public func _recursionGuard(
 // MARK: - Parser input limits
 
 /// Maximum structural nesting a parser accepts (composite blocks, class
-/// namespaces, ZenUML blocks). Far above anything a person writes, and far
-/// below what the recursive parse passes and the layouts that follow them
-/// can survive on the worker thread's 8 MB stack. A parser that meets
+/// namespaces, ZenUML blocks, treemap sections, C4 boundaries,
+/// architecture groups). Counted in nested containers, leaves excluded,
+/// and inclusive: exactly this many levels parse, one more throws. Far
+/// above anything a person writes, and far below what the recursive parse
+/// passes and the layouts that follow them can survive on the worker
+/// thread's 8 MB stack. A parser that meets
 /// deeper nesting throws `DiagramInputLimitError` instead of recursing.
 public let _maxParserNestingDepth: Int = 100
 

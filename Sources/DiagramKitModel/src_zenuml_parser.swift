@@ -760,7 +760,10 @@ private final class ZenUMLRecursiveDescentParser {
     private func parseBlock() -> ZenUMLASTNode? {
         blockDepth += 1
         defer { blockDepth -= 1 }
-        if blockDepth > _maxParserNestingDepth {
+        // The program body is itself a block (depth 1); nested user blocks
+        // start at depth 2, so the limit applies to `blockDepth - 1`, the
+        // same container count block and class namespaces use.
+        if blockDepth - 1 > _maxParserNestingDepth {
             nestingLimitExceeded = true
             pos = tokens.count
             return nil

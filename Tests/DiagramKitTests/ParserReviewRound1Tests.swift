@@ -98,3 +98,42 @@ struct ParserReviewRound1Tests {
         #expect(diagram.blockDatabase["b"]?.children == [])
     }
 }
+
+/// `_maxParserNestingDepth` counts nested containers (composite blocks,
+/// namespaces, ZenUML blocks, treemap sections, C4 boundaries, architecture
+/// groups): exactly that many are accepted, one more is rejected.
+@Suite("Nesting limit is inclusive in every family")
+struct NestingLimitConsistencyTests {
+
+    private static func zenuml(_ depth: Int) -> String {
+        "zenuml\n" + String(repeating: "while(x){\n", count: depth) + "A.m()\n" + String(repeating: "}\n", count: depth)
+    }
+
+    private static func classNamespaces(_ depth: Int) -> String {
+        "classDiagram\n" + (0..<depth).map { "namespace n\($0) {\n" }.joined() + "class A\n" + String(repeating: "}\n", count: depth)
+    }
+
+    private static func treemap(_ depth: Int) -> String {
+        "treemap-beta\n" + (0..<depth).map { String(repeating: " ", count: $0) + "\"s\($0)\"\n" }.joined()
+            + String(repeating: " ", count: depth) + "\"leaf\": 1\n"
+    }
+
+    private static func c4(_ depth: Int) -> String {
+        "C4Context\n" + (0..<depth).map { "Boundary(b\($0), \"B\($0)\") {\n" }.joined() + "Person(p, \"P\")\n" + String(repeating: "}\n", count: depth)
+    }
+
+    private static func architecture(_ depth: Int) -> String {
+        "architecture-beta\ngroup g0(cloud)[G0]\n" + (1..<depth).map { "group g\($0)(cloud)[G\($0)] in g\($0 - 1)\n" }.joined()
+            + "service s(server)[S] in g\(depth - 1)\n"
+    }
+
+    private static func block(_ depth: Int) -> String {
+        "block-beta\n" + (0..<depth).map { "block:b\($0)\n" }.joined() + "a\n" + String(repeating: "end\n", count: depth)
+    }
+
+    static let families: [(String, @Sendable (Int) -> String)] = [
+        ("zenuml", zenuml), ("class", classNamespaces), ("treemap", treemap),
+        ("c4", c4), ("architecture", architecture), ("block", block),
+    ]
+
+}

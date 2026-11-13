@@ -188,7 +188,9 @@ public func _checkModelNestingDepth(_ document: DiagramDocument) throws {
         while let (nodes, depth) = stack.popLast() {
             for node in nodes {
                 guard let children = node.children, !children.isEmpty else { continue }
-                try _checkParserNestingDepth(depth + 1, "treemap sections")
+                // `depth` counts this section and its enclosing sections (the
+                // leaves inside are not a nesting level), as for blocks.
+                try _checkParserNestingDepth(depth, "treemap sections")
                 stack.append((children, depth + 1))
             }
         }
