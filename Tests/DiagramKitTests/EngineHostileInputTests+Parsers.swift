@@ -24,6 +24,23 @@ extension EngineHostileInputTests {
         return parsed
     }
 
+    /// CPU seconds that parse, layout, SVG and ASCII of `source` take
+    /// together on one worker thread. Used for the backtracking bounds:
+    /// on the hosted Linux runner (2026-11-13) these 80-character inputs
+    /// passed five seconds of *wall* time while the parallel suite held
+    /// every core, yet each costs milliseconds of CPU; the super-linear
+    /// patterns they pin cost far more than the bound in CPU.
+    fileprivate static func allStagesCPUTime(_ source: String) async -> TimeInterval {
+        (try? await DiagramEngine._runOnWorker { () -> TimeInterval in
+            let start = _threadCPUSeconds()
+            _ = try? DiagramPipeline.parseImportResult(source)
+            _ = try? DiagramPipeline.layout(source)
+            _ = try? DiagramPipeline.renderSVG(source: source)
+            _ = try? DiagramPipeline.renderASCII(source: source)
+            return _threadCPUSeconds() - start
+        }) ?? .infinity
+    }
+
     /// Parse stage only. Used for deep-nesting inputs: the parser bounds the
     /// depth, but block layout is still exponential in nesting depth (a
     /// layout-side finding), so these tests must not lay the input out.
@@ -208,9 +225,8 @@ extension EngineHostileInputTests {
         "style " + (0..<40).map { "s\($0)" }.joined(separator: ","),
     ])
     func stateIdListBacktracking(_ line: String) async throws {
-        let start = Date()
-        _ = await Self.runAllStages("stateDiagram-v2\n\(line)")
-        #expect(Date().timeIntervalSince(start) < 5)
+        let cpu = await Self.allStagesCPUTime("stateDiagram-v2\n\(line)")
+        #expect(cpu < 5)
     }
 
     @Test("state class list still applies the class to every id")
@@ -226,9 +242,8 @@ extension EngineHostileInputTests {
 
     @Test("treemap unterminated quote full of backslashes terminates quickly")
     func treemapUnterminatedEscapes() async throws {
-        let start = Date()
-        _ = await Self.runAllStages("treemap-beta\n\"" + String(repeating: "\\a", count: 40))
-        #expect(Date().timeIntervalSince(start) < 5)
+        let cpu = await Self.allStagesCPUTime("treemap-beta\n\"" + String(repeating: "\\a", count: 40))
+        #expect(cpu < 5)
     }
 
     @Test("treemap quoted names parse as before")

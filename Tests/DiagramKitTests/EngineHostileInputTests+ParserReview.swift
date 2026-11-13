@@ -4,8 +4,10 @@ import Testing
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
 
-/// CPU time consumed by the calling thread.
-fileprivate func _threadCPUSeconds() -> TimeInterval {
+/// CPU time consumed by the calling thread. Shared by the hostile-input
+/// suites that bound a parse's cost: wall time also counts time spent
+/// waiting for a core, which a loaded CI runner can stretch past any bound.
+func _threadCPUSeconds() -> TimeInterval {
     var ts = timespec()
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts)
     return TimeInterval(ts.tv_sec) + TimeInterval(ts.tv_nsec) / 1_000_000_000

@@ -9,6 +9,25 @@ import Testing
 @Suite("Nesting and length limits on the parse side")
 struct ParserNestingLimitTests {
 
+    /// CPU seconds the parse takes on its worker thread, and whether it
+    /// threw `DiagramInputLimitError`. The time bounds below measure CPU, not wall time: a loaded CI
+    /// runner can hold a thread off its core for seconds (the 2026-11-13
+    /// hosted Linux run stalled 80-character hostile inputs past five
+    /// seconds of wall time), while the quadratic scans these tests pin
+    /// cost seconds of CPU.
+    fileprivate static func parseCPUTime(_ source: String) async -> (cpu: TimeInterval, threwLimit: Bool) {
+        (try? await DiagramEngine._runOnWorker { () -> (cpu: TimeInterval, threwLimit: Bool) in
+            let start = _threadCPUSeconds()
+            var threwLimit = false
+            do {
+                _ = try DiagramPipeline.parseImportResult(source)
+            } catch {
+                threwLimit = error is DiagramInputLimitError
+            }
+            return (_threadCPUSeconds() - start, threwLimit)
+        }) ?? (.infinity, false)
+    }
+
     @Test("ZenUML nesting past the limit throws instead of overflowing the stack")
     func zenumlDeepNesting() async throws {
         let depth = 1_500
@@ -30,19 +49,16 @@ struct ParserNestingLimitTests {
         let depth = 1_500
         let source = "classDiagram\n" + (0..<depth).map { "namespace n\($0) {\n" }.joined()
             + "class A\n" + String(repeating: "}\n", count: depth)
-        let start = Date()
-        await #expect(throws: DiagramInputLimitError.self) {
-            _ = try await DiagramEngine.parse(source)
-        }
-        #expect(Date().timeIntervalSince(start) < 5)
+        let (cpu, threwLimit) = await Self.parseCPUTime(source)
+        #expect(threwLimit)
+        #expect(cpu < 5)
     }
 
     @Test("a 200 KB quoted wardley name parses in linear time")
     func wardleyLongQuotedName() async throws {
         let name = String(repeating: "x", count: 200_000)
-        let start = Date()
-        _ = try? await DiagramEngine.parse("wardley-beta\ncomponent \"\(name)\" [0.5, 0.5]\nevolve \"\(name)\" 0.8")
-        #expect(Date().timeIntervalSince(start) < 5)
+        let (cpu, _) = await Self.parseCPUTime("wardley-beta\ncomponent \"\(name)\" [0.5, 0.5]\nevolve \"\(name)\" 0.8")
+        #expect(cpu < 5)
     }
 
     @Test("a quote in a wardley evolution line terminates")
