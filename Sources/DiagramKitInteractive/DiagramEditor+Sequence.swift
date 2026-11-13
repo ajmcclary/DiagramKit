@@ -110,35 +110,20 @@ extension DiagramEditor {
             )
         }
 
-        // Each message moves as a unit with the items that belong to it:
-        // the activation its own `+`/`-` shorthand created (`A->>+B` is
-        // read as `activate B` then the message), and a `create` or
-        // `destroy` directly before it, which the parser ties to the next
-        // message. Every other item — notes, explicit activations, blocks —
-        // keeps its place; only the units in the message slots are
-        // reordered.
-        var units: [[SequenceItem]] = []
-        var layout: [SequenceItem?] = []   // nil marks a message slot
-        for item in model.items {
-            guard case .message(let msg) = item else {
-                layout.append(item)
-                continue
-            }
-            var unit = [item]
-            if let last = layout.last, let previous = last, Self._isShorthandActivation(previous, of: msg) {
-                layout.removeLast()
-                unit.insert(previous, at: 0)
-            }
-            if let last = layout.last, let previous = last, Self._isLifecycleItem(previous, of: msg) {
-                layout.removeLast()
-                unit.insert(previous, at: 0)
-            }
-            units.append(unit)
-            layout.append(nil)
+        // The dragged message moves as one unit with the items that belong
+        // to it (the activation its own `+`/`-` shorthand made, and a
+        // `create`/`destroy` directly before it, which the parser ties to
+        // the next message). Every other item keeps its place, so no other
+        // message changes block or branch. The unit lands directly before
+        // the target message when moved up, directly after it when moved
+        // down, which puts it in the target's block.
+        var items = model.items
+        var messageIndices: [Int] = []
+        for (index, item) in items.enumerated() {
+            if case .message = item { messageIndices.append(index) }
         }
-
-        guard from >= 0, from < units.count,
-              to >= 0, to < units.count else {
+        guard from >= 0, from < messageIndices.count,
+              to >= 0, to < messageIndices.count else {
             throw DiagramEditorError.elementNotFound(
                 id: "message[\(from)]→[\(to)]",
                 kind: "message"
@@ -146,20 +131,43 @@ extension DiagramEditor {
         }
         guard from != to else { return doc }
 
-        let moved = units.remove(at: from)
-        units.insert(moved, at: to)
+        func unitStart(_ messageIndex: Int) -> Int {
+            guard case .message(let msg) = items[messageIndex] else { return messageIndex }
+            var start = messageIndex
+            if start > 0, Self._isShorthandActivation(items[start - 1], of: msg) { start -= 1 }
+            if start > 0, Self._isLifecycleItem(items[start - 1], of: msg) { start -= 1 }
+            return start
+        }
+        let movedEnd = messageIndices[from]
+        let movedStart = unitStart(movedEnd)
+        let unit = Array(items[movedStart...movedEnd])
+        let target = messageIndices[to]
+        let targetStart = unitStart(target)
+        items.removeSubrange(movedStart...movedEnd)
+        let removed = unit.count
+        let insertAt: Int
+        if from > to {
+            insertAt = targetStart                // target is before the unit
+        } else {
+            insertAt = target - removed + 1       // target was after the unit
+        }
+        items.insert(contentsOf: unit, at: insertAt)
 
-        var newItems: [SequenceItem] = []
-        var next = 0
-        for entry in layout {
-            if let entry {
-                newItems.append(entry)
-            } else {
-                newItems += units[next]
-                next += 1
+        // A note's anchor is the last message before it, as the parser
+        // records it.
+        var lastMessage: Int?
+        for index in items.indices {
+            switch items[index] {
+            case .message:
+                lastMessage = index
+            case .note(var note):
+                note.afterItemIndex = max(0, lastMessage ?? (index - 1))
+                items[index] = .note(note)
+            default:
+                break
             }
         }
-        model.items = newItems
+        model.items = items
 
         doc.payload = .sequenceDiagram(model)
         return doc
