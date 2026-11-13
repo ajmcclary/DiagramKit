@@ -12,8 +12,8 @@ func diffClassDiagram(_ a: ClassDiagram, _ b: ClassDiagram) -> [RoundTripDelta] 
     }
 
     // 2) Classes — id-based comparison with sanitization pairing on label match.
-    let aClasses = Dictionary(uniqueKeysWithValues: a.classes.map { ($0.id, $0) })
-    let bClasses = Dictionary(uniqueKeysWithValues: b.classes.map { ($0.id, $0) })
+    let aClasses = Dictionary(a.classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let bClasses = Dictionary(b.classes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     let sanitizationMap = diffClassIDs(a: aClasses, b: bClasses, deltas: &deltas)
 
     for (id, aClass) in aClasses {

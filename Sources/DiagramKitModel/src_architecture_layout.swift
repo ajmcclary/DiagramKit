@@ -113,11 +113,22 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
 
     let childGroupsByParent = Dictionary(grouping: diagram.groups, by: { $0.parentGroupId ?? "" })
     var groupBoundsCache: [String: _ArchitectureBounds] = [:]
+    // Group ids on the current path. A group nested (directly or not) in a
+    // group with its own id is a cycle — reachable from D2/DOT/Structurizr
+    // models, which the Mermaid parser's `selfParenting` check does not
+    // cover — and used to recurse until the stack overflowed.
+    var groupsInProgress: Set<String> = []
 
     func groupBounds(for group: ArchitectureGroup) -> _ArchitectureBounds {
         if let cached = groupBoundsCache[group.id] {
             return cached
         }
+        guard !groupsInProgress.contains(group.id),
+              groupsInProgress.count < _diagramDefaultRecursionLimit else {
+            return _ArchitectureBounds(x: padding, y: padding, width: nodeSize * 2, height: nodeSize * 2)
+        }
+        groupsInProgress.insert(group.id)
+        defer { groupsInProgress.remove(group.id) }
 
         var contentBounds: _ArchitectureBounds?
         for service in services where service.parentGroupId == group.id {
@@ -165,9 +176,11 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         )
     }
 
-    let serviceById = Dictionary(uniqueKeysWithValues: services.map { ($0.id, $0) })
-    let junctionById = Dictionary(uniqueKeysWithValues: junctions.map { ($0.id, $0) })
-    let groupById = Dictionary(uniqueKeysWithValues: positionedGroups.map { ($0.id, $0) })
+    // Ids are not guaranteed unique for models built by the non-Mermaid
+    // importers; the first declaration wins, as in the Mermaid parser.
+    let serviceById = Dictionary(services.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let junctionById = Dictionary(junctions.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let groupById = Dictionary(positionedGroups.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
     func nodeCenter(for id: String) -> (x: Double, y: Double) {
         if let service = serviceById[id] { return (service.x, service.y) }

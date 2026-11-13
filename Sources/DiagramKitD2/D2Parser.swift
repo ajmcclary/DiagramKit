@@ -166,7 +166,9 @@ public struct D2Parser {
     private func parseEdge(_ line: String, lineNumber: Int) throws -> (D2EdgeDefinition, lines: Int)? {
         // Split by edge operators — but only at occurrences OUTSIDE quoted
         // strings, so a label like `"go -> there"` never parses as an edge.
-        let operators = ["<->", "->", "--"]
+        // `<-` is D2's reverse arrow; DiagramKit's own architecture exporter
+        // writes it for a source-only arrowhead.
+        let operators = ["<->", "->", "<-", "--"]
         for op in operators {
             guard let range = _edgeOperatorRange(line, op: op) else { continue }
             let beforeOp = String(line[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
@@ -211,6 +213,10 @@ public struct D2Parser {
                     targetArrow = true
                 case "--":
                     edgeKind = .undirected
+                    targetArrow = false
+                case "<-":
+                    edgeKind = .directional
+                    sourceArrow = true
                     targetArrow = false
                 default: edgeKind = .directional
                 }

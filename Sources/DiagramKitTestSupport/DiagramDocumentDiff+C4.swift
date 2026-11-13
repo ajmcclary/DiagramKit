@@ -11,8 +11,8 @@ func diffC4Diagram(_ a: C4Diagram, _ b: C4Diagram) -> [RoundTripDelta] {
     }
 
     // 1) Shapes — alias-based with sanitization pairing.
-    let aShapes = Dictionary(uniqueKeysWithValues: a.shapes.map { ($0.alias, $0) })
-    let bShapes = Dictionary(uniqueKeysWithValues: b.shapes.map { ($0.alias, $0) })
+    let aShapes = Dictionary(a.shapes.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
+    let bShapes = Dictionary(b.shapes.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
     let sanitizationMap = diffShapeAliases(a: aShapes, b: bShapes, deltas: &deltas)
 
     for (alias, aShape) in aShapes {
@@ -77,8 +77,8 @@ func diffC4Diagram(_ a: C4Diagram, _ b: C4Diagram) -> [RoundTripDelta] {
             detail: "lhs=\(aBoundaries.count) rhs=\(bBoundaries.count)"
         ))
     }
-    let aBoundariesByAlias = Dictionary(uniqueKeysWithValues: aBoundaries.map { ($0.alias, $0) })
-    let bBoundariesByAlias = Dictionary(uniqueKeysWithValues: bBoundaries.map { ($0.alias, $0) })
+    let aBoundariesByAlias = Dictionary(aBoundaries.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
+    let bBoundariesByAlias = Dictionary(bBoundaries.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
     for (alias, aBoundary) in aBoundariesByAlias {
         guard alias != "global" else { continue }
         guard let bBoundary = bBoundariesByAlias[alias] else { continue }

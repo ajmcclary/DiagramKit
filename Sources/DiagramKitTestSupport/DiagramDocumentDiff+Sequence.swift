@@ -6,8 +6,8 @@ func diffSequenceDiagram(_ a: SequenceDiagram, _ b: SequenceDiagram) -> [RoundTr
     // Compare derived actor lists. Sequence diagrams identify actors by id.
     // Mermaid round-trip preserves actor declarations + implicit-from-message
     // creation; comparison is by id with sanitization pairing on label match.
-    let aActors = Dictionary(uniqueKeysWithValues: a.actors.map { ($0.id, $0) })
-    let bActors = Dictionary(uniqueKeysWithValues: b.actors.map { ($0.id, $0) })
+    let aActors = Dictionary(a.actors.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let bActors = Dictionary(b.actors.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     let sanitizationMap = diffActorIDs(a: aActors, b: bActors, deltas: &deltas)
 
     // 2) Per-actor label comparison (with sanitization map).

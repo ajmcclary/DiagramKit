@@ -45,20 +45,50 @@ public struct D2ArchitectureMapper {
         var edges: [ArchitectureEdge] = []
         var diagnostics: [DiagramDiagnostic] = []
         var containerStack: [String] = []
+        // `id: "Label"` followed by `id.shape: cylinder` is two statements
+        // for one object (and exactly what the D2 exporter writes); each
+        // used to become its own service, and the duplicate id trapped the
+        // layout.
+        var serviceIndex: [String: Int] = [:]
+        var groupIDs: Set<String> = []
 
         for stmt in doc.statements {
             switch stmt {
             case .containerOpen(let open):
+                // D2 names a nested container by its path, so `api` inside
+                // `api` is a different object; keep group ids unique the
+                // same way (a repeated id nested in itself was a cycle).
+                var id = open.id
+                if groupIDs.contains(id), let parent = containerStack.last {
+                    id = "\(parent).\(open.id)"
+                }
+                var suffix = 2
+                let stem = id
+                while groupIDs.contains(id) {
+                    id = "\(stem)_\(suffix)"
+                    suffix += 1
+                }
+                groupIDs.insert(id)
                 groups.append(ArchitectureGroup(
-                    id: open.id,
+                    id: id,
                     title: open.label,
                     parentGroupId: containerStack.last
                 ))
-                containerStack.append(open.id)
+                containerStack.append(id)
             case .containerClose:
                 if !containerStack.isEmpty { containerStack.removeLast() }
             case .nodeDefinition(let nodeDef):
+                if let index = serviceIndex[nodeDef.id] {
+                    if let label = nodeDef.label { services[index].title = label }
+                    if nodeDef.shape != nil {
+                        let kind = Self.kind(for: nodeDef.shape)
+                        services[index].kind = kind
+                        services[index].icon = Self.iconForKind(kind)
+                    }
+                    continue
+                }
                 let kind = Self.kind(for: nodeDef.shape)
+                serviceIndex[nodeDef.id] = services.count
                 services.append(ArchitectureService(
                     id: nodeDef.id,
                     icon: Self.iconForKind(kind),

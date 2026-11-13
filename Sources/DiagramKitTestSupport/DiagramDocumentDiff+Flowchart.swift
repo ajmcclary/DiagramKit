@@ -3,8 +3,8 @@ import DiagramKitModel
 func diffParsedGraphModel(_ a: ParsedGraphModel, _ b: ParsedGraphModel) -> [RoundTripDelta] {
     var deltas: [RoundTripDelta] = []
 
-    let aNodes = Dictionary(uniqueKeysWithValues: a.nodesInOrder.map { ($0.id, $0.node) })
-    let bNodes = Dictionary(uniqueKeysWithValues: b.nodesInOrder.map { ($0.id, $0.node) })
+    let aNodes = Dictionary(a.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { first, _ in first })
+    let bNodes = Dictionary(b.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { first, _ in first })
 
     // 1) Node id symmetry. Renames map across via .idSanitization.
     let aSanitizationMap = diffNodeIDs(a: aNodes, b: bNodes, deltas: &deltas)

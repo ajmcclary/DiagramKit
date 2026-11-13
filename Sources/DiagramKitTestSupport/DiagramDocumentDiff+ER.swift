@@ -4,8 +4,8 @@ func diffErDiagram(_ a: ErDiagram, _ b: ErDiagram) -> [RoundTripDelta] {
     var deltas: [RoundTripDelta] = []
 
     // 1) Entities by id (key).
-    let aEntities = Dictionary(uniqueKeysWithValues: a.entities.map { ($0.id, $0) })
-    let bEntities = Dictionary(uniqueKeysWithValues: b.entities.map { ($0.id, $0) })
+    let aEntities = Dictionary(a.entities.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let bEntities = Dictionary(b.entities.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     let sanitizationMap = diffEntityIDs(a: aEntities, b: bEntities, deltas: &deltas)
 
     for (id, aEntity) in aEntities {

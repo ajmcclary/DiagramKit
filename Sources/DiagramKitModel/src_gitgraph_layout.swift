@@ -230,7 +230,7 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> (PositionedGitGraphDia
     }
 
     // Commit map for lookup
-    let commitsByID: [String: GitGraphCommit] = Dictionary(uniqueKeysWithValues: commits.map { ($0.id, $0) })
+    let commitsByID: [String: GitGraphCommit] = Dictionary(commits.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first }) // ids come from source; the first commit wins
     let commitArray = commits.filter { !$0.id.isEmpty }
     let sortedKeys = commitArray.map { $0.id }
 

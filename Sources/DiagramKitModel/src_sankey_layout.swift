@@ -23,7 +23,7 @@ public func layoutSankeyDiagram(_ diagram: SankeyDiagram) -> PositionedSankeyDia
     }
 
     let nodeCount = diagram.nodes.count
-    let nodeIndexMap = Dictionary(uniqueKeysWithValues: diagram.nodes.enumerated().map { ($1.id, $0) })
+    let nodeIndexMap = Dictionary(diagram.nodes.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first }) // first node with an id wins
 
     var nodeValues = [Double](repeating: 0, count: nodeCount)
     var sourceLinks = [[_SankeyLayoutLink]](repeating: [], count: nodeCount)
