@@ -192,9 +192,15 @@ public func parseMindmap(_ rawLines: [String], frontmatter: DiagramFrontmatter?)
     return (diagram, [])
 }
 
+// Mindmap quoting follows upstream and `_splitStatements`: only `"` opens a
+// quoted string. An apostrophe is ordinary text (`id[User's Guide]`); when
+// it opened a quote, the closing delimiter was never seen and the node
+// swallowed the following lines or failed the whole diagram.
+
 private func _stripInlineComment(_ line: String) -> String {
     var inQuote = false
     var quoteChar: Character?
+    var shapeDepth = 0
     var chars: [Character] = []
     for ch in line {
         if inQuote {
@@ -202,13 +208,17 @@ private func _stripInlineComment(_ line: String) -> String {
             if ch == quoteChar { inQuote = false; quoteChar = nil }
             continue
         }
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" {
             inQuote = true
             quoteChar = ch
             chars.append(ch)
             continue
         }
-        if ch == "%" && chars.count > 0 {
+        // `%%` inside node text (`a[100%% done]`) is text, as upstream's
+        // node-description lexer state has no comment rule.
+        if "[({".contains(ch) { shapeDepth += 1 }
+        else if "])}".contains(ch) { shapeDepth = max(0, shapeDepth - 1) }
+        if ch == "%" && chars.count > 0 && shapeDepth == 0 {
             let prev = chars[chars.count - 1]
             if prev == "%" {
                 chars.removeLast()
@@ -293,7 +303,7 @@ private func _findDelimiters(in text: String) -> (open: String?, close: String?,
             if ch == quoteChar { inQuote = false; quoteChar = nil }
             continue
         }
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" {
             inQuote = true
             quoteChar = ch
             continue
@@ -345,7 +355,7 @@ private func _extractQuotedContent(_ text: String, openDelim: String, closeDelim
             }
             continue
         }
-        if ch == "\"" || ch == "'" {
+        if ch == "\"" {
             inQuote = true
             quoteChar = ch
             continue
