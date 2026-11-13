@@ -152,6 +152,7 @@ public enum DiagramSourceNormalizer {
         var inMarkdownString = false
         var isEscaped = false
         var bracketDepth = 0
+        var inPipeLabel = false
         // A markdown string may only span lines when a closing `` `" `` exists
         // after its opener; one backwards search keeps this linear.
         let lastMarkdownClose = flowchartText
@@ -176,6 +177,7 @@ public enum DiagramSourceNormalizer {
                 inQuote = false
                 isEscaped = false
                 bracketDepth = 0
+                inPipeLabel = false
                 continue
             }
 
@@ -218,7 +220,14 @@ public enum DiagramSourceNormalizer {
             }
 
             if flowchartText {
-                if ch == "[" || ch == "(" || ch == "{" {
+                // A `|…|` edge label is free text: a bracket inside it
+                // (`-->|sad :(|`) is not node text and must not hold the
+                // statement open past the next `;`.
+                if ch == "|", bracketDepth == 0 {
+                    inPipeLabel.toggle()
+                } else if inPipeLabel {
+                    // brackets in an edge label are text
+                } else if ch == "[" || ch == "(" || ch == "{" {
                     bracketDepth += 1
                 } else if ch == "]" || ch == ")" || ch == "}" {
                     bracketDepth = max(0, bracketDepth - 1)
@@ -231,6 +240,7 @@ public enum DiagramSourceNormalizer {
                separators.contains(scalar) {
                 parts.append(current)
                 current = ""
+                inPipeLabel = false
             } else {
                 current.append(ch)
             }

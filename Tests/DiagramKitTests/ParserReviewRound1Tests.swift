@@ -48,6 +48,12 @@ struct ParserReviewRound1Tests {
         #expect(diagram.tasks.count == 1)
     }
 
+    @Test("an unbalanced bracket in a pipe edge label does not swallow the next statement")
+    func pipeLabelBracket() async throws {
+        let graph = try await Self.flowchart("flowchart LR\nA -->|sad :(| B; C --> D")
+        #expect(graph.edges.map { "\($0.source)->\($0.target)" } == ["A->B", "C->D"])
+    }
+
     private static func node(_ graph: ParsedGraphModel, _ id: String) -> (label: String, shape: String)? {
         graph.nodesInOrder.first { $0.id == id }.map { ($0.node.label, "\($0.node.shape)") }
     }
