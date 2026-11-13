@@ -56,6 +56,18 @@ struct ParserNestingLimitTests {
         _ = try? await DiagramEngine.parse("wardley-beta\nevolution Genesis / Concept -> Custom\"")
     }
 
+    @Test("eventmodeling with an unterminated type annotation terminates")
+    func eventModelingUnterminatedBacktick() async throws {
+        // The sweep's input (`->> 02"` + backtick) now ends in a typed error.
+        _ = try? await DiagramEngine.parse("eventmodeling\nrf 02 evt CartCreated\ntf 01 rmo CartUI ->> 02\"`")
+        let document = try await DiagramEngine.parse("eventmodeling\nrf 02 evt CartCreated\ntf 01 rmo CartUI ->> 02 `str")
+        guard case .eventModeling(let diagram) = document.payload else {
+            Issue.record("expected eventmodeling")
+            return
+        }
+        #expect(diagram.frames.count == 2)
+    }
+
     @Test("xychart with an unterminated accDescr block terminates")
     func xychartUnterminatedAccDescr() async throws {
         // The review's exact input has no data, so it now ends in a typed

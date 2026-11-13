@@ -307,13 +307,18 @@ private func parseFrame(
         } else if rest.hasPrefix("`") {
             // Data type annotation: `type` { value }
             let afterBacktick = rest.index(after: rest.startIndex)
-            if let closeBacktick = rest[afterBacktick...].firstIndex(of: "`") {
-                let dtStr = String(rest[afterBacktick..<closeBacktick]).lowercased()
-                if let dt = EventModelingDataType(rawValue: dtStr) {
-                    dataInlineType = dt
-                }
-                rest = rest[rest.index(after: closeBacktick)...].trimmingPrefix(while: { $0.isWhitespace })
+            guard let closeBacktick = rest[afterBacktick...].firstIndex(of: "`") else {
+                // An unterminated annotation consumed nothing, so the loop
+                // used to spin on the same backtick forever (a live editor
+                // sees this while the annotation is being typed). Skip it
+                // like any other unrecognised trailing content.
+                break
             }
+            let dtStr = String(rest[afterBacktick..<closeBacktick]).lowercased()
+            if let dt = EventModelingDataType(rawValue: dtStr) {
+                dataInlineType = dt
+            }
+            rest = rest[rest.index(after: closeBacktick)...].trimmingPrefix(while: { $0.isWhitespace })
             // Now parse { value }
             if rest.hasPrefix("{") {
                 let (value, afterCtx) = extractBraceContent(from: rest)
