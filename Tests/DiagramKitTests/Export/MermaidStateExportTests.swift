@@ -178,10 +178,10 @@ import DiagramKit
         #expect(hasNoteNode)
     }
 
-    // MARK: - Deferred-feature diagnostics
+    // MARK: - Formerly deferred features (now written back)
 
-    @Test("nodeStyles emit .styleDrop diagnostic")
-    func nodeStylesEmitDiagnostic() throws {
+    @Test("nodeStyles are written back")
+    func nodeStylesWrittenBack() throws {
         let graph = ParsedGraphModel(
             direction: .TD,
             nodesInOrder: [
@@ -191,11 +191,12 @@ import DiagramKit
             nodeStyles: ["A": ["fill": "#ffd"]]
         )
         let result = try MermaidExporter().export(DiagramDocument(payload: .stateDiagram(graph)))
-        #expect(result.diagnostics.contains { $0.category == .styleDrop })
+        #expect(result.source.contains("style A fill:#ffd"))
+        #expect(result.diagnostics.isEmpty)
     }
 
-    @Test("accTitle / accDescr emit .accessibilityDrop diagnostic")
-    func accessibilityEmitsDiagnostic() throws {
+    @Test("accTitle / accDescr are written back")
+    func accessibilityWrittenBack() throws {
         let graph = ParsedGraphModel(
             direction: .TD,
             nodesInOrder: [
@@ -205,6 +206,7 @@ import DiagramKit
             accTitle: "My State Machine"
         )
         let result = try MermaidExporter().export(DiagramDocument(payload: .stateDiagram(graph)))
-        #expect(result.diagnostics.contains { $0.category == .accessibilityDrop })
+        #expect(result.source.contains("accTitle: My State Machine"))
+        #expect(result.diagnostics.isEmpty)
     }
 }

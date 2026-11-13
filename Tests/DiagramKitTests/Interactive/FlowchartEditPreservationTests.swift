@@ -10,10 +10,11 @@ import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport
+import DiagramKitTestSupport
 @testable import DiagramKitInteractive
 
 @MainActor
-private func editor(for source: String) throws -> DiagramEditor {
+private func editor(for source: String, type: DiagramType = .flowchart) throws -> DiagramEditor {
     let document = try MermaidImporter().parse(source).document
     return DiagramEditor(
         document: document,
@@ -55,6 +56,26 @@ struct FlowchartEditPreservationTests {
             }
             #expect(flowchartFingerprint(after) == flowchartFingerprint(expected), "fixture \(fixture.name):\n\(edit.source ?? "")")
             #expect(edit.lastExportDiagnostics.isEmpty, "fixture \(fixture.name): \(edit.lastExportDiagnostics)")
+        }
+    }
+
+    @Test("renaming one state changes only that state, for every state corpus entry and fixture")
+    func stateRenameKeepsEverythingElse() async throws {
+        let corpus = try DiagramCorpus.load().filter { (try? MermaidImporter().parse($0.source).document.type) == .stateDiagram }
+        let sources = corpus.map { ($0.id, $0.source) } + stateFidelityFixtures
+        for (name, source) in sources {
+            let original = try MermaidImporter().parse(source).document
+            guard case .stateDiagram(var g) = original.payload,
+                  let index = g.nodesInOrder.firstIndex(where: { [.rounded, .rectangle, .rectWithTitle].contains($0.node.shape) }) else { continue }
+            let id = g.nodesInOrder[index].id
+            let edit = try editor(for: source, type: .stateDiagram)
+            try await edit.perform(.setLabel(of: DiagramSelection(diagramType: .stateDiagram, elementID: "node:\(id)"), to: "Renamed"))
+            g.nodesInOrder[index].node.label = "Renamed"
+            if !g.nodesInOrder[index].node.descriptions.isEmpty { g.nodesInOrder[index].node.descriptions[0] = "Renamed" }
+            var expected = original
+            expected.payload = .stateDiagram(g)
+            let after = try reparse(edit)
+            #expect(flowchartFingerprint(after) == flowchartFingerprint(expected), "\(name):\n\(edit.source ?? "")")
         }
     }
 

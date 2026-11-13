@@ -238,6 +238,9 @@ extension DiagramEditor {
                         // `@{ label: … }` overrides the bracket text in
                         // layout, so a rename must update it too.
                         if node.properties?.label != nil { node.properties?.label = label }
+                        // A state's first description is its displayed
+                        // label (the parser rebuilds the label from it).
+                        if !node.descriptions.isEmpty { node.descriptions[0] = label }
                         return (id: entry.id, node: node)
                     }
                     return entry

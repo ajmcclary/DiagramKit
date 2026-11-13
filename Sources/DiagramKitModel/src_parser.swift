@@ -786,6 +786,13 @@ private func _parseStateDiagram(
         if let am2 = _regexGroups(sPat(#"^state\s+\"([^\"]+)\"\s+as\s+({{SID}})\s*$"#), line),
            let labelRaw = am2[safe: 1], let id = am2[safe: 2], isValidStateID(id) {
             let label = original_src_multiline_utils.normalizeBrTags(labelRaw)
+            // A later `state "…" as X` names a state that a transition
+            // already created, as upstream's addState does; the first
+            // mention used to win, so the label was ignored.
+            if var existing = graph.nodesById[id] {
+                existing.label = label
+                graph.nodesById[id] = existing
+            }
             _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: label, shape: .rounded))
             continue
         }
@@ -1028,8 +1035,16 @@ private func _addStateNote(_ graph: inout _WorkingGraph, compositeStack: inout [
         _trackNodeInSubgraph(&compositeStack, targetId)
     }
 
-    // Create note node and register in composite scope
-    let noteId = "\(targetId)----note"
+    // Create note node and register in composite scope. Each note gets its
+    // own node (upstream numbers them too): a second note on the same state
+    // used to reuse the first one's node, so its text was lost and only the
+    // first note's text was drawn, on both sides.
+    var noteId = "\(targetId)----note"
+    var noteNumber = 2
+    while graph.nodesById[noteId] != nil {
+        noteId = "\(targetId)----note-\(noteNumber)"
+        noteNumber += 1
+    }
     _registerStateNode(&graph, &compositeStack, ParsedNode(id: noteId, label: normalizedText, shape: .stateNote))
 
     // Create dotted note edge

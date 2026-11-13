@@ -29,14 +29,21 @@ func flowchartFingerprint(_ document: DiagramDocument) -> String {
     if let annotations = document.sourceAnnotations {
         out.append("preamble=\(annotations.preamble)")
         for comment in annotations.comments { out.append("comment \(comment.line)") }
-        for (key, line) in annotations.verbatimStatements.sorted(by: { $0.key < $1.key }) {
-            out.append("verbatim \(key)=\(line)")
+        for (key, lines) in annotations.verbatimStatements.sorted(by: { $0.key < $1.key }) {
+            out.append("verbatim \(key)=\(lines)")
         }
     }
-    guard case .flowchart(let g) = document.payload else {
+    let graph: original_src_types.MermaidGraph
+    switch document.payload {
+    case .flowchart(let g): graph = g
+    case .stateDiagram(let g):
+        graph = g
+        out.append("state hideEmpty=\(g.stateConfig.hideEmptyDescription) scale=\(g.stateConfig.scaleWidth.map(String.init) ?? "∅")")
+    default:
         out.append("payload=\(document.type.rawValue)")
         return out.joined(separator: "\n")
     }
+    let g = graph
     out.append("direction=\(g.direction.rawValue)")
     for (id, node) in g.nodesInOrder {
         out.append("node \(id) label=\(node.label) shape=\(node.shape.rawValue) descr=\(node.descriptions) props=\(propertiesFingerprint(node.properties))")

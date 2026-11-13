@@ -48,8 +48,10 @@ public struct DiagramSourceAnnotations: Sendable, Equatable, Hashable {
     public var preambleLayout: String?
     /// Full-line comments (and `%%{…}%%` directives) after the header.
     public var comments: [DiagramSourceComment]
-    /// `click` / `link` / `links` lines exactly as written, by statement key.
-    public var verbatimStatements: [String: String]
+    /// `click` / `link` / `links` lines exactly as written, by statement
+    /// key, in source order (a later line for the same key overrides an
+    /// earlier one in the model, but both stay in the text).
+    public var verbatimStatements: [String: [String]]
 
     public init(
         preamble: String = "",
@@ -57,7 +59,7 @@ public struct DiagramSourceAnnotations: Sendable, Equatable, Hashable {
         preambleTheme: String? = nil,
         preambleLayout: String? = nil,
         comments: [DiagramSourceComment] = [],
-        verbatimStatements: [String: String] = [:]
+        verbatimStatements: [String: [String]] = [:]
     ) {
         self.preamble = preamble
         self.preambleTitle = preambleTitle
@@ -188,7 +190,7 @@ public func _collectMermaidSourceAnnotations(
     let preamble = lines[..<headerIndex].map { $0 + "\n" }.joined()
 
     var comments: [DiagramSourceComment] = []
-    var verbatim: [String: String] = [:]
+    var verbatim: [String: [String]] = [:]
     var blockStack: [String] = []
     var pending: [String] = []
 
@@ -226,8 +228,8 @@ public func _collectMermaidSourceAnnotations(
             }
         } else {
             flush(.before(statement: _sourceStatementText(trimmed), key: _sourceStatementKey(trimmed)))
-            if let key = _verbatimStatementKey(trimmed), verbatim[key] == nil {
-                verbatim[key] = raw
+            if let key = _verbatimStatementKey(trimmed) {
+                verbatim[key, default: []].append(raw)
             }
             if _isBlockOpener(trimmed) {
                 blockStack.append(_sourceStatementKey(trimmed))
@@ -268,11 +270,15 @@ public func _applyMermaidSourceAnnotations(
     var lines = body.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     if lines.last == "" { lines.removeLast() }
 
-    for index in lines.indices {
-        if let key = _verbatimStatementKey(lines[index]), let original = annotations.verbatimStatements[key] {
-            lines[index] = original
+    var substituted: [String] = []
+    for line in lines {
+        if let key = _verbatimStatementKey(line), let originals = annotations.verbatimStatements[key], !originals.isEmpty {
+            substituted += originals
+        } else {
+            substituted.append(line)
         }
     }
+    lines = substituted
 
     // Insertion points are computed against the exporter's lines, then
     // applied bottom-up so earlier insertions do not shift later ones.

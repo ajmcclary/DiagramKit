@@ -36,7 +36,9 @@ final class CorpusRoundTripTests: XCTestCase {
     /// Last verified 2026-10-13: 16 of the former 17 `knownFailures` still
     /// diverge; `flow-21-cicd-pipeline` was fixed and removed from the set.
     /// 2026-11-12: `kanban-decorations` removed — kanban labels now export
-    /// as entity codes the parser decodes after scanning.
+    /// as entity codes the parser decodes after scanning. `state-4-cjk`,
+    /// `state-7-concurrency`, `state-8-notes`, `state-12-complex` removed —
+    /// the state exporter now reproduces the model.
     static let knownIssues: Set<String> = [
         // Pre-existing class exporter id-sanitization issues
         "class-18-square-label",
@@ -49,13 +51,6 @@ final class CorpusRoundTripTests: XCTestCase {
         "er-24-numeric-entities",
         // Pre-existing ER parser cannot re-parse `|--}o` parent-marker
         "er-25-parent-marker",
-        // Pre-existing state exporter id-sanitization + edge-order
-        // issues with non-ASCII identifiers, concurrent regions,
-        // notes, and nested composites
-        "state-4-cjk",
-        "state-7-concurrency",
-        "state-8-notes",
-        "state-12-complex",
         // Pre-existing sequence exporter arrow-type narrowing and
         // reverse-arrow drop
         "seq-4-arrow-types",
