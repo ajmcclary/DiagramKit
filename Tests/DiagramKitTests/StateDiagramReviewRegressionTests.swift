@@ -357,7 +357,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
         XCTAssertEqual(parsed.stateConfig.securityLevel, "sandbox")
     }
 
-    func testDangerousUrlBlockedInStateClickParse() async throws {
+    func testDangerousUrlKeptButNotRenderedInStateClick() async throws {
         let source = """
         stateDiagram-v2
           [*] --> A
@@ -368,6 +368,10 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
         guard case .stateDiagram(let parsed) = graph.payload else {
             return XCTFail("Expected state diagram")
         }
-        XCTAssertNil(parsed.nodeInteractions["A"], "Dangerous URL should be blocked")
+        // Owner ruling: kept in the model and the exported source; withheld
+        // only where a link would be rendered.
+        XCTAssertNotNil(parsed.nodeInteractions["A"])
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertFalse(svg.lowercased().contains("javascript:"))
     }
 }

@@ -57,15 +57,17 @@ public func _safeSubstring(
 
 // MARK: - Link targets
 
-/// Schemes a diagram link may use.
-private let _allowedLinkSchemes: Set<String> = ["http", "https", "mailto", "tel", "ftp"]
+/// Schemes that never become a link or image target (upstream Mermaid's
+/// sanitize-url blocks the same three).
+private let _blockedLinkSchemes: Set<String> = ["javascript", "data", "vbscript"]
 
-/// True when `url` is safe to write as a link or image target in SVG: a
-/// fragment (`#x`), a relative reference, or a URL whose scheme is
-/// http(s), mailto, tel or ftp. Whitespace and control characters are
-/// removed before the scheme is read, as a browser does when it parses a
-/// URL, so `java<TAB>script:` is caught; prefix blocklists after a
-/// space-only trim let it through.
+/// True when `url` may be written as a link or image target in SVG. The
+/// check runs at output only: the model and the exported source keep every
+/// URL as written (owner ruling: deep links such as `obsidian://` or
+/// `vscode://` are ordinary content). Whitespace and control characters are
+/// removed and case is folded before the scheme is read, as a browser does
+/// when it parses a URL, so `java<TAB>script:` is caught. A URL with no
+/// scheme (fragment or relative reference) is allowed.
 public func _isSafeLinkURL(_ url: String) -> Bool {
     let squeezed = String(String.UnicodeScalarView(url.unicodeScalars.filter {
         $0.value > 0x20 && $0.value != 0x7F && !$0.properties.isWhitespace
@@ -75,5 +77,5 @@ public func _isSafeLinkURL(_ url: String) -> Bool {
     if let delimiter = squeezed.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" }), delimiter < colon {
         return true // relative reference: the colon is in a path, query or fragment
     }
-    return _allowedLinkSchemes.contains(String(squeezed[..<colon]))
+    return !_blockedLinkSchemes.contains(String(squeezed[..<colon]))
 }

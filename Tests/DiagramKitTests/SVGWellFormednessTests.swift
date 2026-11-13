@@ -95,12 +95,13 @@ private func corpusInputs() throws -> [(name: String, source: String, format: Di
 @Suite("SVG output is well-formed XML without active content")
 struct SVGWellFormednessTests {
 
-    @Test("link targets are allowlisted by scheme after removing whitespace and controls", arguments: [
+    @Test("javascript, data and vbscript never become link targets; other schemes do", arguments: [
         ("https://example.com", true), ("HTTP://x", true), ("mailto:a@b.c", true), ("#frag", true),
         ("docs/page.html", true), ("./a:b", true), ("?q=a:b", true),
+        ("obsidian://open?vault=notes&file=Plan", true), ("vscode://file/x.swift:12", true), ("file:///tmp/x", true),
         ("javascript:alert(1)", false), ("java\tscript:alert(1)", false), ("java\nscript:alert(1)", false),
         (" javascript:alert(1)", false), ("JaVaScRiPt:alert(1)", false), ("data:text/html,x", false),
-        ("vbscript:x", false), ("file:///etc/passwd", false), ("\u{0}javascript:x", false), ("", false),
+        ("vbscript:x", false), ("\u{0}javascript:x", false), ("", false),
     ])
     func linkAllowlist(url: String, safe: Bool) {
         #expect(_isSafeLinkURL(url) == safe)

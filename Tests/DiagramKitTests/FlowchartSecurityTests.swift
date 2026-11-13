@@ -28,7 +28,7 @@ final class FlowchartSecurityTests: XCTestCase {
         }
     }
 
-    func testClickHrefWithJavascriptURLIsRejected() async throws {
+    func testClickHrefWithJavascriptURLIsNotRendered() async throws {
         let source = """
         graph LR
           A[Start] --> B[End]
@@ -39,10 +39,14 @@ final class FlowchartSecurityTests: XCTestCase {
             XCTFail("Expected flowchart payload")
             return
         }
-        XCTAssertNil(model.nodeInteractions["A"], "javascript: URL should be rejected")
+        // Owner ruling: the URL stays in the model (and in the exported
+        // source); it never becomes a link in the SVG.
+        XCTAssertNotNil(model.nodeInteractions["A"], "javascript: URL is kept in the model")
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertFalse(svg.lowercased().contains("href=\"javascript:"), "javascript: URL must not be rendered as a link")
     }
 
-    func testClickHrefWithDataURLIsRejected() async throws {
+    func testClickHrefWithDataURLIsNotRendered() async throws {
         let source = """
         graph LR
           A[Start] --> B[End]
@@ -53,10 +57,14 @@ final class FlowchartSecurityTests: XCTestCase {
             XCTFail("Expected flowchart payload")
             return
         }
-        XCTAssertNil(model.nodeInteractions["A"], "data: URL should be rejected")
+        // Owner ruling: the URL stays in the model (and in the exported
+        // source); it never becomes a link in the SVG.
+        XCTAssertNotNil(model.nodeInteractions["A"], "data: URL is kept in the model")
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertFalse(svg.lowercased().contains("href=\"data:"), "data: URL must not be rendered as a link")
     }
 
-    func testClickHrefWithVbscriptURLIsRejected() async throws {
+    func testClickHrefWithVbscriptURLIsNotRendered() async throws {
         let source = """
         graph LR
           A[Start] --> B[End]
@@ -67,10 +75,14 @@ final class FlowchartSecurityTests: XCTestCase {
             XCTFail("Expected flowchart payload")
             return
         }
-        XCTAssertNil(model.nodeInteractions["A"], "vbscript: URL should be rejected")
+        // Owner ruling: the URL stays in the model (and in the exported
+        // source); it never becomes a link in the SVG.
+        XCTAssertNotNil(model.nodeInteractions["A"], "vbscript: URL is kept in the model")
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertFalse(svg.lowercased().contains("href=\"vbscript:"), "vbscript: URL must not be rendered as a link")
     }
 
-    func testClickHrefWithFileURLIsRejected() async throws {
+    func testClickHrefWithFileURLIsRendered() async throws {
         let source = """
         graph LR
           A[Start] --> B[End]
@@ -81,7 +93,11 @@ final class FlowchartSecurityTests: XCTestCase {
             XCTFail("Expected flowchart payload")
             return
         }
-        XCTAssertNil(model.nodeInteractions["A"], "file: URL should be rejected")
+        // Owner ruling: only javascript, data and vbscript are withheld (as
+        // upstream's sanitize-url does); a file: URL is an ordinary link.
+        XCTAssertNotNil(model.nodeInteractions["A"])
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        XCTAssertTrue(svg.contains("file:///etc/passwd"))
     }
 
     func testClickCallIsStoredUnconditionally() async throws {

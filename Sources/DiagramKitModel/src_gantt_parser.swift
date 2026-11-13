@@ -957,7 +957,8 @@ private func _cleanCallbackArg(_ value: String) -> String {
 
 private func _sanitizeGanttUrl(_ href: String) -> String? {
     let trimmed = href.trimmingCharacters(in: .whitespacesAndNewlines)
-    return _isSafeLinkURL(trimmed) ? trimmed : nil
+    // Kept as written; the scheme check runs at the SVG sink.
+    return trimmed.isEmpty ? nil : trimmed
 }
 
 

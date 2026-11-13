@@ -1664,8 +1664,10 @@ private extension String {
 
 // MARK: - URL Security Validation
 
+/// URLs are kept in the model as written; the scheme check runs where a
+/// link is rendered (`_isSafeLinkURL`).
 private func _isUnsafeURL(_ url: String) -> Bool {
-    !_isSafeLinkURL(url)
+    false
 }
 
 // MARK: - Wrapper class

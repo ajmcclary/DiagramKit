@@ -1063,8 +1063,10 @@ private func _parseStyleProps(_ propsStr: String) -> [String: String] {
 
 private typealias ParsedNodeInteraction = original_src_types.NodeInteraction
 
+/// Every non-empty URL is kept in the model and written back as is; the
+/// scheme check runs where a link is rendered (`_isSafeLinkURL`).
 private func _validateURL(_ url: String) -> Bool {
-    _isSafeLinkURL(url)
+    !url.trimmingCharacters(in: .whitespaces).isEmpty
 }
 
 private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {

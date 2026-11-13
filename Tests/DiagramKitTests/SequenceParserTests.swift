@@ -496,24 +496,24 @@ final class SequenceParserTests: XCTestCase {
 
     // MARK: - URL Sanitization
 
-    func testLinkSanitizationBlocksJavascript() throws {
+    func testLinkKeepsJavascriptURLInModel() throws {
         let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ javascript:alert(1)
             Alice->>Bob: Hello
         """))
         let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
-        XCTAssertEqual(linkItems.count, 0, "javascript: URLs should be blocked")
+        XCTAssertEqual(linkItems.count, 1, "javascript: URLs are kept in the model (owner ruling); the SVG sink withholds them")
     }
 
-    func testLinkSanitizationBlocksDataUri() throws {
+    func testLinkKeepsDataURLInModel() throws {
         let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ data:text/html,<script>alert(1)</script>
             Alice->>Bob: Hello
         """))
         let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
-        XCTAssertEqual(linkItems.count, 0, "data: URLs should be blocked")
+        XCTAssertEqual(linkItems.count, 1, "data: URLs are kept in the model (owner ruling); the SVG sink withholds them")
     }
 
     func testLinkSanitizationAllowsHttps() throws {
@@ -536,14 +536,14 @@ final class SequenceParserTests: XCTestCase {
         XCTAssertEqual(linkItems.count, 1, "mailto: URLs should be allowed")
     }
 
-    func testLinkSanitizationBlocksVbscript() throws {
+    func testLinkKeepsVbscriptURLInModel() throws {
         let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ vBScript:msgbox(1)
             Alice->>Bob: Hello
         """))
         let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
-        XCTAssertEqual(linkItems.count, 0, "vbscript: URLs should be blocked")
+        XCTAssertEqual(linkItems.count, 1, "vbscript: URLs are kept in the model (owner ruling); the SVG sink withholds them")
     }
 
     // MARK: - Notes

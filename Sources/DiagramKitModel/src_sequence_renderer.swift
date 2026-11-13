@@ -216,7 +216,7 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int, interact
 
     var parts: [String] = []
     var dataAttrs = "data-id=\"\(SVG.escapeAttribute(actor.id))\" data-label=\"\(SVG.escapeAttribute(label))\" data-type=\"\(SVG.escapeAttribute(pType.rawValue))\""
-    for (key, url) in actor.links.sorted(by: { $0.key < $1.key }) {
+    for (key, url) in actor.links.sorted(by: { $0.key < $1.key }) where _isSafeLinkURL(url) {
         dataAttrs += " data-link-\(_svgAttributeNameToken(key))=\"\(SVG.escapeAttribute(url))\""
     }
     for (key, value) in actor.properties.sorted(by: { $0.key < $1.key }) {

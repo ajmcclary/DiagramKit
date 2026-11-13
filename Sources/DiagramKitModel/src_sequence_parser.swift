@@ -666,15 +666,13 @@ private func _parseLink(_ text: String) -> (label: String, url: String)? {
     let trimmed = text.trimmingCharacters(in: .whitespaces)
     if let sep = trimmed.firstIndex(of: "@") {
         let label = String(trimmed[..<sep]).trimmingCharacters(in: .whitespaces)
-        let url = String(trimmed[trimmed.index(after: sep)...]).trimmingCharacters(in: .whitespaces)
-        guard _isSafeURL(url) else { return nil }
-        return (label: label, url: url)
+        // Quotes around the label or URL are syntax, not content. The URL
+        // is kept as written; the scheme check runs at the SVG sink.
+        let url = _unquote(String(trimmed[trimmed.index(after: sep)...]).trimmingCharacters(in: .whitespaces))
+        guard !url.isEmpty else { return nil }
+        return (label: _unquote(label), url: url)
     }
     return nil
-}
-
-private func _isSafeURL(_ url: String) -> Bool {
-    _isSafeLinkURL(url)
 }
 
 // MARK: - Helpers
