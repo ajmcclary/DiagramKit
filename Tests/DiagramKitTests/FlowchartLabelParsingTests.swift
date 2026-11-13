@@ -53,6 +53,41 @@ struct FlowchartLabelParsingTests {
         #expect(s.edges == ["A->B"])
     }
 
+    @Test("%% inside a quoted label is label text, not a comment")
+    func percentInsideQuotedLabel() async throws {
+        let s = try await Self.summary("flowchart LR\n    E[\"100%% done\"] --> F %% trailing comment")
+        #expect(s.nodes["E"] == "100%% done")
+        #expect(s.edges == ["E->F"])
+    }
+
+    @Test("an unquoted ; inside node text does not end the statement")
+    func semicolonInsideNodeText() async throws {
+        let s = try await Self.summary("flowchart LR\n    G[Step 1; Step 2] --> H")
+        #expect(s.nodes["G"] == "Step 1; Step 2")
+        #expect(s.nodes["Step"] == nil)
+        #expect(s.edges == ["G->H"])
+    }
+
+    @Test("; between statements still separates them")
+    func semicolonBetweenStatements() async throws {
+        let s = try await Self.summary("flowchart LR\n    A --> B; B --> C")
+        #expect(s.edges == ["A->B", "B->C"])
+    }
+
+    @Test("a markdown string may span lines")
+    func multiLineMarkdownString() async throws {
+        let s = try await Self.summary("flowchart LR\n    F[\"`Line1\nLine 2\nLine 3`\"] --> F2")
+        #expect(s.nodes["F"] == "`Line1\nLine 2\nLine 3`")
+        #expect(s.nodes["Line"] == nil)
+        #expect(s.edges == ["F->F2"])
+    }
+
+    @Test("an unterminated markdown string does not swallow later lines")
+    func unterminatedMarkdownString() async throws {
+        let s = try await Self.summary("flowchart LR\n    F[\"`oops] --> G\n    H --> I")
+        #expect(s.edges.contains("H->I"))
+    }
+
     @Test("a text label written without spaces labels one edge")
     func unspacedTextLabel() async throws {
         let s = try await Self.summary("flowchart LR\n    Q--text-->Q2")
@@ -84,11 +119,5 @@ struct FlowchartLabelParsingTests {
         #expect(s.shapes["T"] == "trapezoid")
         #expect(s.shapes["U"] == "trapezoidAlt")
         #expect(s.edges == ["T->U"])
-    }
-    @Test("%% inside a quoted label is label text, not a comment")
-    func percentInsideQuotedLabel() async throws {
-        let s = try await Self.summary("flowchart LR\n    E[\"100%% done\"] --> F %% trailing comment")
-        #expect(s.nodes["E"] == "100%% done")
-        #expect(s.edges == ["E->F"])
     }
 }

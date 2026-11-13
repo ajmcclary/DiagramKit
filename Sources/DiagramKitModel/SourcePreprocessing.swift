@@ -17,6 +17,14 @@ public func _mermaidSourceLines(
     return DiagramSourceNormalizer.statements(joined, separators: separators)
 }
 
+/// `_mermaidSourceLines` with flowchart text rules (see
+/// `DiagramSourceNormalizer.flowchartStatements`).
+func _mermaidFlowchartSourceLines(from source: String) -> [String] {
+    let processed = _preprocessMermaidSource(source)
+    let joined = _joinMultiLineBlocks(processed.source)
+    return DiagramSourceNormalizer.flowchartStatements(joined)
+}
+
 /// Parse YAML-like frontmatter from a source string.
 /// Returns the stripped diagram source and any parsed DiagramFrontmatter.
 ///

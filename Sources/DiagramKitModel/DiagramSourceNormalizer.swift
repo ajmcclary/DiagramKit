@@ -75,7 +75,7 @@ public enum DiagramSourceNormalizer {
     public static func diagramLines(
         _ source: String
     ) -> [String] {
-        return _splitStatements(source, separators: .newlines)
+        return _splitStatements(source, separators: .newlines, flowchartText: false)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
     }
@@ -89,7 +89,20 @@ public enum DiagramSourceNormalizer {
         _ source: String,
         separators: CharacterSet = CharacterSet(charactersIn: "\n;")
     ) -> [String] {
-        return _splitStatements(source, separators: separators)
+        return _splitStatements(source, separators: separators, flowchartText: false)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
+    }
+
+    /// `statements(_:separators:)` with flowchart text rules: a separator
+    /// inside `[…]`, `(…)` or `{…}` node text is literal (`G[Step 1; Step 2]`),
+    /// and a markdown string (`` "`…`" ``) may span lines. Other families keep
+    /// the plain rules (upstream sequence/ER lexers do end a statement at `;`).
+    public static func flowchartStatements(
+        _ source: String,
+        separators: CharacterSet = CharacterSet(charactersIn: "\n;")
+    ) -> [String] {
+        return _splitStatements(source, separators: separators, flowchartText: true)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
     }
@@ -111,27 +124,57 @@ public enum DiagramSourceNormalizer {
 
     // MARK: - Private implementation
 
-    /// Quote-aware statement splitter. Newlines always terminate a statement
-    /// (Mermaid lexers never allow quoted strings to span lines). Semicolons are
-    /// treated as literal content only inside double-quoted regions; single
+    /// Quote-aware statement splitter. A newline terminates a statement and
+    /// resets quote state, except (with `flowchartText`) inside a markdown
+    /// string `` "`…`" `` whose closing `` `" `` appears later: upstream allows
+    /// those to span lines. Semicolons are literal inside double-quoted
+    /// regions and, with `flowchartText`, inside bracketed node text. Single
     /// quotes are never treated as quote openers.
     private static func _splitStatements(
         _ source: String,
-        separators: CharacterSet
+        separators: CharacterSet,
+        flowchartText: Bool
     ) -> [String] {
         var parts: [String] = []
         var current = ""
         var inQuote = false
+        var inMarkdownString = false
         var isEscaped = false
+        var bracketDepth = 0
+        // A markdown string may only span lines when a closing `` `" `` exists
+        // after its opener; one backwards search keeps this linear.
+        let lastMarkdownClose = flowchartText
+            ? source.range(of: "`\"", options: .backwards)?.lowerBound
+            : nil
 
-        for ch in source {
+        var index = source.startIndex
+        while index < source.endIndex {
+            let ch = source[index]
+            var next = source.index(after: index)
+            defer { index = next }
+
             // `"\r\n"` is one grapheme, so it must be matched explicitly.
             if ch == "\n" || ch == "\r\n" || ch == "\r" {
-                // Newline always ends the current statement and resets quote state.
+                if inMarkdownString {
+                    current.append("\n")
+                    continue
+                }
+                // Newline ends the current statement and resets quote state.
                 parts.append(current)
                 current = ""
                 inQuote = false
                 isEscaped = false
+                bracketDepth = 0
+                continue
+            }
+
+            if inMarkdownString {
+                current.append(ch)
+                if ch == "`", next < source.endIndex, source[next] == "\"" {
+                    current.append("\"")
+                    inMarkdownString = false
+                    next = source.index(after: next)
+                }
                 continue
             }
 
@@ -152,12 +195,27 @@ public enum DiagramSourceNormalizer {
             }
 
             if ch == "\"" {
+                if let lastMarkdownClose, next < lastMarkdownClose, source[next] == "`" {
+                    inMarkdownString = true
+                    current.append("\"`")
+                    next = source.index(after: next)
+                    continue
+                }
                 inQuote = true
                 current.append(ch)
                 continue
             }
 
-            if ch.unicodeScalars.count == 1,
+            if flowchartText {
+                if ch == "[" || ch == "(" || ch == "{" {
+                    bracketDepth += 1
+                } else if ch == "]" || ch == ")" || ch == "}" {
+                    bracketDepth = max(0, bracketDepth - 1)
+                }
+            }
+
+            if bracketDepth == 0,
+               ch.unicodeScalars.count == 1,
                let scalar = ch.unicodeScalars.first,
                separators.contains(scalar) {
                 parts.append(current)
@@ -171,4 +229,3 @@ public enum DiagramSourceNormalizer {
         return parts
     }
 }
-

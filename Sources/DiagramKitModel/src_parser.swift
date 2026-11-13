@@ -229,7 +229,7 @@ private func _parseMermaidEntry(_ text: String, config: original_src_types.Flowc
         parsed = try _parseStateDiagram(lines, stateConfig: stateConfig)
         diagramType = .stateDiagram
     } else {
-        parsed = try _parseFlowchart(lines, config: config)
+        parsed = try _parseFlowchart(_mermaidFlowchartSourceLines(from: text), config: config)
         diagramType = .flowchart
     }
 
