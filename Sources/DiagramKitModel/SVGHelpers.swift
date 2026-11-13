@@ -58,15 +58,19 @@ public func _flattenKnownSvgTokens(_ svg: String, theme: DiagramTheme) -> String
         ("_state-end-inner", bg),
     ]
 
-    var out = svg
-    for item in replacements {
-        let pattern = #"var\(\s*--\#(item.token)\s*(?:,\s*[^)]*)?\)"#
-        if let regex = try? NSRegularExpression(pattern: pattern) {
-            let range = NSRange(location: 0, length: (out as NSString).length)
-            out = regex.stringByReplacingMatches(in: out, range: range, withTemplate: item.value)
+    // Style regions only: label text that happens to read `var(--_text)`
+    // is what the author wrote.
+    return _transformSVGStyleRegions(svg) { region in
+        var out = region
+        for item in replacements {
+            let pattern = #"var\(\s*--\#(item.token)\s*(?:,\s*[^)]*)?\)"#
+            if let regex = try? NSRegularExpression(pattern: pattern) {
+                let range = NSRange(location: 0, length: (out as NSString).length)
+                out = regex.stringByReplacingMatches(in: out, range: range, withTemplate: NSRegularExpression.escapedTemplate(for: item.value))
+            }
         }
+        return out
     }
-    return out
 }
 
 public func _resolveSvgCssVariables(_ svg: String) -> String {
@@ -114,63 +118,151 @@ public func _resolveSvgCssVariables(_ svg: String) -> String {
         if !changed { break }
     }
 
-    // 3. Resolve `var(...)` in the main SVG body.
-    var out = _resolveVarFunctions(in: svg, vars: vars)
-
-    // 4. Flatten any remaining `color-mix(...)` and unresolved `var(...)`
-    //    calls to a deterministic solid color, since AppKit/UIKit SVG
-    //    rasterizers don't reliably support those CSS functions.
-    out = _flattenBalancedFunction(out, name: "color-mix", replacement: "#666666")
-    out = _flattenBalancedFunction(out, name: "var", replacement: "#666666")
-
-    return out
+    // 3–4. Resolve `var(...)` in the CSS-bearing parts of the document
+    //    (attribute values and `<style>` text — not label text, where
+    //    `use var(--bg)` is what the author wrote), then flatten any
+    //    remaining `color-mix(...)` and unresolved `var(...)` calls to a
+    //    deterministic solid color, since AppKit/UIKit SVG rasterizers
+    //    don't reliably support those CSS functions.
+    return _transformSVGStyleRegions(svg) { region in
+        var value = _resolveVarFunctions(in: region, vars: vars)
+        value = _flattenBalancedFunction(value, name: "color-mix", replacement: "#666666")
+        return _flattenBalancedFunction(value, name: "var", replacement: "#666666")
+    }
 }
 
-/// Walk `input` and replace every `var(--name[, fallback])` call with
-/// its resolved value, using a paren-counting parser so nested calls
-/// in the fallback slot don't truncate at the first `)`. Loops until
-/// no `var(...)` remains; a safety cap of 4096 replacements guards
-/// against pathological self-referential definitions.
-internal func _resolveVarFunctions(in input: String, vars: [String: String]) -> String {
-    var out = input
-    var replacements = 0
-    while let call = _findFirstBalancedFunction(in: out, name: "var") {
-        replacements += 1
-        if replacements > 4096 {
-            // Pathological input — bail out and let the final flatten
-            // pass turn whatever's left into the fallback color.
-            return out
+/// Applies `transform` to the CSS-bearing parts of an SVG document —
+/// quoted attribute values inside tags and the text of `<style>` elements —
+/// and copies everything else (text nodes, comments, CDATA) unchanged.
+/// Regions that mention neither `var(` nor `color-mix(` are copied without
+/// calling `transform`. One left-to-right pass.
+internal func _transformSVGStyleRegions(_ svg: String, _ transform: (String) -> String) -> String {
+    let bytes = Array(svg.utf8)
+    let n = bytes.count
+    var out: [UInt8] = []
+    out.reserveCapacity(n)
+
+    func starts(_ literal: String, at index: Int) -> Bool {
+        let lit = Array(literal.utf8)
+        guard index + lit.count <= n else { return false }
+        for k in 0..<lit.count where bytes[index + k] != lit[k] { return false }
+        return true
+    }
+    func find(_ literal: String, from index: Int) -> Int? {
+        var k = index
+        while k < n {
+            if starts(literal, at: k) { return k }
+            k += 1
         }
-        // Parse the call body: `--name[, fallback]`.
-        let body = String(out[call.bodyRange])
-        guard let (key, fallback) = _parseVarBody(body) else {
-            // Malformed call; replace with empty string to avoid an
-            // infinite loop.
-            out.replaceSubrange(call.callRange, with: "")
+        return nil
+    }
+    func emitRegion(_ lower: Int, _ upper: Int) {
+        let slice = bytes[lower..<upper]
+        let text = String(decoding: slice, as: UTF8.self)
+        if text.contains("var(") || text.contains("color-mix(") {
+            out.append(contentsOf: Array(transform(text).utf8))
+        } else {
+            out.append(contentsOf: slice)
+        }
+    }
+    /// Copies the tag starting at `start` (`<`), transforming its quoted
+    /// attribute values; returns the index after its closing `>`.
+    func copyTag(_ start: Int) -> Int {
+        var k = start
+        while k < n {
+            let b = bytes[k]
+            if b == UInt8(ascii: "\"") || b == UInt8(ascii: "'") {
+                out.append(b)
+                var close = k + 1
+                while close < n, bytes[close] != b { close += 1 }
+                emitRegion(k + 1, close)
+                if close < n { out.append(b) }
+                k = close + 1
+                continue
+            }
+            out.append(b)
+            k += 1
+            if b == UInt8(ascii: ">") { return k }
+        }
+        return k
+    }
+
+    var i = 0
+    while i < n {
+        guard bytes[i] == UInt8(ascii: "<") else {
+            out.append(bytes[i])
+            i += 1
             continue
         }
-        // When the variable is undefined and no fallback is present,
-        // emit the same gray the final flatten pass would assign. This
-        // keeps the loop progressing (replacing the call with itself
-        // would infinite-loop) and avoids emitting empty stroke="" /
-        // fill="" attributes.
-        let replacement = vars[key] ?? fallback ?? "#666666"
-        out.replaceSubrange(call.callRange, with: replacement)
+        if starts("<!--", at: i) {
+            let end = (find("-->", from: i + 4) ?? n - 3) + 3
+            out.append(contentsOf: bytes[i..<min(end, n)])
+            i = end
+        } else if starts("<![CDATA[", at: i) {
+            let end = (find("]]>", from: i + 9) ?? n - 3) + 3
+            out.append(contentsOf: bytes[i..<min(end, n)])
+            i = end
+        } else if starts("<style", at: i), i + 6 < n,
+                  bytes[i + 6] == UInt8(ascii: ">") || bytes[i + 6] == UInt8(ascii: " ") {
+            i = copyTag(i)
+            let close = find("</style", from: i) ?? n
+            emitRegion(i, close)
+            i = close
+        } else {
+            i = copyTag(i)
+        }
     }
+    return String(decoding: out, as: UTF8.self)
+}
+
+/// Replace every `var(--name[, fallback])` call in `input` with its
+/// resolved value (`vars[name]`, else the fallback — itself resolved — else
+/// the gray the final flatten pass would assign), in one left-to-right
+/// pass with a paren-counting parser so nested calls in the fallback slot
+/// don't truncate at the first `)`. The previous loop rescanned from the
+/// start after each replacement and stopped after 4096: quadratic, and a
+/// 1,400-node flowchart came out gray on gray.
+internal func _resolveVarFunctions(in input: String, vars: [String: String], depth: Int = 0) -> String {
+    guard input.contains("var(") else { return input }
+    var out = ""
+    out.reserveCapacity(input.utf8.count)
+    var cursor = input.startIndex
+    while let call = _findFirstBalancedFunction(in: input, name: "var", from: cursor) {
+        out += input[cursor..<call.callRange.lowerBound]
+        if let (key, fallback) = _parseVarBody(String(input[call.bodyRange])) {
+            if let value = vars[key] {
+                out += value
+            } else if let fallback, depth < 8 {
+                out += _resolveVarFunctions(in: fallback, vars: vars, depth: depth + 1)
+            } else {
+                // Undefined with no fallback: the same gray the final
+                // flatten pass would assign (never an empty attribute).
+                out += "#666666"
+            }
+        }
+        // A malformed call is dropped.
+        cursor = call.callRange.upperBound
+    }
+    out += input[cursor...]
     return out
 }
 
 /// Replace every top-level occurrence of `name(...)` with `replacement`,
-/// matching parens so nested arguments don't trip up the scan.
+/// matching parens so nested arguments don't trip up the scan. One pass.
 internal func _flattenBalancedFunction(
     _ input: String,
     name: String,
     replacement: String
 ) -> String {
-    var out = input
-    while let call = _findFirstBalancedFunction(in: out, name: name) {
-        out.replaceSubrange(call.callRange, with: replacement)
+    guard input.contains(name + "(") else { return input }
+    var out = ""
+    var cursor = input.startIndex
+    while let call = _findFirstBalancedFunction(in: input, name: name, from: cursor) {
+        out += input[cursor..<call.callRange.lowerBound]
+        out += replacement
+        cursor = call.callRange.upperBound
     }
+    out += input[cursor...]
     return out
 }
 
@@ -184,10 +276,11 @@ internal struct _BalancedFunctionCall {
 
 internal func _findFirstBalancedFunction(
     in source: String,
-    name: String
+    name: String,
+    from start: String.Index? = nil
 ) -> _BalancedFunctionCall? {
     let needle = name + "("
-    var searchStart = source.startIndex
+    var searchStart = start ?? source.startIndex
     while searchStart < source.endIndex,
           let nameRange = source.range(of: needle, range: searchStart..<source.endIndex) {
         // Ensure the match is at a word boundary on the left.
