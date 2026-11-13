@@ -72,3 +72,19 @@ struct NumericTrapRegressionTests {
         #expect(gap.isFinite && gap >= 2)
     }
 }
+
+@Suite("ASCII xychart with values far outside the plotted range")
+struct AsciiXYChartRangeTests {
+
+    @Test("bars and lines far outside the axis range render", arguments: [
+        "xychart\n    x-axis [A, B, C, D]\n    y-axis 0 --> 50\n    bar [100000000, 20, 30, 40]",
+        "xychart-beta\n  bar [-1000000, -1000000]",
+        "xychart-beta horizontal\n  x-axis [A, B]\n  y-axis 0 --> 10\n  bar [100000000, -100000000]\n  line [100000000, -100000000]",
+        "xychart-beta\n  x-axis [A, B, C]\n  y-axis 0 --> 10\n  line [100000000, -100000000, 5]",
+    ])
+    func farOutOfRange(_ source: String) async throws {
+        let ascii = try await onDiagramWorker { try DiagramPipeline.renderASCII(source: source).text }
+        #expect(!ascii.isEmpty)
+        #expect(ascii.count < 200_000)
+    }
+}

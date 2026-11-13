@@ -116,7 +116,11 @@ private func _renderVertical(
         let t = (v - yRange.min) / (yRange.max - yRange.min == 0 ? 1 : yRange.max - yRange.min)
         let scaled = t * Double(plotH - 1)
         guard scaled.isFinite, abs(scaled) < 1e15 else { return 0 }
-        return Int(round(scaled))
+        // Rows beyond the canvas draw nothing, but every loop from a
+        // baseline to such a row used to run (`bar [100000000, …]` against
+        // `y-axis 0 --> 50` never finished). Clamp to just outside the
+        // canvas so those loops stay as long as the canvas is tall.
+        return min(max(Int(round(scaled)), -(totalH + 1)), plotH + plotTop + 1)
     }
     let bandCenter: (Int) -> Int = { i in plotLeft + (bandW * (2 * i + 1)) / (2) }
 
@@ -263,7 +267,8 @@ private func _renderHorizontal(
         let t = (v - yRange.min) / (yRange.max - yRange.min == 0 ? 1 : yRange.max - yRange.min)
         let scaled = t * Double(plotW - 1)
         guard scaled.isFinite, abs(scaled) < 1e15 else { return plotLeft }
-        return plotLeft + Int(round(scaled))
+        // Same as the vertical chart: just outside the canvas at most.
+        return min(max(plotLeft + Int(round(scaled)), -1), totalW)
     }
     let bandMid: (Int) -> Int = { i in plotTop + (bandH * (2 * i + 1)) / 2 }
 
