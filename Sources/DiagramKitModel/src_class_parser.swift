@@ -669,6 +669,11 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         var toId = ""
         for token in tokens[(arrowIdx + 1)...] {
             if token.hasPrefix(":") { break }
+            // `B: uses` — the label colon glued to the target id.
+            if !token.hasPrefix("\""), !token.hasPrefix("`"), let colon = token.firstIndex(of: ":") {
+                toId = String(token[..<colon])
+                break
+            }
             if token.hasPrefix("\"") && token.hasSuffix("\"") {
                 continue
             } else if token.hasPrefix("`") && token.hasSuffix("`") {
@@ -935,10 +940,18 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         }
 
         // Inline member shorthand: ClassName : member
+        //
+        // The class part must not contain a relationship line (`--`/`..`):
+        // `Customer-->Order : places` is a relationship written without
+        // spaces, not a member of a class named `Customer-->Order`. The
+        // member part is checked for relationship tokens too, but `()` only
+        // counts as the lollipop when it touches a line (`()--`, `--()`), so
+        // `Animal: +isMammal()` is the method it looks like.
         if let groups = _groups(#"^(\S+?)\s*:\s*(.+)$"#, rawLine),
-           let idRaw = groups[safe: 1], let rest = groups[safe: 2] {
+           let idRaw = groups[safe: 1], let rest = groups[safe: 2],
+           !_containsRelationLine(idRaw) {
             let (className, _) = _splitClassNameAndType(idRaw)
-            if !_regexTest(#"<\|--|--|\*--|o--|-->|\.\.>|\.\.\|>|--o|--\*|--\|>|<\|\.\.|<--|<\.\.|\(\)"#, rest) {
+            if !_regexTest(#"<\|--|--|\*--|o--|-->|\.\.>|\.\.\|>|--o|--\*|--\|>|<\|\.\.|<--|<\.\.|\(\)--|--\(\)"#, rest) {
                 var cls = _ensureClass(&classMap, &classOrder, className)
                 if let parsed = _parseMember(rest) {
                     if parsed.isMethod {
@@ -1078,9 +1091,10 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             continue
         }
 
-        // Relationship parsing
-        if let rel = _parseRelationship(rawLine) {
-            for endpoint in relationEndpointClassTypes(rawLine) {
+        // Relationship parsing (`A-->B` is spaced out to `A --> B` first)
+        let relationLine = _spacedRelationLine(rawLine)
+        if let rel = _parseRelationship(relationLine) {
+            for endpoint in relationEndpointClassTypes(relationLine) {
                 var cls = _ensureClass(&classMap, &classOrder, endpoint.id)
                 if let type = endpoint.type, !type.isEmpty {
                     cls.type = type
@@ -1282,10 +1296,16 @@ private func _parseRelationship(_ line: String) -> ClassRelationship? {
     // Parse right side: [toCard] [toId] or [toId] [toCard] or [toId] [toCard] [: label...]
     var foundColon = false
     var labelTokens: [String] = []
-    for token in afterTokens {
+    for var token in afterTokens {
         if foundColon {
             labelTokens.append(token)
             continue
+        }
+        // `B: uses` — the label colon glued to the target id.
+        if !token.hasPrefix(":"), !token.hasPrefix("\""), !token.hasPrefix("`"),
+           let colon = token.firstIndex(of: ":") {
+            toId = String(token[..<colon])
+            token = String(token[colon...])
         }
         if token.hasPrefix(":") {
             foundColon = true
@@ -1339,6 +1359,70 @@ private func _parseRelationship(_ line: String) -> ClassRelationship? {
             lineType: parsed.lineType
         )
     )
+}
+
+/// `true` when `text` has a `--` or `..` relationship line outside quotes
+/// and backticks.
+private func _containsRelationLine(_ text: String) -> Bool {
+    var inQuote = false, inBacktick = false
+    var previous: Character?
+    for ch in text {
+        if ch == "\"" && !inBacktick { inQuote.toggle() }
+        else if ch == "`" && !inQuote { inBacktick.toggle() }
+        else if !inQuote && !inBacktick, let p = previous, (p == "-" && ch == "-") || (p == "." && ch == ".") {
+            return true
+        }
+        previous = ch
+    }
+    return false
+}
+
+/// Finds a relationship arrow glued to its operands (`A-->B`, `A<|--B`,
+/// `A"1"--"*"B`): the first `--`/`..` run outside quotes and backticks,
+/// extended by the end markers `<|`, `|>`, `<`, `>`, `*`, `()` and by an
+/// `o` that stands apart from an identifier. Returns the character range
+/// only when the extended token is a known arrow.
+private func _gluedRelationArrowRange(_ chars: [Character]) -> Range<Int>? {
+    func isIdentifierChar(_ c: Character) -> Bool { c.isLetter || c.isNumber || c == "_" }
+    var inQuote = false, inBacktick = false
+    var i = 0
+    while i + 1 < chars.count {
+        let ch = chars[i]
+        if ch == "\"" && !inBacktick { inQuote.toggle(); i += 1; continue }
+        if ch == "`" && !inQuote { inBacktick.toggle(); i += 1; continue }
+        guard !inQuote, !inBacktick, (ch == "-" || ch == "."), chars[i + 1] == ch else { i += 1; continue }
+
+        var lower = i
+        var upper = i
+        while upper < chars.count, chars[upper] == ch { upper += 1 }
+        // Left end marker.
+        if lower >= 2, chars[lower - 2] == "<", chars[lower - 1] == "|" { lower -= 2 }
+        else if lower >= 2, chars[lower - 2] == "(", chars[lower - 1] == ")" { lower -= 2 }
+        else if lower >= 1, "<*".contains(chars[lower - 1]) { lower -= 1 }
+        else if lower >= 1, chars[lower - 1] == "o", lower < 2 || !isIdentifierChar(chars[lower - 2]) { lower -= 1 }
+        // Right end marker.
+        if upper + 1 < chars.count, chars[upper] == "|", chars[upper + 1] == ">" { upper += 2 }
+        else if upper + 1 < chars.count, chars[upper] == "(", chars[upper + 1] == ")" { upper += 2 }
+        else if upper < chars.count, ">*".contains(chars[upper]) { upper += 1 }
+        else if upper < chars.count, chars[upper] == "o", upper + 1 >= chars.count || !isIdentifierChar(chars[upper + 1]) { upper += 1 }
+
+        if regexTestForArrow(String(chars[lower..<upper])) { return lower..<upper }
+        i = upper
+    }
+    return nil
+}
+
+/// Upstream lexes the arrow as its own token whether or not it is
+/// surrounded by spaces, but `_parseRelationship` splits on whitespace.
+/// When no whitespace-separated token is an arrow, put spaces around the
+/// glued arrow so `Customer-->Order : places` and `Animal<|--Duck` parse
+/// as relationships instead of a bogus class or nothing.
+private func _spacedRelationLine(_ line: String) -> String {
+    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.tokenizeForRelation().contains(where: regexTestForArrow) { return line }
+    let chars = Array(trimmed)
+    guard let range = _gluedRelationArrowRange(chars) else { return line }
+    return String(chars[..<range.lowerBound]) + " " + String(chars[range]) + " " + String(chars[range.upperBound...])
 }
 
 private func regexTestForArrow(_ token: String) -> Bool {
