@@ -93,7 +93,8 @@ public enum DiagramLoader {
     private static func withImporterFormat(
         _ result: DiagramImportResult,
         importer: any DiagramSourceImporter
-    ) -> DiagramImportResult {
+    ) throws -> DiagramImportResult {
+        try _checkModelNestingDepth(result.document)
         // Every importer's model gets the containment invariants the
         // layouts, renderers and exporters rely on (see ModelInvariants).
         let (document, repairs) = _enforceModelInvariants(result.document)

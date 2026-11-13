@@ -175,3 +175,48 @@ private func _breakArchitectureGroupCycles(_ model: inout ArchitectureDiagram) -
     if changed { model.groups = groups }
     return changed
 }
+
+/// Throws `DiagramInputLimitError(.nestingDepth)` when a treemap or a C4 /
+/// architecture boundary hierarchy nests deeper than
+/// `_maxParserNestingDepth`. Their parsers accept any depth, but the SVG
+/// render of a 1,000-level treemap or C4 diagram overflowed the worker
+/// stack. Checked once for every importer, iteratively.
+public func _checkModelNestingDepth(_ document: DiagramDocument) throws {
+    switch document.payload {
+    case .treemap(let model):
+        var stack: [(nodes: [TreemapNode], depth: Int)] = [(model.nodes, 1)]
+        while let (nodes, depth) = stack.popLast() {
+            for node in nodes {
+                guard let children = node.children, !children.isEmpty else { continue }
+                try _checkParserNestingDepth(depth + 1, "treemap sections")
+                stack.append((children, depth + 1))
+            }
+        }
+    case .c4(let model):
+        let parentOf = Dictionary(model.boundaries.map { ($0.alias, $0.parentBoundary) }, uniquingKeysWith: { first, _ in first })
+        for boundary in model.boundaries {
+            var depth = 1
+            var cursor = boundary.parentBoundary
+            var seen: Set<String> = [boundary.alias]
+            while cursor != "global", let next = parentOf[cursor], seen.insert(cursor).inserted {
+                depth += 1
+                try _checkParserNestingDepth(depth, "C4 boundaries")
+                cursor = next
+            }
+        }
+    case .architecture(let model):
+        let parentOf = Dictionary(model.groups.map { ($0.id, $0.parentGroupId) }, uniquingKeysWith: { first, _ in first })
+        for group in model.groups {
+            var depth = 1
+            var cursor = group.parentGroupId
+            var seen: Set<String> = [group.id]
+            while let current = cursor, seen.insert(current).inserted {
+                depth += 1
+                try _checkParserNestingDepth(depth, "architecture groups")
+                cursor = parentOf[current] ?? nil
+            }
+        }
+    default:
+        break
+    }
+}

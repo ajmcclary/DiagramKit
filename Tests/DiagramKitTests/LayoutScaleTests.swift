@@ -18,6 +18,27 @@ private let fanOut50 = "flowchart TD\n  " + (0..<50).map { "a\($0)" }.joined(sep
 private let nested200 = "flowchart TD\n" + (0..<200).map { "subgraph s\($0)" }.joined(separator: "\n") + "\n  x\n" + (0..<200).map { _ in "end" }.joined(separator: "\n")
 private let chain800 = "flowchart TD\n" + (0..<800).map { "  n\($0) --> n\($0 + 1)" }.joined(separator: "\n")
 
+private let deepTreemap: String = {
+    var lines = ["treemap-beta"]
+    for i in 0..<150 { lines.append(String(repeating: "  ", count: i) + "\"N\(i)\"") }
+    lines.append(String(repeating: "  ", count: 150) + "\"Leaf\": 1")
+    return lines.joined(separator: "\n")
+}()
+
+private let deepC4: String = {
+    var lines = ["C4Context"]
+    for i in 0..<150 { lines.append("Boundary(b\(i), \"B\(i)\") {") }
+    lines.append("Person(p, \"P\")")
+    for _ in 0..<150 { lines.append("}") }
+    return lines.joined(separator: "\n")
+}()
+
+private let deepArchitecture: String = {
+    var lines = ["architecture-beta", "  group g0(cloud)[G0]"]
+    for i in 1..<150 { lines.append("  group g\(i)(cloud)[G\(i)] in g\(i - 1)") }
+    return lines.joined(separator: "\n")
+}()
+
 private func isLayoutSizeError(_ error: Error) -> Bool {
     (error as? DiagramInputLimitError)?.limit == .layoutSize
 }
@@ -67,6 +88,19 @@ struct LayoutScaleTests {
         }
         #expect(svg.hasPrefix("<svg"), "\(name)")
         #expect(ascii == "rendered" || ascii == "limit", "\(name): \(ascii)")
+    }
+
+    @Test("treemap, C4 and architecture nesting past the parse limit throws", arguments: [deepTreemap, deepC4, deepArchitecture])
+    func deepHierarchies(_ source: String) async throws {
+        let outcome: String = try await onDiagramWorker {
+            do {
+                _ = try DiagramPipeline.renderSVG(source: source)
+                return "rendered"
+            } catch let error as DiagramInputLimitError {
+                return error.limit == .nestingDepth ? "limit" : "other limit"
+            }
+        }
+        #expect(outcome == "limit")
     }
 
     @Test("sankey ASCII prints node names")
