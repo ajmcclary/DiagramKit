@@ -27,14 +27,12 @@ enum MermaidClassExport {
             lines.append("  direction \(model.direction.rawValue)")
         }
 
-        // Title / accessibility
-        if let title = model.diagramTitle {
-            let (q, _) = MermaidExportHelpers.quote(title)
-            lines.append("  title: \(q)")
-        }
+        // Title / accessibility. The class parser has no body `title`
+        // statement (it read `title: X` back as a class named title); the
+        // title goes in the frontmatter with the document title. accTitle
+        // is kept as written, quotes included.
         if let accTitle = model.accTitle {
-            let (q, _) = MermaidExportHelpers.quote(accTitle)
-            lines.append("  accTitle: \(q)")
+            lines.append("  accTitle: \(accTitle.replacingOccurrences(of: "\n", with: " "))")
         }
         if let accDescr = model.accDescription {
             lines.append("  accDescr {")
@@ -81,6 +79,18 @@ enum MermaidClassExport {
             )
         }
 
+        // Further CSS classes, after every declaration they refer to.
+        for cls in model.classes {
+            let classes = cls.cssClasses.split(separator: " ").map(String.init).filter { !$0.isEmpty && $0 != "default" }
+            var extra = classes
+            if cls.link != nil || cls.haveCallback, let i = extra.firstIndex(of: "clickable") { extra.remove(at: i) }
+            guard extra.count > 1 else { continue }
+            let id = aliasMap[cls.id] ?? MermaidExportHelpers.sanitizeIdentifier(cls.id).sanitized
+            for name in extra.dropFirst() {
+                lines.append("  cssClass \"\(id)\" \(name)")
+            }
+        }
+
         // Notes
         for note in model.notes {
             let (qText, nd) = MermaidExportHelpers.quote(note.text)
@@ -116,8 +126,9 @@ enum MermaidClassExport {
             }
 
             if !rel.title.isEmpty {
-                let (q, _) = MermaidExportHelpers.quote(rel.title)
-                relLine += " : \(q)"
+                // The parser takes the rest of the line as the label, quotes
+                // included, so it is written as it is.
+                relLine += " : \(rel.title.replacingOccurrences(of: "\n", with: "<br>"))"
             }
 
             lines.append(relLine)
@@ -256,16 +267,16 @@ enum MermaidClassExport {
         }
 
         // Style class
-        let cssClasses = cls.cssClasses.trimmingCharacters(in: .whitespaces)
-        if cssClasses != "default" && !cssClasses.isEmpty {
-            let uniqueClasses = Set(cssClasses.split(separator: " ").map(String.init))
-                .filter { !$0.isEmpty }
-                .sorted()
-            if !uniqueClasses.isEmpty {
-                // Mermaid syntax is `class Foo:::cssClass` (no
-                // whitespace between `:::` and the class name).
-                classLine += ":::\(uniqueClasses.joined(separator: ","))"
-            }
+        // `default` is every class's base, and `clickable` is added by its
+        // click/link line; neither is written. The first other class goes
+        // on the declaration (`class Foo:::name`, one name only); the rest
+        // follow as `cssClass` statements, in order.
+        var extraClasses = cls.cssClasses.split(separator: " ").map(String.init).filter { !$0.isEmpty && $0 != "default" }
+        if cls.link != nil || cls.haveCallback, let i = extraClasses.firstIndex(of: "clickable") {
+            extraClasses.remove(at: i)
+        }
+        if let first = extraClasses.first {
+            classLine += ":::\(first)"
         }
 
         let hasMembers = !cls.attributes.isEmpty || !cls.methods.isEmpty
@@ -291,12 +302,22 @@ enum MermaidClassExport {
 
     private static func formatMember(_ member: ClassMember) -> String {
         let vis = member.visibility
+        // A static (`$`) or abstract (`*`) classifier follows the `)` of a
+        // method and ends an attribute.
         if member.memberType == .method {
             let params = member.parameters
             let ret = member.returnType.isEmpty ? "" : " \(member.returnType)"
-            return "\(vis)\(member.id)(\(params))\(ret)"
+            // `name$()` marks the method on its name, which the parser
+            // records in `cssStyle` only.
+            var nameMarker = ""
+            if member.classifier.isEmpty {
+                if member.cssStyle.contains("underline") { nameMarker = "$" }
+                else if member.cssStyle.contains("italic") { nameMarker = "*" }
+            }
+            return "\(vis)\(member.id)\(nameMarker)(\(params))\(member.classifier)\(ret)"
         } else {
-            return "\(vis)\(member.id) \(member.returnType)"
+            let text = member.returnType.isEmpty ? "\(vis)\(member.id)" : "\(vis)\(member.id) \(member.returnType)"
+            return text + member.classifier
         }
     }
 

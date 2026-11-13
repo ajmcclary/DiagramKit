@@ -38,10 +38,13 @@ public func _modelFingerprint(_ document: DiagramDocument) -> String {
 /// - `GanttTask.manualEndTime`: whether the end was written as a date or a
 ///   duration. Parsing has already turned it into `endTime` and
 ///   `renderEndTime`, which are compared; nothing reads it afterwards.
+/// - `ClassRelationship.text`: the raw statement line (each link of a
+///   chained `A --> B --> C` records the whole line); nothing renders it.
 let _fingerprintExclusions: Set<String> = [
     "NodeProperties.shape",
     "SequenceActor.isExplicit",
     "GanttTask.manualEndTime",
+    "ClassRelationship.text",
 ]
 
 /// A sequence diagram's timeline with the parser's bookkeeping taken out:
@@ -164,4 +167,44 @@ private func _describe(_ value: Any, into out: inout String, depth: Int) {
             out += String(describing: value)
         }
     }
+}
+
+/// Where two fingerprints first differ, named by the innermost type and
+/// field around that point, with a little of each side.
+public func _fingerprintDifference(_ expected: String, _ actual: String) -> String {
+    let a = Array(expected), b = Array(actual)
+    var i = 0
+    while i < a.count, i < b.count, a[i] == b[i] { i += 1 }
+    // The field is the last `name=` before the difference; the type is the
+    // `Name{` whose brace is still open there.
+    var field: String?
+    var typeName: String?
+    var depth = 0
+    var j = i - 1
+    func word(endingAt end: Int) -> String? {
+        var k = end
+        while k >= 0, a[k].isLetter || a[k].isNumber || a[k] == "_" { k -= 1 }
+        return k < end ? String(a[(k + 1)...end]) : nil
+    }
+    while j >= 0, typeName == nil {
+        switch a[j] {
+        case "=" where field == nil && depth == 0:
+            field = word(endingAt: j - 1)
+        case "}", ")", "]":
+            depth += 1
+        case "(", "[":
+            if depth > 0 { depth -= 1 }
+        case "{":
+            if depth > 0 { depth -= 1 } else { typeName = word(endingAt: j - 1) }
+        default:
+            break
+        }
+        j -= 1
+    }
+    func window(_ chars: [Character]) -> String {
+        let start = max(0, i - 40), end = min(chars.count, i + 60)
+        return (start > 0 ? "…" : "") + String(chars[start..<end]) + (end < chars.count ? "…" : "")
+    }
+    let name = [typeName, field].compactMap { $0 }.joined(separator: ".")
+    return (name.isEmpty ? "" : "\(name) differs: ") + "expected \(window(a)), read back \(window(b))"
 }

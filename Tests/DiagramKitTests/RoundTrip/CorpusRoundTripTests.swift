@@ -44,7 +44,6 @@ final class CorpusRoundTripTests: XCTestCase {
         "class-18-square-label",
         "class-19-backtick-name",
         "class-32-lollipop",
-        "class-60-frontmatter-title",
         // Pre-existing ER exporter id-sanitization issues
         "er-15-standalone",
         "er-17-quoted-names",

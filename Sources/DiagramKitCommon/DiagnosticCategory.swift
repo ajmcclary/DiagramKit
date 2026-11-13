@@ -27,6 +27,9 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
     case stateActionDrop
     case cardinalityDrop
     case recoveryMarkerMalformed
+    /// A same-format export does not read back as the document it was
+    /// made from; the message names the first field that differs.
+    case exportReadBackMismatch
 
     // MARK: - .unsupported — feature not available in target format
     case diagramFamilyUnsupported
@@ -47,7 +50,7 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
              .anonymousSubgraphRename, .d2DuplicateOverride,
              .labelNewlineEscape, .d2InlineCommentStripped,
              .classStereotypeDrop, .stateActionDrop, .cardinalityDrop,
-             .recoveryMarkerMalformed:
+             .recoveryMarkerMalformed, .exportReadBackMismatch:
             return .warning
         case .diagramFamilyUnsupported, .slotUnsupported,
              .boundaryTypeUnsupported, .c4ShapeUnsupported:

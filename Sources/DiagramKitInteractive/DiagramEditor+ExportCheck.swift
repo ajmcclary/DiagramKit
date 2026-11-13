@@ -116,16 +116,8 @@ extension DiagramEditor {
         }
     }
 
-    /// Where two fingerprints first differ, with a little context.
     nonisolated static func _firstDifference(_ expected: String, _ actual: String) -> String {
-        let a = Array(expected), b = Array(actual)
-        var i = 0
-        while i < a.count, i < b.count, a[i] == b[i] { i += 1 }
-        func window(_ chars: [Character]) -> String {
-            let start = max(0, i - 60), end = min(chars.count, i + 100)
-            return (start > 0 ? "…" : "") + String(chars[start..<end]) + (end < chars.count ? "…" : "")
-        }
-        return "expected \(window(a)) but read back \(window(b))"
+        _fingerprintDifference(expected, actual)
     }
 }
 #endif

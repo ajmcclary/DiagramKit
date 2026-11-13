@@ -97,7 +97,10 @@ public enum DiagramLoader {
         try _checkModelNestingDepth(result.document)
         // Every importer's model gets the containment invariants the
         // layouts, renderers and exporters rely on (see ModelInvariants).
-        let (document, repairs) = _enforceModelInvariants(result.document)
+        var (document, repairs) = _enforceModelInvariants(result.document)
+        if document.sourceFormat == nil {
+            document.sourceFormat = result.formatID ?? importer.formatID
+        }
         return DiagramImportResult(
             document: document,
             diagnostics: result.diagnostics + repairs,

@@ -76,11 +76,14 @@ struct DiagnosticCategoryTests {
     @Test("recoveryMarkerMalformed is .warning")
     func recoveryMarkerMalformed() { #expect(DiagnosticCategory.recoveryMarkerMalformed.severity == .warning) }
 
+    @Test("exportReadBackMismatch is .warning")
+    func exportReadBackMismatch() { #expect(DiagnosticCategory.exportReadBackMismatch.severity == .warning) }
+
     @Test("allCases coverage — no case is missed by this suite")
     func allCasesCovered() {
         // This catches the case where someone adds a new DiagnosticCategory case
         // but forgets to write a @Test pinning its severity.
-        let expectedCount = 24
+        let expectedCount = 25
         #expect(DiagnosticCategory.allCases.count == expectedCount,
                 "Add a @Test for any new category and bump expectedCount.")
     }

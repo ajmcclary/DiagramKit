@@ -73,6 +73,7 @@ public struct MermaidImporter: DiagramSourceImporter {
         if fmTheme != nil || fmLayout != nil {
             document.frontmatter = DiagramDocumentFrontmatter(theme: fmTheme, layout: fmLayout)
         }
+        document.sourceFormat = formatID
         document.sourceAnnotations = _collectMermaidSourceAnnotations(
             normalized, title: document.title, theme: fmTheme, layout: fmLayout
         )

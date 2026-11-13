@@ -166,6 +166,11 @@ public struct DiagramDocument: Sendable {
     /// Nil for documents from other formats or built in code.
     public var sourceAnnotations: DiagramSourceAnnotations?
 
+    /// The format the document was parsed from, set by the importer; nil
+    /// for a document built in code. An export back to the same format is
+    /// checked for loss (`DiagramExportLoader`).
+    public var sourceFormat: DiagramFormatID?
+
     public var type: DiagramType {
         payload.type
     }

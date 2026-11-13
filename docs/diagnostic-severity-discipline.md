@@ -46,6 +46,7 @@ Did the operation fail outright (cannot produce any meaningful output)?
 | `d2DuplicateOverride` | `.warning` | Second occurrence of D2 node overrode a prior attribute. |
 | `labelNewlineEscape` | `.warning` | Newline in a label collapsed to a space (NOT round-trip stable). |
 | `d2InlineCommentStripped` | `.warning` | D2 `// note` trailing-value strip (value lost). |
+| `exportReadBackMismatch` | `.warning` | A Mermaid export of a Mermaid document does not read back as that document (`DiagramExportLoader` re-parses through `ExporterRegistry.readBack`); the message names the first field that differs. |
 | `diagramFamilyUnsupported` | `.unsupported` | Entire diagram family not implemented, or an unsupported sub-feature/macro. |
 | `slotUnsupported` | `.unsupported` | A specific slot/attribute not expressible in target format. |
 | `boundaryTypeUnsupported` | `.unsupported` | A boundary type (e.g., enterprise) not supported by target. |

@@ -341,7 +341,7 @@ fixtures + 84 cross-format pair directories). Allowed losses are typed and
 closed — `RoundTripLoss` admits no `case other(_)`, and every observed loss
 must have a paired `.warning`/`.unsupported` diagnostic on the export step
 that produced it. `CorpusRoundTripTests` additionally walks the whole Mermaid
-corpus through the harness; its 9 known pre-existing divergences are tracked
+corpus through the harness; its 8 known pre-existing divergences are tracked
 via portable explicit divergence assertions (see `CorpusRoundTripTests.knownIssues`).
 Run with `swift test --filter "RoundTrip"`.
 

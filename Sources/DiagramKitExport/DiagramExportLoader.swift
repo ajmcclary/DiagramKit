@@ -56,7 +56,26 @@ public enum DiagramExportLoader {
             )
         }
 
-        return try exporter.export(document)
+        let result = try exporter.export(document)
+        // A document saved back to the format it was read from must not lose
+        // anything silently: read the text back and say what differs.
+        if document.sourceFormat == formatID, let readBack = registry.readBack {
+            let message: String?
+            do {
+                let back = try readBack(result.source, formatID)
+                let expected = _modelFingerprint(document), actual = _modelFingerprint(back)
+                message = expected == actual ? nil : _fingerprintDifference(expected, actual)
+            } catch {
+                message = "the exported text does not parse: \(error.localizedDescription)"
+            }
+            if let message {
+                return DiagramExportResult(source: result.source, diagnostics: result.diagnostics + [.lossyTransform(
+                    .exportReadBackMismatch,
+                    message: "[\(document.type.rawValue)] the \(exporter.name) export does not keep everything: \(message)"
+                )])
+            }
+        }
+        return result
     }
 
     /// Convenience: export using a specific exporter by display name.
