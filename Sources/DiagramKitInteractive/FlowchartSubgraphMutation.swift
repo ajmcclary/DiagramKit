@@ -47,7 +47,7 @@ extension DiagramEditor {
         }
 
         let (subgraphID, diagnostics) = Self.subgraphID(title: title, members: nodeIDs)
-        guard !model.subgraphs.contains(where: { $0.id == subgraphID }) else {
+        guard Self._findSubgraph(subgraphID, in: model.subgraphs) == nil else {
             throw DiagramEditorError.invalidSubgraphSelection(
                 reason: "a subgraph with id '\(subgraphID)' already exists"
             )
@@ -58,11 +58,58 @@ extension DiagramEditor {
             label: title,
             nodeIds: nodeIDs
         )
-        model.subgraphs.append(subgraph)
+        // A node belongs to one subgraph, so grouping moves the selected
+        // nodes out of the groups they are in. The new group is nested in
+        // the innermost subgraph that contains all of them (grouping nodes
+        // inside a group makes a group within it); when they share none it
+        // is a top-level group.
+        let forest = Self._copySubgraphForest(model.subgraphs)
+        let paths = nodeIDs.map { Self._subgraphPath(of: $0, in: forest) ?? [] }
+        var common = paths.first ?? []
+        for path in paths.dropFirst() {
+            common = Array(zip(common, path).prefix(while: { $0 == $1 }).map(\.0))
+        }
+        var nextForest = Self._removeNodeIDs(Set(nodeIDs), from: forest)
+        if let parent = common.last {
+            nextForest = Self._appendChild(subgraph, toSubgraphID: parent, in: nextForest)
+        } else {
+            nextForest.append(subgraph)
+        }
+        model.subgraphs = nextForest
 
         var newDoc = document
         newDoc.payload = .flowchart(model)
         return (newDoc, diagnostics)
+    }
+
+    /// Ids of the subgraphs containing `nodeID`, outermost first, or nil
+    /// when no subgraph lists it.
+    static func _subgraphPath(
+        of nodeID: String, in subgraphs: [original_src_types.MermaidSubgraph]
+    ) -> [String]? {
+        for subgraph in subgraphs {
+            if subgraph.nodeIds.contains(nodeID) { return [subgraph.id] }
+            if let inner = _subgraphPath(of: nodeID, in: subgraph.children) { return [subgraph.id] + inner }
+        }
+        return nil
+    }
+
+    /// `subgraphs` with `child` appended to the children of the subgraph
+    /// `parentID`.
+    static func _appendChild(
+        _ child: original_src_types.MermaidSubgraph,
+        toSubgraphID parentID: String,
+        in subgraphs: [original_src_types.MermaidSubgraph]
+    ) -> [original_src_types.MermaidSubgraph] {
+        subgraphs.map { subgraph in
+            var subgraph = subgraph
+            if subgraph.id == parentID {
+                subgraph.children.append(child)
+            } else {
+                subgraph.children = _appendChild(child, toSubgraphID: parentID, in: subgraph.children)
+            }
+            return subgraph
+        }
     }
 
     /// Deterministic id for a subgraph wrapping `members` titled `title`.
