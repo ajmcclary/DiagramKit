@@ -496,15 +496,28 @@ func _parseBlockDiagramLines(_ lines: [String], diagnostics: inout [DiagramDiagn
     var db: [String: BlockNode] = ["root": rootBlock]
     var placed: Set<String> = ["root"]
     var rootChildIds: [String] = []
-    for child in rootChildren where !placed.contains(child.id) {
-        rootChildIds.append(child.id)
-        try populateBlockDB(
-            childId: child.id, from: tempChildren, into: &db,
-            placed: &placed, depth: 1, diagnostics: &diagnostics
-        )
+    // Placement rule: a block that some composite lists as a child belongs
+    // to that composite, even when the root mentioned it first (a bare
+    // `a` or an edge `a --> b` written before `block:g … a b … end`). Pass 1
+    // places the root's unclaimed children; pass 2 places, at the root,
+    // anything still unplaced because its claimer is itself unreachable
+    // (composites that only list each other). Every block is placed once,
+    // so the database the layout walks is a tree.
+    var claimed: Set<String> = []
+    for node in tempChildren.values where node.type == .composite {
+        for cid in node.children where cid != node.id { claimed.insert(cid) }
     }
-    // A root-level block that a composite already claimed stays under that
-    // composite only, so the database the layout walks is a tree.
+    for pass in 0..<2 {
+        for child in rootChildren where !placed.contains(child.id) && (pass == 1 || !claimed.contains(child.id)) {
+            rootChildIds.append(child.id)
+            try populateBlockDB(
+                childId: child.id, from: tempChildren, into: &db,
+                placed: &placed, depth: 1, diagnostics: &diagnostics
+            )
+        }
+    }
+    let rootOrder = Dictionary(rootChildren.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+    rootChildIds.sort { (rootOrder[$0] ?? 0) < (rootOrder[$1] ?? 0) }
     rootBlock.children = rootChildIds
     db["root"] = rootBlock
 

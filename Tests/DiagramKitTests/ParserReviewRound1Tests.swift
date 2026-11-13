@@ -66,8 +66,35 @@ struct ParserReviewRound1Tests {
         } else { Issue.record("expected class") }
     }
 
+    @Test("a composite claims a block the root only mentioned earlier", arguments: [
+        "block-beta\na\nblock:g\na\nend",
+        "block-beta\na --> b\nblock:g\na b\nend",
+    ])
+    func compositeClaimsEarlierRootMention(_ source: String) async throws {
+        let result = try await DiagramEngine.parseImportResult(source: source)
+        guard case .block(let diagram) = result.document.payload else {
+            Issue.record("expected block")
+            return
+        }
+        #expect(diagram.blockDatabase["g"]?.children.contains("a") == true)
+        #expect(diagram.blockDatabase["root"]?.children.contains("a") == false)
+        #expect(diagram.rootChildren.contains("g"))
+        #expect(!result.diagnostics.contains { $0.message.contains("already placed elsewhere") })
+    }
+
     private static func node(_ graph: ParsedGraphModel, _ id: String) -> (label: String, shape: String)? {
         graph.nodesInOrder.first { $0.id == id }.map { ($0.node.label, "\($0.node.shape)") }
     }
 
+    @Test("composites that list each other still keep one of them at the root")
+    func cycleStillPlacedAtRoot() async throws {
+        let result = try await DiagramEngine.parseImportResult(source: "block-beta\nblock:a\n  b\nend\nblock:b\n  a\nend")
+        guard case .block(let diagram) = result.document.payload else {
+            Issue.record("expected block")
+            return
+        }
+        #expect(diagram.rootChildren == ["a"])
+        #expect(diagram.blockDatabase["a"]?.children == ["b"])
+        #expect(diagram.blockDatabase["b"]?.children == [])
+    }
 }
