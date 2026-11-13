@@ -18,8 +18,9 @@ public enum FrontmatterDocumentParser {
     /// and a `FrontmatterValue`.
     ///
     /// Indentation: spaces count as one column each; a leading tab counts
-    /// as two columns (matching the 2-space-per-level convention the rest
-    /// of the parser assumes). Mixed indent works, tab-only indent works.
+    /// as two columns. Nesting follows relative indentation (any consistent
+    /// width: 2, 4, tabs), as in YAML. Mixed indent works, tab-only indent
+    /// works.
     ///
     /// Quoted values: surrounding `"` or `'` are stripped. Inside a
     /// double-quoted value, `\"` and `\\` are unescaped to `"` and `\`.
@@ -30,7 +31,12 @@ public enum FrontmatterDocumentParser {
     /// comment that is dropped. `#` inside a quoted value is preserved.
     public static func flatten(_ lines: [String]) -> [(path: String, value: FrontmatterValue)] {
         var result: [(String, FrontmatterValue)] = []
-        var currentPath: [String] = []
+        // Open nesting keys with the indentation they were written at. A
+        // line closes every open key indented at or beyond it, whatever
+        // indent width the author used. (Depth used to be `indent / 2`, so
+        // with 4-space indentation a second section stayed nested under the
+        // first: `config.themeVariables.gantt.barHeight`.)
+        var openKeys: [(indent: Int, key: String)] = []
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty, !trimmed.hasPrefix("#") else { continue }
@@ -46,9 +52,7 @@ public enum FrontmatterDocumentParser {
                     break
                 }
             }
-            let depth = indent / 2
-            // Pop back to the correct nesting depth
-            while currentPath.count > depth { currentPath.removeLast() }
+            while let last = openKeys.last, last.indent >= indent { openKeys.removeLast() }
 
             // Split on first colon only
             guard let colonIdx = trimmed.firstIndex(of: ":") else { continue }
@@ -67,7 +71,7 @@ public enum FrontmatterDocumentParser {
             // `rowIndent: 80` followed by `lineThickness: 3` would emit
             // `config.treeView.rowIndent.lineThickness`).
             if valuePart.isEmpty {
-                currentPath.append(key)
+                openKeys.append((indent, key))
                 continue
             }
 
@@ -85,7 +89,7 @@ public enum FrontmatterDocumentParser {
                 // Unquoted: strip a trailing ` # comment` if present.
                 unquoted = Self._stripTrailingComment(valuePart)
             }
-            let fullPath = (currentPath + [key]).joined(separator: ".")
+            let fullPath = (openKeys.map(\.key) + [key]).joined(separator: ".")
             result.append((fullPath, FrontmatterValue(raw: unquoted)))
         }
         return result
