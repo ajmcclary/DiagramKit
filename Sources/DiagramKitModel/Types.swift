@@ -139,37 +139,13 @@ public struct DiagramDocumentFrontmatter: Sendable, Equatable, Hashable {
     public var theme: String?
     /// Layout preset name ("adaptive"; nil/absent = hierarchical default).
     public var layout: String?
-    /// Every other frontmatter / init-directive setting the source carried
-    /// (`config.flowchart.curve`, `config.themeVariables.primaryColor`, …),
-    /// as flattened paths in source order. `theme`, `layout` and the title
-    /// are not repeated here: they live in `theme`, `layout` and
-    /// `DiagramDocument.title`. The Mermaid exporter writes these back so a
-    /// canvas edit does not delete the author's configuration.
-    public var preservedEntries: [DiagramFrontmatterEntry]
 
-    public init(
-        theme: String? = nil,
-        layout: String? = nil,
-        preservedEntries: [DiagramFrontmatterEntry] = []
-    ) {
+    public init(theme: String? = nil, layout: String? = nil) {
         self.theme = theme
         self.layout = layout
-        self.preservedEntries = preservedEntries
     }
 
-    public var isEmpty: Bool { theme == nil && layout == nil && preservedEntries.isEmpty }
-}
-
-/// One flattened frontmatter setting: a dot-separated path under the
-/// frontmatter root (`config.flowchart.curve`) and its unquoted value.
-public struct DiagramFrontmatterEntry: Sendable, Equatable, Hashable {
-    public var path: String
-    public var value: String
-
-    public init(path: String, value: String) {
-        self.path = path
-        self.value = value
-    }
+    public var isEmpty: Bool { theme == nil && layout == nil }
 }
 
 public struct DiagramDocument: Sendable {
@@ -183,6 +159,12 @@ public struct DiagramDocument: Sendable {
     /// Frontmatter presentation settings (theme / layout preset), or
     /// nil when the source carried none.
     public var frontmatter: DiagramDocumentFrontmatter?
+
+    /// Source text the model does not hold — frontmatter and init
+    /// directives, `%%` comments, `click`/`link` lines — recorded by the
+    /// Mermaid importer so the Mermaid exporter can write it back exactly.
+    /// Nil for documents from other formats or built in code.
+    public var sourceAnnotations: DiagramSourceAnnotations?
 
     public var type: DiagramType {
         payload.type

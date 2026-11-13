@@ -57,12 +57,12 @@ public struct MermaidImporter: DiagramSourceImporter {
         }
         let fmTheme = frontmatter?.shared.theme
         let fmLayout = frontmatter?.shared.layout
-        let preserved = Self.preservedEntries(frontmatter?.sourceEntries ?? [])
-        if fmTheme != nil || fmLayout != nil || !preserved.isEmpty {
-            document.frontmatter = DiagramDocumentFrontmatter(
-                theme: fmTheme, layout: fmLayout, preservedEntries: preserved
-            )
+        if fmTheme != nil || fmLayout != nil {
+            document.frontmatter = DiagramDocumentFrontmatter(theme: fmTheme, layout: fmLayout)
         }
+        document.sourceAnnotations = _collectMermaidSourceAnnotations(
+            normalized, title: document.title, theme: fmTheme, layout: fmLayout
+        )
 
         if let fmDiagnostics = frontmatter?.diagnostics, !fmDiagnostics.isEmpty {
             diagnostics.append(contentsOf: fmDiagnostics)
@@ -84,11 +84,4 @@ public struct MermaidImporter: DiagramSourceImporter {
     /// scanning it.
     static let decodesEntitiesAfterScanning: Set<DiagramType> = [.kanban, .block]
 
-    /// The frontmatter settings the document does not model itself, in the
-    /// canonical order the exporter writes them.
-    static func preservedEntries(_ entries: [DiagramFrontmatterEntry]) -> [DiagramFrontmatterEntry] {
-        DiagramFrontmatterEntry.canonicalized(
-            entries.filter { !DiagramFrontmatterEntry.modelledPaths.contains($0.path) }
-        )
-    }
 }

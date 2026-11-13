@@ -25,8 +25,12 @@ func flowchartFingerprint(_ document: DiagramDocument) -> String {
     out.append("title=\(document.title ?? "∅")")
     if let fm = document.frontmatter {
         out.append("theme=\(fm.theme ?? "∅") layout=\(fm.layout ?? "∅")")
-        for entry in fm.preservedEntries {
-            out.append("fm \(entry.path)=\(entry.value)")
+    }
+    if let annotations = document.sourceAnnotations {
+        out.append("preamble=\(annotations.preamble)")
+        for comment in annotations.comments { out.append("comment \(comment.line)") }
+        for (key, line) in annotations.verbatimStatements.sorted(by: { $0.key < $1.key }) {
+            out.append("verbatim \(key)=\(line)")
         }
     }
     guard case .flowchart(let g) = document.payload else {

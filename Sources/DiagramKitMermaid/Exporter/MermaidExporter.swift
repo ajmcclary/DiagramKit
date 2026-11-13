@@ -109,33 +109,37 @@ public struct MermaidExporter: DiagramExporter {
         return Self.prependingFrontmatter(document, to: result)
     }
 
-    /// Prefix the exported source with a YAML frontmatter block
-    /// carrying the document title and presentation settings (theme /
-    /// layout). Emits nothing when all are absent. Key spelling
-    /// matches what the frontmatter parser reads back (round-trip
+    /// Prefix the exported source with its frontmatter. A document parsed
+    /// from Mermaid source gets its own preamble back byte for byte (only a
+    /// title, theme or layout the document changed is edited in place), plus
+    /// its `%%` comments and `click`/`link` lines exactly as written (owner
+    /// rulings for canvas edits). Other documents get a block carrying the
+    /// title, theme and layout, or nothing when all are absent. Key
+    /// spelling matches what the frontmatter parser reads back (round-trip
     /// pinned by FrontmatterDocumentFieldTests).
     private static func prependingFrontmatter(
         _ document: DiagramDocument,
         to result: DiagramExportResult
     ) -> DiagramExportResult {
         guard !result.source.isEmpty else { return result }
-        var entries: [DiagramFrontmatterEntry] = []
-        if let title = document.title, !title.isEmpty {
-            entries.append(DiagramFrontmatterEntry(path: "title", value: singleLineTitle(title)))
+        let title = document.title.flatMap { $0.isEmpty ? nil : singleLineTitle($0) }
+        let theme = document.frontmatter?.theme.flatMap { $0.isEmpty ? nil : $0 }
+        let layout = document.frontmatter?.layout.flatMap { $0.isEmpty ? nil : $0 }
+        if let annotations = document.sourceAnnotations {
+            return DiagramExportResult(
+                source: _applyMermaidSourceAnnotations(
+                    result.source, annotations, title: title, theme: theme, layout: layout
+                ),
+                diagnostics: result.diagnostics
+            )
         }
-        if let theme = document.frontmatter?.theme, !theme.isEmpty {
-            entries.append(DiagramFrontmatterEntry(path: "config.theme", value: theme))
+        var lines: [String] = []
+        if let title { lines.append("title: \(_yamlScalar(title))") }
+        if theme != nil || layout != nil {
+            lines.append("config:")
+            if let theme { lines.append("  theme: \(_yamlScalar(theme))") }
+            if let layout { lines.append("  layout: \(_yamlScalar(layout))") }
         }
-        if let layout = document.frontmatter?.layout, !layout.isEmpty {
-            entries.append(DiagramFrontmatterEntry(path: "config.layout", value: layout))
-        }
-        // Settings the document does not model (`config.flowchart.curve`,
-        // `config.themeVariables.*`, …) are written back as read, so an edit
-        // made through `DiagramEditor` keeps them.
-        entries += (document.frontmatter?.preservedEntries ?? []).filter {
-            !DiagramFrontmatterEntry.modelledPaths.contains($0.path)
-        }
-        let lines = DiagramFrontmatterEntry.yamlLines(for: entries)
         guard !lines.isEmpty else { return result }
         let frontmatter = "---\n" + lines.joined(separator: "\n") + "\n---\n"
         return DiagramExportResult(
