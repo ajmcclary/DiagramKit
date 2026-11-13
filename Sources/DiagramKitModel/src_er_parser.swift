@@ -499,7 +499,9 @@ private func _parseErDiagramEntry(_ lines: [String], frontmatter: DiagramFrontma
 
         // Try entity block with optional alias and class shorthand
         if let blockResult = _parseEntityBlock(rawLine) {
-            let id = blockResult.id
+            // A quoted name is the same entity as the unquoted name a
+            // relationship uses (upstream strips the quotes).
+            let id = _stripQuotes(blockResult.id)
             let alias = blockResult.alias
             let classNames = blockResult.classNames
             let label = alias.isEmpty ? id : alias
@@ -552,7 +554,7 @@ private func _parseErDiagramEntry(_ lines: [String], frontmatter: DiagramFrontma
 
         // Try standalone entity with optional alias and class shorthand
         if let entResult = _parseStandaloneEntity(rawLine) {
-            let id = entResult.id
+            let id = _stripQuotes(entResult.id)
             let alias = entResult.alias
             let classNames = entResult.classNames
             let label = alias.isEmpty ? id : alias
@@ -931,7 +933,7 @@ private func _parseStyle(_ line: String, _ entityMap: inout [String: ErEntity]) 
     let entityPart = String(rest[..<entityEnd]).trimmingCharacters(in: .whitespaces)
     let stylePart = String(rest[styleStart...]).trimmingCharacters(in: .whitespaces)
 
-    let entityNames = entityPart.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+    let entityNames = entityPart.split(separator: ",").map { _stripQuotes($0.trimmingCharacters(in: .whitespaces)) }
     let styles = _parseStyleValues(stylePart)
 
     for name in entityNames {
@@ -1001,7 +1003,7 @@ private func _parseClass(_ line: String, _ entityMap: inout [String: ErEntity], 
     }
     if nodeWords.isEmpty || classWords.isEmpty { return nil }
 
-    let entityNames = nodeWords.joined(separator: " ").split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+    let entityNames = nodeWords.joined(separator: " ").split(separator: ",").map { _stripQuotes($0.trimmingCharacters(in: .whitespaces)) }
     let classNames = classWords.joined(separator: " ").split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
     for name in entityNames {

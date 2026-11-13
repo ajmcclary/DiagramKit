@@ -17,6 +17,19 @@ struct ERParserFoundationTests {
         #expect(!diagram.entities.isEmpty)
     }
 
+    @Test("a quoted entity name is one entity however it is referenced", arguments: [
+        ["erDiagram", "\"Quoted Name\" [Q] {", "int y", "}", "\"Quoted Name\" ||--o{ CAR : owns"],
+        ["erDiagram", "\"Quoted Name\" ||--o{ CAR : owns", "\"Quoted Name\" [Q] {", "int y", "}"],
+        ["erDiagram", "\"Quoted Name\"", "\"Quoted Name\" ||--o{ CAR : owns", "\"Quoted Name\" [Q] {", "int y", "}"],
+    ])
+    func quotedEntityNameIsOneEntity(_ lines: [String]) throws {
+        let (diagram, _) = try parseErDiagram(lines)
+        #expect(diagram.entities.map(\.key).sorted() == ["CAR", "Quoted Name"])
+        let quoted = diagram.entities.first { $0.key == "Quoted Name" }
+        #expect(quoted?.alias == "Q")
+        #expect(quoted?.attributes.count == 1)
+    }
+
     @Test("rejects invalid header")
     func rejectsInvalidHeader() throws {
         let lines = ["notErDiagram", "CUSTOMER {", "}"]
