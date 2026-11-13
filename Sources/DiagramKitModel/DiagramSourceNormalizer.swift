@@ -29,6 +29,15 @@ public enum DiagramSourceNormalizer {
     /// `range(of: "%%")` cut such a line at the label and dropped the rest
     /// of the statement.
     public static func strippingInlineComment(_ line: String) -> String {
+        strippingInlineComment(line, keepingTextAfterColon: false)
+    }
+
+    /// As `strippingInlineComment(_:)`; with `keepingTextAfterColon`, a `%%`
+    /// after the line's first unquoted `:` is description text, as in
+    /// upstream's state and sequence lexers, which read the text after `:`
+    /// to the end of the line (`s1 --> s2 : 50%% chance`). A `%%` before
+    /// that colon, or at the start of the line, is still a comment.
+    public static func strippingInlineComment(_ line: String, keepingTextAfterColon: Bool) -> String {
         var inQuote = false
         var previousWasPercent = false
         var index = line.startIndex
@@ -37,6 +46,8 @@ public enum DiagramSourceNormalizer {
             if ch == "\"" {
                 inQuote.toggle()
                 previousWasPercent = false
+            } else if ch == ":", !inQuote, keepingTextAfterColon {
+                return line.trimmingCharacters(in: .whitespacesAndNewlines)
             } else if ch == "%", !inQuote {
                 if previousWasPercent {
                     let cut = line.index(before: index)

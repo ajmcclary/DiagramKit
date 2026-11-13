@@ -354,8 +354,9 @@ private func _preprocessLine(_ rawLine: String) -> String {
         line = line.replacingOccurrences(of: "__ENTITY_\(i)__", with: entity)
     }
 
-    // 4. Strip %% comments
-    return DiagramSourceNormalizer.strippingInlineComment(line)
+    // 4. Strip %% comments. Message and note text after `:` keeps `%%`
+    // (owner ruling on pkg-diagram-parsers-20: match upstream).
+    return DiagramSourceNormalizer.strippingInlineComment(line, keepingTextAfterColon: true)
 }
 
 // MARK: - Participant Declaration

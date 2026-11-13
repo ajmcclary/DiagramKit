@@ -595,7 +595,9 @@ private func _parseStateDiagram(
     var i = 1
     while i < lines.count {
         var line = lines[i]
-        line = DiagramSourceNormalizer.strippingInlineComment(line)
+        // `%%` in description text after `:` is text (owner ruling on
+        // pkg-diagram-parsers-20: match upstream).
+        line = DiagramSourceNormalizer.strippingInlineComment(line, keepingTextAfterColon: true)
         guard !line.isEmpty else { i += 1; continue }
 
         // multiline note: "note left/right of <id>" followed by lines until "end note"
