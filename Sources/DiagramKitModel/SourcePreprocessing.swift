@@ -324,17 +324,21 @@ private func _jsonScalarString(_ value: Any) -> String? {
     return nil
 }
 
+/// Same rules as `FrontmatterValue.double`: non-finite values are dropped
+/// and finite ones clamped to `FrontmatterValue.maxNumericMagnitude`.
 private func _jsonDouble(_ value: Any?) -> Double? {
+    let raw: Double?
     if let double = value as? Double {
-        return double
+        raw = double
+    } else if let number = value as? NSNumber {
+        raw = number.doubleValue
+    } else if let string = value as? String {
+        raw = Double(string)
+    } else {
+        raw = nil
     }
-    if let number = value as? NSNumber {
-        return number.doubleValue
-    }
-    if let string = value as? String {
-        return Double(string)
-    }
-    return nil
+    guard let raw else { return nil }
+    return FrontmatterValue(raw: String(raw)).double
 }
 
 private func _jsonBool(_ value: Any?) -> Bool? {

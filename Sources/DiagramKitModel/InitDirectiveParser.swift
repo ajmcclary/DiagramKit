@@ -86,10 +86,19 @@ public enum InitDirectiveParser {
                 let rawValue: String
                 if let s = value as? String {
                     rawValue = s
+                } else if let n = value as? NSNumber {
+                    // Test the number before `as? Bool`: an NSNumber 0 or 1
+                    // also bridges to Bool, which turned `"barHeight": 1`
+                    // into "true" and dropped the setting. JSON booleans
+                    // are char-typed (`objCType == "c"`); JSON numbers never
+                    // are.
+                    if String(cString: n.objCType) == "c", let b = value as? Bool {
+                        rawValue = b ? "true" : "false"
+                    } else {
+                        rawValue = n.stringValue
+                    }
                 } else if let b = value as? Bool {
                     rawValue = b ? "true" : "false"
-                } else if let n = value as? NSNumber {
-                    rawValue = n.stringValue
                 } else {
                     rawValue = "\(value)"
                 }

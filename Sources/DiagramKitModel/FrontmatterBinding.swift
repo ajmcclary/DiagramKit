@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Frontmatter Value
 
@@ -20,11 +21,29 @@ public struct FrontmatterValue: Sendable {
         }
     }
 
-    /// Double conversion via `Double(_:)`.
-    public var double: Double? { Double(raw) }
+    /// Largest magnitude a numeric setting may have. Every frontmatter and
+    /// init-directive number reaches layout arithmetic and SVG formatting
+    /// (`config.journey.leftMargin: 1e300` trapped the shared SVG root-tag
+    /// builder), so values are clamped here once instead of per binding.
+    /// The same bound the gitGraph binding already applied to its padding.
+    public static let maxNumericMagnitude: Double = 1e6
 
-    /// Integer conversion via `Int(_:)`.
-    public var int: Int? { Int(raw) }
+    /// Double conversion via `Double(_:)`. `nil` for non-finite values
+    /// (`inf`, `nan`, `1e999`); finite values are clamped to
+    /// ±`maxNumericMagnitude`.
+    public var double: Double? {
+        guard let value = Double(raw), value.isFinite else { return nil }
+        return min(max(value, -Self.maxNumericMagnitude), Self.maxNumericMagnitude)
+    }
+
+    /// Integer conversion via `Int(_:)`, clamped to ±`maxNumericMagnitude`
+    /// so a setting such as `bitsPerRow: 9223372036854775807` cannot
+    /// overflow layout arithmetic.
+    public var int: Int? {
+        guard let value = Int(raw) else { return nil }
+        let bound = Int(Self.maxNumericMagnitude)
+        return min(max(value, -bound), bound)
+    }
 
     /// Raw string value.
     public var string: String { raw }
