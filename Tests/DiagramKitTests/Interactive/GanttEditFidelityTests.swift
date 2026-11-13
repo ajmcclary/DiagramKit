@@ -7,7 +7,7 @@
 
 import Foundation
 import Testing
-import DiagramKit
+@testable import DiagramKit
 import DiagramKitMermaid
 import DiagramKitModel
 import DiagramKitTestSupport
@@ -182,6 +182,32 @@ struct GanttEditFidelityTests {
             }
         }
         #expect(failures.isEmpty, "\(failures.joined(separator: "\n\n"))")
+    }
+
+    @Test("finding the resized task's line is linear: the last of 300 and of 3,000 chained tasks", arguments: [(300, 2.0), (3_000, 20.0)])
+    func resizeCostIsLinear(count: Int, bound: Double) async throws {
+        var lines = ["gantt", "    dateFormat YYYY-MM-DD", "    section Chain", "        T0 :t0, 2024-01-01, 1d"]
+        for i in 1..<count { lines.append("        T\(i) :t\(i), after t\(i - 1), 1d") }
+        let source = lines.joined(separator: "\n") + "\n"
+        let readBack = try #require(DiagramPipeline.defaultExportRegistry.readBack)
+        let (seconds, changed): (Double, Int) = try await DiagramEngine._runOnWorker {
+            let document = try readBack(source, .mermaid)
+            guard case .gantt(let model) = document.payload, let last = model.tasks.last else { return (.infinity, -1) }
+            var ts = timespec()
+            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts)
+            let start = Double(ts.tv_sec) + Double(ts.tv_nsec) / 1e9
+            let result = try DiagramEditor._resizeGanttTaskInSource(
+                source, document: document, taskId: last.id,
+                newEndTime: last.endTime.addingTimeInterval(86400), readBack: readBack
+            )
+            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts)
+            let end = Double(ts.tv_sec) + Double(ts.tv_nsec) / 1e9
+            let a = source.split(separator: "\n", omittingEmptySubsequences: false)
+            let b = result.source.split(separator: "\n", omittingEmptySubsequences: false)
+            return (end - start, zip(a, b).filter { $0 != $1 }.count)
+        }
+        #expect(changed == 1)
+        #expect(seconds < bound, "\(count) tasks: \(seconds) s CPU")
     }
 
     @Test("a gantt with excludes refuses a resize with the typed error and keeps its source")
