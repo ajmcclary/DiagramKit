@@ -178,60 +178,72 @@ struct NonMermaidSafetyNetTests {
         #expect(!edit.canUndo)
     }
 
-    @Test("a benign rename on every non-Mermaid corpus source either keeps every untouched line or is refused with the source kept")
-    func benignRenameEveryFormat() async throws {
-        var tally: [String: (accepted: Int, total: Int)] = [:]
+    @Test("every writing mutation on every D2, DOT, PlantUML and Structurizr corpus source is refused, with source, model and undo untouched")
+    func nonMermaidWritesRefused() async throws {
         var failures: [String] = []
+        var refused: [String: Int] = [:]
         for entry in try DiagramCorpus.load() {
             for (name, source) in (entry.sources ?? [:]).sorted(by: { $0.key < $1.key }) where name != "mermaid" {
                 let format = DiagramFormatID(rawValue: name)
-                guard let document = try? DiagramLoader.parseDocument(source, as: format, registry: DiagramPipeline.defaultRegistry),
-                      DiagramPipeline.defaultExportRegistry.exporter(named: format)?.supportedDiagramTypes.contains(document.type) == true
-                else { continue }
-                let node: (id: String, label: String)?
+                guard let document = try? DiagramLoader.parseDocument(source, as: format, registry: DiagramPipeline.defaultRegistry) else { continue }
+                var mutations: [(String, (DiagramEditor) async throws -> Void)] = [
+                    ("title", { try await $0.perform(.setTitle("Renamed")) }),
+                    ("theme", { try await $0.perform(.setTheme("nord")) }),
+                    ("layout", { try await $0.perform(.setLayoutPreset(.adaptive)) }),
+                ]
                 switch document.payload {
-                case .flowchart(let g), .stateDiagram(let g): node = g.nodesInOrder.first.map { ($0.id, $0.node.label) }
-                default: node = nil
-                }
-                // The benign edit: rename the first node; on types without
-                // nodes, change the title.
-                let key = node == nil ? "\(name) (title)" : name
-                let edit = DiagramEditor(document: document, preferredExportFormat: format,
-                                         exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
-                var counts = tally[key] ?? (0, 0)
-                counts.total += 1
-                do {
-                    if let node {
-                        try await edit.perform(.setLabel(of: DiagramSelection(diagramType: document.type, elementID: "node:\(node.id)"), to: node.label + " 2"))
-                    } else {
-                        try await edit.perform(.setTitle("Renamed"))
-                    }
-                    counts.accepted += 1
-                    let saved = edit.source ?? ""
-                    let syntax = DiagramEditor._CommentSyntax(format)
-                    var inBlock = false
-                    for line in source.split(separator: "\n") where !line.trimmingCharacters(in: .whitespaces).isEmpty {
-                        // A comment is never exempt, even one naming the
-                        // renamed node.
-                        if syntax.isCommentLine(line.trimmingCharacters(in: .whitespaces), inBlock: &inBlock) {
-                            if !saved.contains(line) { failures.append("[\(entry.id)-\(name)] lost comment '\(line)'") }
-                            continue
-                        }
-                        if !saved.contains(line) && !DiagramEditor._mentions(line, node?.id ?? "title") && !line.contains("title") {
-                            failures.append("[\(entry.id)-\(name)] lost '\(line)'")
+                case .flowchart(let g), .stateDiagram(let g):
+                    if let node = g.nodesInOrder.first {
+                        let sel = DiagramSelection(diagramType: document.type, elementID: "node:\(node.id)")
+                        mutations.append(("rename", { try await $0.perform(.setLabel(of: sel, to: node.node.label + " 2")) }))
+                        mutations.append(("delete", { try await $0.perform(.deleteElement(sel)) }))
+                        if document.type == .flowchart {
+                            mutations.append(("insert", { try await $0.performFlowchart(.insertNode(id: "zz_new", label: "New")) }))
+                            mutations.append(("shape", { try await $0.performFlowchart(.setNodeShape(of: sel, toShape: "rounded")) }))
                         }
                     }
-                } catch DiagramEditorError.exportWouldLoseContent {
-                    if edit.source != source { failures.append("[\(entry.id)-\(name)] refused but source changed") }
-                } catch {
-                    failures.append("[\(entry.id)-\(name)] \(error)")
+                case .sequenceDiagram(let seq) where seq.messages.count >= 2:
+                    mutations.append(("move", { try await $0.performSequence(.moveMessage(at: 1, to: 0)) }))
+                default:
+                    break
                 }
-                tally[key] = counts
+                for (label, work) in mutations {
+                    let edit = DiagramEditor(document: document, preferredExportFormat: format,
+                                             exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
+                    #expect(!edit.supportsCanvasEditing)
+                    // Non-writing operations keep working.
+                    edit.selection = DiagramSelection(diagramType: document.type, elementID: "node:x")
+                    let before = _modelFingerprint(edit.document)
+                    do {
+                        try await work(edit)
+                        failures.append("[\(entry.id)-\(name) \(label)] applied")
+                    } catch DiagramEditorError.exportWouldLoseContent(let details) {
+                        if !details.contains("canvas editing is not available") { failures.append("[\(entry.id)-\(name) \(label)] \(details)") }
+                        refused[name, default: 0] += 1
+                    } catch {
+                        // A mutation the document cannot take at all (no
+                        // such element, unsupported type) is refused earlier.
+                    }
+                    if edit.source != source || _modelFingerprint(edit.document) != before || edit.canUndo {
+                        failures.append("[\(entry.id)-\(name) \(label)] changed state")
+                    }
+                }
             }
         }
-        print("BENIGN-RENAME " + tally.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.accepted)/\($0.value.total)" }.joined(separator: ", "))
-        #expect(!tally.isEmpty)
-        #expect(failures.isEmpty, "\(failures.joined(separator: "\n"))")
+        #expect(Set(refused.keys) == ["d2", "graphviz", "plantuml", "structurizr"], "\(refused)")
+        #expect(failures.isEmpty, "\(failures.prefix(10).joined(separator: "\n"))")
+    }
+
+    @Test("a Mermaid document, or one built in code, supports canvas editing; Mermaid text for a D2 document does not")
+    func supportsCanvasEditingFlag() throws {
+        let mermaid = DiagramEditor(document: try MermaidImporter().parse("flowchart TD\n  A\n").document, preferredExportFormat: .mermaid,
+                                    exportRegistry: DiagramPipeline.defaultExportRegistry)
+        #expect(mermaid.supportsCanvasEditing)
+        #expect(DiagramEditor(document: DiagramDocument(type: .flowchart), preferredExportFormat: .mermaid,
+                              exportRegistry: DiagramPipeline.defaultExportRegistry).supportsCanvasEditing)
+        let d2Document = try DiagramLoader.parseDocument(Self.d2Source, as: .d2, registry: DiagramPipeline.defaultRegistry)
+        #expect(!DiagramEditor(document: d2Document, preferredExportFormat: .mermaid,
+                               exportRegistry: DiagramPipeline.defaultExportRegistry).supportsCanvasEditing)
     }
 }
 #endif

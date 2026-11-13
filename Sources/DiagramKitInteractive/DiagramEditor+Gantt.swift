@@ -230,9 +230,15 @@ extension DiagramEditor {
         let dataStart = line.index(after: colon)
         let lastComma = line[dataStart...].lastIndex(of: ",")
         let fieldStart = lastComma.map { line.index(after: $0) } ?? dataStart
-        let field = String(line[fieldStart...])
+        var field = String(line[fieldStart...])
+        // Anything from a `%%` on stays as written after the new end.
+        var commentTail = ""
+        if let percent = field.range(of: "%%") {
+            commentTail = String(field[percent.lowerBound...])
+            field = String(field[..<percent.lowerBound])
+        }
         let leading = String(field.prefix(while: { $0 == " " || $0 == "\t" }))
-        let trailing = String(field.reversed().prefix(while: { $0 == " " || $0 == "\t" }).reversed())
+        let trailing = String(field.reversed().prefix(while: { $0 == " " || $0 == "\t" }).reversed()) + commentTail
         let token = field.trimmingCharacters(in: .whitespaces)
 
         var candidates: [String] = []

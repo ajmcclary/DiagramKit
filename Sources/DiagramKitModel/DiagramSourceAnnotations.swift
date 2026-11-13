@@ -36,6 +36,28 @@ public struct DiagramSourceComment: Sendable, Equatable, Hashable {
     }
 }
 
+/// A `%%` comment at the end of a statement line (`A --> B %% note`),
+/// with the statement it follows. Written back at the end of that
+/// statement's line: the exported line with the same text, else the first
+/// with the same key, else the line that closes the block it closed.
+public struct DiagramSourceTrailingComment: Sendable, Equatable, Hashable {
+    /// The comment as written, from `%%` to the end of the line.
+    public var comment: String
+    /// `_sourceStatementText` of the statement without the comment.
+    public var statement: String
+    /// `_sourceStatementKey` of the statement.
+    public var key: String
+    /// For a comment after `end` (or `}`): the key of the block it closed.
+    public var closesBlock: String?
+
+    public init(comment: String, statement: String, key: String, closesBlock: String? = nil) {
+        self.comment = comment
+        self.statement = statement
+        self.key = key
+        self.closesBlock = closesBlock
+    }
+}
+
 public struct DiagramSourceAnnotations: Sendable, Equatable, Hashable {
     /// Everything before the diagram header, exactly as written (frontmatter
     /// fences included), each line ending in `\n`. Empty when there was none.
@@ -52,6 +74,10 @@ public struct DiagramSourceAnnotations: Sendable, Equatable, Hashable {
     /// key, in source order (a later line for the same key overrides an
     /// earlier one in the model, but both stay in the text).
     public var verbatimStatements: [String: [String]]
+    /// `%%` comments at the end of statement lines (flowchart, state and
+    /// sequence; in state and sequence a `%%` after the first unquoted `:`
+    /// is text, not a comment), in source order.
+    public var trailingComments: [DiagramSourceTrailingComment] = []
 
     public init(
         preamble: String = "",
@@ -69,7 +95,7 @@ public struct DiagramSourceAnnotations: Sendable, Equatable, Hashable {
         self.verbatimStatements = verbatimStatements
     }
 
-    public var isEmpty: Bool { preamble.isEmpty && comments.isEmpty && verbatimStatements.isEmpty }
+    public var isEmpty: Bool { preamble.isEmpty && comments.isEmpty && verbatimStatements.isEmpty && trailingComments.isEmpty }
 }
 
 // MARK: - Statement keys
@@ -197,7 +223,13 @@ public func _collectMermaidSourceAnnotations(
     let preamble = lines[..<headerIndex].map { $0 + "\n" }.joined()
 
     var comments: [DiagramSourceComment] = []
+    var trailing: [DiagramSourceTrailingComment] = []
     var verbatim: [String: [String]] = [:]
+    // Families whose parsers end a statement line at a `%%` comment, and
+    // whether `%%` after the first unquoted `:` is text there instead.
+    let header = headerIndex < lines.count ? lines[headerIndex].trimmingCharacters(in: .whitespaces).lowercased() : ""
+    let keepsTextAfterColon = header.hasPrefix("statediagram") || header.hasPrefix("sequencediagram")
+    let readsTrailingComments = keepsTextAfterColon || header.hasPrefix("flowchart") || header.hasPrefix("graph")
     var blockStack: [String] = []
     var pending: [String] = []
 
@@ -209,8 +241,18 @@ public func _collectMermaidSourceAnnotations(
     var i = headerIndex + 1
     while i < lines.count {
         let raw = lines[i]
-        let trimmed = raw.trimmingCharacters(in: .whitespaces)
-        if trimmed.isEmpty { i += 1; continue }
+        let full = raw.trimmingCharacters(in: .whitespaces)
+        if full.isEmpty { i += 1; continue }
+        // The statement without a trailing comment, and the comment.
+        var trimmed = full
+        var trailingComment: String?
+        if readsTrailingComments, !_isCommentLine(full) {
+            let stripped = DiagramSourceNormalizer.strippingInlineComment(full, keepingTextAfterColon: keepsTextAfterColon)
+            if stripped != full, full.hasPrefix(stripped) {
+                trimmed = stripped
+                trailingComment = String(full.dropFirst(stripped.count)).trimmingCharacters(in: .whitespaces)
+            }
+        }
         if _isCommentLine(trimmed) {
             // A multi-line directive is kept as one comment.
             if trimmed.hasPrefix("%%{"), !trimmed.hasSuffix("}%%") {
@@ -232,11 +274,21 @@ public func _collectMermaidSourceAnnotations(
         if _isBlockCloser(trimmed) {
             if let header = blockStack.popLast() {
                 flush(.endOfBlock(headerKey: header))
+                if let trailingComment {
+                    trailing.append(DiagramSourceTrailingComment(
+                        comment: trailingComment, statement: _sourceStatementText(trimmed), key: _sourceStatementKey(trimmed), closesBlock: header
+                    ))
+                }
             }
         } else {
             flush(.before(statement: _sourceStatementText(trimmed), key: _sourceStatementKey(trimmed)))
             if let key = _verbatimStatementKey(trimmed) {
+                // Kept verbatim, comment included.
                 verbatim[key, default: []].append(raw)
+            } else if let trailingComment {
+                trailing.append(DiagramSourceTrailingComment(
+                    comment: trailingComment, statement: _sourceStatementText(trimmed), key: _sourceStatementKey(trimmed)
+                ))
             }
             if _isBlockOpener(trimmed) {
                 blockStack.append(_sourceStatementKey(trimmed))
@@ -257,7 +309,9 @@ public func _collectMermaidSourceAnnotations(
         comments: comments,
         verbatimStatements: verbatim
     )
-    return annotations.isEmpty ? nil : annotations
+    var result = annotations
+    result.trailingComments = trailing
+    return result.isEmpty ? nil : result
 }
 
 // MARK: - Application
@@ -274,6 +328,18 @@ public func _applyMermaidSourceAnnotations(
     theme: String?,
     layout: String?
 ) -> String {
+    _applyMermaidSourceAnnotationsReporting(body, annotations, title: title, theme: theme, layout: layout).text
+}
+
+/// As `_applyMermaidSourceAnnotations`, also returning the trailing
+/// comments that had no statement left to follow (the edit removed it).
+public func _applyMermaidSourceAnnotationsReporting(
+    _ body: String,
+    _ annotations: DiagramSourceAnnotations,
+    title: String?,
+    theme: String?,
+    layout: String?
+) -> (text: String, unplacedComments: [String]) {
     var lines = body.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     if lines.last == "" { lines.removeLast() }
 
@@ -324,6 +390,28 @@ public func _applyMermaidSourceAnnotations(
         }
         insertions[target, default: []].append(comment.line)
     }
+    // Trailing comments go on their statement's line before the full-line
+    // comments shift the indices.
+    var unplaced: [String] = []
+    for trailing in annotations.trailingComments {
+        let target: Int?
+        if let header = trailing.closesBlock {
+            target = closingIndex(forHeader: header)
+        } else {
+            // The exporter may split a statement (`A[Start] --> B` becomes
+            // a declaration and an edge): a statement that was a link
+            // prefers the line with the same key that is still a link.
+            let isLink = _looksLikeLink(trailing.statement)
+            target = texts.firstIndex(of: trailing.statement)
+                ?? keys.indices.first { keys[$0] == trailing.key && _looksLikeLink(texts[$0]) == isLink }
+                ?? keys.firstIndex(of: trailing.key)
+        }
+        if let target, target < lines.count {
+            lines[target] += " " + trailing.comment
+        } else {
+            unplaced.append(trailing.comment)
+        }
+    }
     for target in insertions.keys.sorted(by: >) {
         lines.insert(contentsOf: insertions[target] ?? [], at: min(target, lines.count))
     }
@@ -338,7 +426,12 @@ public func _applyMermaidSourceAnnotations(
     if layout != annotations.preambleLayout {
         preamble = _settingPreambleKey(preamble, path: ["config", "layout"], jsonKey: "layout", value: layout)
     }
-    return preamble + lines.joined(separator: "\n") + "\n"
+    return (preamble + lines.joined(separator: "\n") + "\n", unplaced)
+}
+
+/// Whether whitespace-free statement text holds a link operator.
+private func _looksLikeLink(_ text: String) -> Bool {
+    ["--", "==", "-.", "~~~", "->"].contains { text.contains($0) }
 }
 
 // MARK: - In-place preamble edits

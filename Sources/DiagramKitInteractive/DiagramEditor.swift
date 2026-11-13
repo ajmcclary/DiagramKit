@@ -56,6 +56,18 @@ public final class DiagramEditor {
     /// The exporter registry used for source sync.
     public let exportRegistry: ExporterRegistry
 
+    /// Whether canvas edits can be written back for this document. True
+    /// when the editor writes Mermaid and the document was read from
+    /// Mermaid (or built in code). For D2, DOT, PlantUML and Structurizr
+    /// sources canvas write-back is off in this release (their exporters
+    /// rewrite the whole file and drop what the importers do not model):
+    /// every writing mutation is refused with `exportWouldLoseContent`, and
+    /// a host should disable its editing controls. Selection, inspection,
+    /// layout and rendering are unaffected.
+    public var supportsCanvasEditing: Bool {
+        preferredExportFormat == .mermaid && (document.sourceFormat == nil || document.sourceFormat == .mermaid)
+    }
+
     /// The most recently synced source text, or nil if source sync
     /// has not run or the preferred format does not support the current
     /// diagram type.

@@ -22,11 +22,10 @@ extension DiagramEditor {
         replacing oldDocument: DiagramDocument,
         scope: _EditScope = .wholeExport
     ) async throws {
-        // Every format the editor writes back is checked. For Mermaid the
-        // model check covers the types whose export is proven to read back
-        // and the line check covers what the model does not hold; for the
-        // other formats every type is model-checked, and every line of the
-        // original source the edit is not about must survive verbatim.
+        // Canvas write-back is Mermaid-only in this release
+        // (`supportsCanvasEditing`; other formats are refused before the
+        // export). The model check covers the types whose export is proven
+        // to read back, and the line checks what the model does not hold.
         let format = preferredExportFormat
         let oldSource = self.source
         let readBack = exportRegistry.readBack
@@ -42,11 +41,8 @@ extension DiagramEditor {
                 let expected = _modelFingerprint(newDocument)
                 let actual = _modelFingerprint(reparsed)
                 if expected != actual {
-                    return "saving it would lose or change \(Self._plainThing(expected, actual))"
+                    return "saving it would \(Self._plainThing(expected, actual))"
                 }
-            }
-            if format != .mermaid {
-                return Self._lostSourceLine(from: oldSource, to: source, format: format, oldDocument: oldDocument, newDocument: newDocument)
             }
             if let problem = Self._untargetedLineChange(
                 from: oldSource, to: source, scope: scope, newDocument: newDocument, oldDocument: oldDocument
@@ -69,177 +65,36 @@ extension DiagramEditor {
         .flowchart, .stateDiagram, .sequenceDiagram, .gantt,
     ]
 
-    /// For a format other than Mermaid: the first line of the original
-    /// source (comments included) that the new text no longer has and that
-    /// does not name an element the edit changed, or nil. Those exporters
-    /// re-write the whole file, so most edits on them are refused today;
-    /// a refused edit says so, a silent loss would not.
-    nonisolated static func _lostSourceLine(
-        from oldSource: String?,
-        to source: String,
-        format: DiagramFormatID,
-        oldDocument: DiagramDocument,
-        newDocument: DiagramDocument
-    ) -> String? {
-        guard let oldSource else { return nil }
-        var targets = _changedElementIDs(oldDocument, newDocument)
-        // A settings edit is about the line that states the setting.
-        if newDocument.title != oldDocument.title { targets.insert("title") }
-        if newDocument.frontmatter?.theme != oldDocument.frontmatter?.theme { targets.insert("theme") }
-        if newDocument.frontmatter?.layout != oldDocument.frontmatter?.layout { targets.insert("layout") }
-        var available: [Substring: Int] = [:]
-        let newText = DiagramSourceNormalizer.normalizedLineEndings(source)
-        for line in newText.split(separator: "\n") { available[line, default: 0] += 1 }
-        // A comment is never the edit's target: every comment line, and
-        // every trailing comment, comes back unchanged (one that names a
-        // renamed element keeps its old wording). Only a non-comment line
-        // naming an element the edit changed may be rewritten.
-        let syntax = _CommentSyntax(format)
-        var inBlock = false
-        for line in DiagramSourceNormalizer.normalizedLineEndings(oldSource).split(separator: "\n") {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.isEmpty { continue }
-            let isComment = syntax.isCommentLine(trimmed, inBlock: &inBlock)
-            if let count = available[line], count > 0 { available[line] = count - 1; continue }
-            if isComment {
-                return "saving it would lose the comment \u{201C}\(trimmed)\u{201D}"
-            }
-            if targets.contains(where: { _mentions(line, $0) }) {
-                if let trailing = syntax.trailingComment(trimmed), !newText.contains(trailing) {
-                    return "saving it would lose the comment \u{201C}\(trailing)\u{201D}"
-                }
-                continue
-            }
-            return "saving it would lose or rewrite the line \u{201C}\(trimmed)\u{201D}"
-        }
-        return nil
-    }
-
-    /// Comment syntax of the formats other than Mermaid (whose comments
-    /// the importer records).
-    struct _CommentSyntax {
-        let linePrefixes: [String]
-        let blockOpen: String?
-        let blockClose: String?
-        let trailingMarkers: [String]
-
-        init(_ format: DiagramFormatID) {
-            switch format {
-            case .d2: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["#"], nil, nil, [" #"])
-            case .graphviz: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["//", "#"], "/*", "*/", [" //"])
-            case .plantuml: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["'"], "/'", "'/", [])
-            case .structurizr: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["//", "#"], "/*", "*/", [" //"])
-            default: (linePrefixes, blockOpen, blockClose, trailingMarkers) = (["#", "//", "'", "%%"], "/*", "*/", [])
-            }
-        }
-
-        func isCommentLine(_ trimmed: String, inBlock: inout Bool) -> Bool {
-            if inBlock {
-                if let close = blockClose, trimmed.contains(close) { inBlock = false }
-                return true
-            }
-            if let open = blockOpen, let close = blockClose, trimmed.hasPrefix(open) {
-                inBlock = !trimmed.dropFirst(open.count).contains(close)
-                return true
-            }
-            return linePrefixes.contains { trimmed.hasPrefix($0) }
-        }
-
-        /// The comment at the end of a statement line (outside quotes).
-        func trailingComment(_ trimmed: String) -> String? {
-            var inQuote = false
-            var index = trimmed.startIndex
-            while index < trimmed.endIndex {
-                if trimmed[index] == "\"" { inQuote.toggle() }
-                if !inQuote {
-                    for marker in trailingMarkers where trimmed[index...].hasPrefix(marker) {
-                        return trimmed[trimmed.index(after: index)...].trimmingCharacters(in: .whitespaces)
-                    }
-                }
-                index = trimmed.index(after: index)
-            }
-            return nil
-        }
-    }
-
-    /// What a model mismatch would lose, in plain words.
+    /// What a model mismatch would lose, as the end of "saving it would …".
     nonisolated static func _plainThing(_ expected: String, _ actual: String) -> String {
         let location = _fingerprintDifferenceLocation(expected, actual)
-        let words = ((location.field ?? "") + " " + (location.type ?? "")).lowercased()
-        let table: [(String, String)] = [
+        let field = (location.field ?? "").lowercased()
+        let type = location.type ?? ""
+        let fields: [(String, String)] = [
             ("acctitle", "the accessibility title"), ("accdescr", "the accessibility description"),
-            ("note", "a note"), ("link", "a link"), ("interaction", "a link"), ("href", "a link"), ("tooltip", "a tooltip"),
-            ("style", "a style"), ("css", "a style"), ("class", "a style class"), ("fill", "a style"),
-            ("label", "a label"), ("descr", "a label"), ("text", "a label"), ("title", "the title"),
-            ("edge", "a connection"), ("relationship", "a connection"), ("message", "a message"),
-            ("subgraph", "a group"), ("nodeids", "a group"), ("children", "a group"), ("namespace", "a group"),
+            ("tooltip", "a tooltip"), ("link", "a link"), ("href", "a link"), ("interaction", "a link"), ("callback", "a click action"),
+            ("style", "a style"), ("css", "a style"), ("fill", "a style"), ("classassignments", "a style class"), ("classdef", "a style class"),
+            ("label", "a label"), ("descr", "a description"), ("text", "a label"), ("title", "the title"),
             ("shape", "a shape"), ("direction", "the direction"), ("config", "a diagram setting"),
-            ("task", "a task"), ("section", "a section"),
-            ("node", "an element"), ("entit", "an element"), ("actor", "a participant"), ("class", "a class"),
+            ("nodeids", "a group's members"), ("children", "a nested group"), ("edges", "a connection"),
+            ("relationships", "a relationship"), ("messages", "a message"), ("notes", "a note"),
+            ("arrowtype", "an arrow"), ("arrowhead", "an arrowhead"), ("minlen", "a connection's length"),
+            ("starttime", "a start date"), ("endtime", "an end date"), ("rendertime", "a bar's end"),
+            ("tasks", "a task"), ("sections", "a section"), ("items", "a statement"),
         ]
-        return table.first { words.contains($0.0) }?.1 ?? "part of the diagram"
-    }
-
-    /// Whether `line` names `id` as a whole word.
-    nonisolated static func _mentions(_ line: Substring, _ id: String) -> Bool {
-        guard !id.isEmpty else { return false }
-        func isWord(_ c: Character) -> Bool { c.isLetter || c.isNumber || c == "_" }
-        var search = line.startIndex
-        while let range = line[search...].range(of: id) {
-            let before = range.lowerBound == line.startIndex ? nil : line[line.index(before: range.lowerBound)]
-            let after = range.upperBound == line.endIndex ? nil : line[range.upperBound]
-            if !(before.map(isWord) ?? false), !(after.map(isWord) ?? false) { return true }
-            search = range.upperBound
+        let types: [(String, String)] = [
+            ("MermaidNode", "a node"), ("MermaidEdge", "a connection"), ("MermaidSubgraph", "a group"),
+            ("SequenceActor", "a participant"), ("SequenceMessage", "a message"), ("SequenceNote", "a note"),
+            ("GanttTask", "a task"), ("ClassNode", "a class"), ("ErEntity", "an entity"),
+        ]
+        if let thing = fields.first(where: { field.contains($0.0) })?.1 {
+            let owner = types.first { $0.0 == type }?.1
+            return owner.map { "lose or change \(thing) of \($0)" } ?? "lose or change \(thing)"
         }
-        return false
-    }
-
-    /// Ids of the elements an edit changed: nodes added, removed or
-    /// altered, the ends of changed edges, changed subgraphs and their
-    /// members (flowchart and state), and the participants of changed
-    /// messages (sequence). Empty for other types.
-    nonisolated static func _changedElementIDs(_ old: DiagramDocument, _ new: DiagramDocument) -> Set<String> {
-        var ids: Set<String> = []
-        switch (old.payload, new.payload) {
-        case (.flowchart(let a), .flowchart(let b)), (.stateDiagram(let a), .stateDiagram(let b)):
-            let nodesA = Dictionary(a.nodesInOrder.map { ($0.id, _canonicalDescription($0.node)) }, uniquingKeysWith: { f, _ in f })
-            let nodesB = Dictionary(b.nodesInOrder.map { ($0.id, _canonicalDescription($0.node)) }, uniquingKeysWith: { f, _ in f })
-            for id in Set(nodesA.keys).union(nodesB.keys) where nodesA[id] != nodesB[id] { ids.insert(id) }
-            var edgesA: [String: Int] = [:]
-            for e in a.edges { edgesA[_canonicalDescription(e), default: 0] += 1 }
-            var changedEdges: [original_src_types.MermaidEdge] = []
-            for e in b.edges {
-                let key = _canonicalDescription(e)
-                if let n = edgesA[key], n > 0 { edgesA[key] = n - 1 } else { changedEdges.append(e) }
-            }
-            for e in a.edges where (edgesA[_canonicalDescription(e)] ?? 0) > 0 { changedEdges.append(e) }
-            for e in changedEdges { ids.insert(e.source); ids.insert(e.target) }
-            func subgraphs(_ list: [original_src_types.MermaidSubgraph], into map: inout [String: (String, [String])]) {
-                for s in list {
-                    map[s.id] = (_canonicalDescription(s), s.nodeIds)
-                    subgraphs(s.children, into: &map)
-                }
-            }
-            var subA: [String: (String, [String])] = [:], subB: [String: (String, [String])] = [:]
-            subgraphs(a.subgraphs, into: &subA)
-            subgraphs(b.subgraphs, into: &subB)
-            for id in Set(subA.keys).union(subB.keys) where subA[id]?.0 != subB[id]?.0 {
-                ids.insert(id)
-                ids.formUnion(subA[id]?.1 ?? [])
-                ids.formUnion(subB[id]?.1 ?? [])
-            }
-        case (.sequenceDiagram(let a), .sequenceDiagram(let b)):
-            let msgsA = a.messages, msgsB = b.messages
-            for i in 0..<max(msgsA.count, msgsB.count) {
-                let x = i < msgsA.count ? msgsA[i] : nil, y = i < msgsB.count ? msgsB[i] : nil
-                if x.map(_canonicalDescription) != y.map(_canonicalDescription) {
-                    for m in [x, y].compactMap({ $0 }) { ids.insert(m.from); ids.insert(m.to) }
-                }
-            }
-        default:
-            break
+        if let owner = types.first(where: { $0.0 == type })?.1 {
+            return "lose or change \(owner)\(field.isEmpty ? "" : " (its \(location.field!))")"
         }
-        return ids
+        return "make the saved text differ from the diagram as edited"
     }
 
     /// The line ending most lines of `text` use: CRLF or LF.
@@ -385,6 +240,12 @@ extension DiagramEditor {
             guard let count = available[line], count > 0 else { return false }
             available[line] = count - 1
             return true
+        }
+        var needed: [String: Int] = [:]
+        for trailing in annotations.trailingComments { needed[trailing.comment, default: 0] += 1 }
+        for (comment, count) in needed.sorted(by: { $0.key < $1.key })
+        where source.components(separatedBy: comment).count - 1 < count {
+            return "saving it would lose the comment \u{201C}\(comment)\u{201D}"
         }
         for comment in annotations.comments where !take(comment.line) {
             return "saving it would lose the comment \u{201C}\(comment.line.trimmingCharacters(in: .whitespaces))\u{201D}"

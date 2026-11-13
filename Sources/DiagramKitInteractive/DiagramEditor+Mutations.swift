@@ -96,6 +96,18 @@ extension DiagramEditor {
         )
     }
 
+    /// A format's name as users know it.
+    nonisolated static func _formatName(_ format: DiagramFormatID) -> String {
+        switch format {
+        case .d2: return "D2"
+        case .graphviz: return "DOT (Graphviz)"
+        case .plantuml: return "PlantUML"
+        case .structurizr: return "Structurizr"
+        case .mermaid: return "Mermaid"
+        default: return format.rawValue
+        }
+    }
+
     /// Shared transaction: exports `newDocument`, snapshots the current
     /// state, commits the new document/source/diagnostics (optionally
     /// updating selection), and registers an undo entry. Atomic — a
@@ -112,6 +124,12 @@ extension DiagramEditor {
         actionName: String,
         updateSelection: ((_ previous: DiagramSelection?, _ in: DiagramDocument) -> DiagramSelection?)? = nil
     ) async throws {
+        guard supportsCanvasEditing else {
+            let format = document.sourceFormat.flatMap { $0 == .mermaid ? nil : $0 } ?? preferredExportFormat
+            throw DiagramEditorError.exportWouldLoseContent(
+                details: "canvas editing is not available for \(Self._formatName(format)) files yet"
+            )
+        }
         // `savedSource`: a mutation that edited the text itself (a gantt
         // resize changes one task line) saves that text instead of a fresh
         // export; it is checked the same way.

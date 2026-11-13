@@ -36,7 +36,8 @@ private struct FlowchartOnlyExporter: DiagramExporter {
 /// Exporter that includes document title in output
 private struct TitleAwareExporter: DiagramExporter {
     let name: String = "TitleAware"
-    let formatID: DiagramFormatID = .d2
+    // Mermaid: canvas write-back to other formats is off in this release.
+    let formatID: DiagramFormatID = .mermaid
     let supportedDiagramTypes: Set<DiagramType> = [.flowchart, .sequenceDiagram, .classDiagram]
 
     func export(_ document: DiagramDocument) throws -> DiagramExportResult {
@@ -94,7 +95,7 @@ struct DiagramEditorSourceSyncTests {
         let registry = ExporterRegistry.empty.registering(TitleAwareExporter())
         let editor = DiagramEditor(
             document: doc,
-            preferredExportFormat: .d2,
+            preferredExportFormat: .mermaid,
             exportRegistry: registry
         )
 

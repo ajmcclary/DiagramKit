@@ -126,12 +126,13 @@ public struct MermaidExporter: DiagramExporter {
         let theme = document.frontmatter?.theme.flatMap { $0.isEmpty ? nil : $0 }
         let layout = document.frontmatter?.layout.flatMap { $0.isEmpty ? nil : $0 }
         if let annotations = document.sourceAnnotations {
-            return DiagramExportResult(
-                source: _applyMermaidSourceAnnotations(
-                    result.source, annotations, title: title, theme: theme, layout: layout
-                ),
-                diagnostics: result.diagnostics
+            let applied = _applyMermaidSourceAnnotationsReporting(
+                result.source, annotations, title: title, theme: theme, layout: layout
             )
+            let lost = applied.unplacedComments.map {
+                DiagramDiagnostic.lossyTransform(.configDrop, message: "the comment \u{201C}\($0)\u{201D} followed a statement the diagram no longer has; it is not written")
+            }
+            return DiagramExportResult(source: applied.text, diagnostics: result.diagnostics + lost)
         }
         var lines: [String] = []
         if let title { lines.append("title: \(_yamlScalar(title))") }
