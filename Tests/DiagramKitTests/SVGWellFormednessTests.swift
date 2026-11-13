@@ -32,6 +32,13 @@ func svgProblems(_ svg: String) -> [String] {
                     .filter { $0.value > 0x20 }
                     .map(String.init).joined().lowercased()
                 if squeezed.contains("javascript:") { hits.append("javascript: URL in \(key) on <\(name)>") }
+                if squeezed.contains("vbscript:") { hits.append("vbscript: URL in \(key) on <\(name)>") }
+                // A data: URL is a link target only where a host would
+                // navigate to it; embedded data:image icons are content.
+                let k = key.lowercased()
+                let carriesLink = k.hasPrefix("data-link") || k.hasPrefix("data-url") || k.hasPrefix("data-href")
+                    || ((k == "href" || k == "xlink:href") && lower != "image" && lower != "use")
+                if carriesLink, squeezed.hasPrefix("data:") { hits.append("data: URL in \(key) on <\(name)>") }
             }
         }
     }
@@ -58,6 +65,16 @@ func svgProblems(_ svg: String) -> [String] {
 /// One markup payload per family position the review found unescaped, plus
 /// the corpus-shaped inputs that put `<` or `"` into ids and styles.
 let hostileSVGInputs: [(name: String, source: String)] = [
+    ("class-click-js", "classDiagram\n  class A\n  click A href \"javascript:alert(1)\""),
+    ("class-click-js-case", "classDiagram\n  class A\n  click A href \"JaVaScRiPt:alert(1)\""),
+    ("class-click-data", "classDiagram\n  class A\n  click A href \"data:text/html,<script>alert(1)</script>\""),
+    ("class-click-vbs", "classDiagram\n  class A\n  click A href \"vbscript:msgbox(1)\""),
+    ("class-click-control", "classDiagram\n  class A\n  click A href \"\u{01}javascript:alert(1)\" \"tip\u{0B}\""),
+    ("class-link-js", "classDiagram\n  class A\n  link A \"javascript:alert(1)\" \"tip\""),
+    ("flow-control-label", "flowchart TD\n  A[\"x\u{01}y\u{0B}z\"] --> B"),
+    ("flow-click-control", "flowchart TD\n  A --> B\n  click A href \"\u{01}javascript:alert(1)\""),
+    ("sequence-control", "sequenceDiagram\n  A->>B: x\u{01}y\n  link A: L @ \u{0C}javascript:alert(1)"),
+    ("gantt-control", "gantt\n  dateFormat YYYY-MM-DD\n  section S\n  T\u{01}ask :t1, 2024-01-01, 2d\n  click t1 href \"\u{01}javascript:alert(1)\""),
     ("block-id", "block\n  a x\" onload=\"alert(1)"),
     ("block-style", "block-beta\n  a\n  style a fill:<b>,stroke:\"x\""),
     ("venn-style", "venn-beta\n  set A[\"Alpha\"]\n  set B[\"Beta\"]\n  union A,B[\"AB\"]\n  style A color:red\" onload=\"alert(1)"),

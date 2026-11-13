@@ -23,7 +23,7 @@ public enum SVG {
     /// escaped there is one escaping path for every position the renderers
     /// write (all attributes are double-quoted).
     public static func escapeText(_ value: String) -> String {
-        value
+        xmlCharacters(value)
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
@@ -35,12 +35,27 @@ public enum SVG {
     /// Apostrophe is normalized to the numeric entity `&#39;` for maximum
     /// compatibility across SVG consumers (some parsers reject `&apos;`).
     public static func escapeAttribute(_ value: String) -> String {
-        value
+        xmlCharacters(value)
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
             .replacingOccurrences(of: "'", with: "&#39;")
+    }
+
+    /// `value` without the characters XML 1.0 forbids (C0 controls other
+    /// than tab, newline and carriage return, and U+FFFE/U+FFFF); one of
+    /// them anywhere makes the whole SVG unparseable.
+    public static func xmlCharacters(_ value: String) -> String {
+        guard value.unicodeScalars.contains(where: _isXMLForbidden) else { return value }
+        var scalars = String.UnicodeScalarView()
+        scalars.append(contentsOf: value.unicodeScalars.filter { !_isXMLForbidden($0) })
+        return String(scalars)
+    }
+
+    private static func _isXMLForbidden(_ scalar: Unicode.Scalar) -> Bool {
+        let v = scalar.value
+        return (v < 0x20 && v != 0x09 && v != 0x0A && v != 0x0D) || v == 0xFFFE || v == 0xFFFF
     }
 
     /// A theme or style value for a CSS position — a `<style>` block or a

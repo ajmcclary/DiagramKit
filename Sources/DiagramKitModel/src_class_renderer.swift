@@ -211,8 +211,11 @@ private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? 
     let textFill = parsedStyle.color.flatMap { _isSafeCSSColor($0) ? SVG.escapeAttribute($0) : nil } ?? "var(--_text)"
 
     let isSandbox = securityLevel?.lowercased() == "sandbox" || securityLevel?.lowercased() == "strict"
-    let linkAttr = (!isSandbox && cls.link != nil) ? " data-link=\"\(SVG.escapeAttribute(cls.link!))\"" : ""
-    let linkTargetAttr = (!isSandbox && cls.linkTarget != nil) ? " data-link-target=\"\(SVG.escapeAttribute(cls.linkTarget!))\"" : ""
+    // `data-link` is what a host navigates to: the output-time scheme
+    // check applies (javascript, data and vbscript never become links).
+    let safeLink = cls.link.flatMap { _isSafeLinkURL($0) ? $0 : nil }
+    let linkAttr = (!isSandbox && safeLink != nil) ? " data-link=\"\(SVG.escapeAttribute(safeLink!))\"" : ""
+    let linkTargetAttr = (!isSandbox && safeLink != nil && cls.linkTarget != nil) ? " data-link-target=\"\(SVG.escapeAttribute(cls.linkTarget!))\"" : ""
     let tooltipAttr = (!isSandbox && cls.tooltip != nil) ? " data-tooltip=\"\(SVG.escapeAttribute(cls.tooltip!))\"" : ""
 
     parts.append(
