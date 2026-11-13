@@ -281,7 +281,11 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
                     rangeStart = nil
                     rangeEnd = nil
                 }
-                currentDate = cal.date(byAdding: .day, value: 1, to: currentDate) ?? endDate
+                // `Calendar` returns nil past the dates it can represent
+                // (year 1,000,000); `?? endDate` then pinned the loop on
+                // the end date forever.
+                guard let next = cal.date(byAdding: .day, value: 1, to: currentDate), next > currentDate else { break }
+                currentDate = next
             }
             if let start = rangeStart, let end = rangeEnd {
                 excludedRanges.append(_makeExcludedRange(start: start, end: end, height: height, config: config, scale: scale))
@@ -535,7 +539,18 @@ private func _generateAxisTicks(
                                    day, day * 2, day * 3, day * 5, day * 7,
                                    day * 14, day * 30, day * 90, day * 365]
             for s in steps where s >= rough { return (s, _stepForSeconds(s, weekday: weekday)) }
-            return (day * 365, _GanttTickStep.calendar(.year, 1))
+            // Longer than a year per tick: a nice number of years (1, 2, 5,
+            // 10, 20, 50, …). Always one year used to give a tick per year,
+            // so a 100,000,000-day task made a 50 MB SVG.
+            let years = rough / (day * 365)
+            var nice = 1.0
+            while nice < years, nice < 1e12 {
+                if nice * 2 >= years { nice *= 2; break }
+                if nice * 5 >= years { nice *= 5; break }
+                nice *= 10
+            }
+            let value = _clampedInt(nice, min: 1, max: Int(Int32.max), default: 1)
+            return (day * 365 * Double(value), _GanttTickStep.calendar(.year, value))
         }
 
         let (_, tickStep) = niceSpan(rawStep)
@@ -577,7 +592,9 @@ private func _generateAxisTicks(
     df.locale = Locale(identifier: "en_US_POSIX")
     df.dateFormat = _translateDayjsFormatToSwift(axisFormat)
 
-    while currentDate <= maxTime {
+    // Whatever the step, never more ticks than this (each is SVG text and a
+    // grid line).
+    while currentDate <= maxTime, Double(result.count) < maxTickCount {
         let x = scale(currentDate)
         let label = df.string(from: currentDate)
         result.append(GanttAxisTick(date: currentDate, label: label, x: x))
@@ -604,10 +621,10 @@ private func _stepForSeconds(_ seconds: Double, weekday: String) -> _GanttTickSt
     case 1.0..<60: return _GanttTickStep.seconds(seconds)
     case 60.0..<3600: return _GanttTickStep.seconds(seconds)
     case 3600.0..<86400: return _GanttTickStep.seconds(seconds)
-    case 86400.0..<(86400 * 7): return _GanttTickStep.calendar(.day, max(1, Int(seconds / 86400)))
-    case (86400 * 7)..<(86400 * 30): return _GanttTickStep.week(max(1, Int(seconds / (86400 * 7))), weekday)
-    case (86400 * 30)..<(86400 * 365): return _GanttTickStep.calendar(.month, max(1, Int(seconds / (86400 * 30))))
-    default: return _GanttTickStep.calendar(.year, max(1, Int(seconds / (86400 * 365))))
+    case 86400.0..<(86400 * 7): return _GanttTickStep.calendar(.day, max(1, _safeInt(seconds / 86400, default: 1)))
+    case (86400 * 7)..<(86400 * 30): return _GanttTickStep.week(max(1, _safeInt(seconds / (86400 * 7), default: 1)), weekday)
+    case (86400 * 30)..<(86400 * 365): return _GanttTickStep.calendar(.month, max(1, _safeInt(seconds / (86400 * 30), default: 1)))
+    default: return _GanttTickStep.calendar(.year, _clampedInt(seconds / (86400 * 365), min: 1, max: Int(Int32.max), default: 1))
     }
 }
 
