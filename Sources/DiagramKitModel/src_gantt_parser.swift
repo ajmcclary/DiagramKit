@@ -108,7 +108,8 @@ private func _parseGanttDiagramEntry(
             // also swallowed tasks such as `Topaxis review : …`. A task whose
             // first word is the keyword itself (`Includes testing : …`) is
             // that directive upstream as well. The argument-less flags
-            // (`inclusiveEndDates`, `topAxis`) must be the whole line.
+            // (`inclusiveEndDates`, `topAxis`) must be the whole line, apart
+            // from a trailing `%%` comment (upstream's lexer skips it).
             // dateFormat
             if _ganttHasKeyword(trimmed, keyword: "dateformat") {
                 let value = _extractAfterKeyword(trimmed, keyword: "dateFormat")
@@ -131,13 +132,13 @@ private func _parseGanttDiagramEntry(
             }
 
             // inclusiveEndDates
-            if lower == "inclusiveenddates" {
+            if DiagramSourceNormalizer.strippingInlineComment(lower) == "inclusiveenddates" {
                 diagram.inclusiveEndDates = true
                 continue
             }
 
             // topAxis
-            if lower == "topaxis" {
+            if DiagramSourceNormalizer.strippingInlineComment(lower) == "topaxis" {
                 diagram.topAxis = true
                 continue
             }

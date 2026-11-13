@@ -36,6 +36,18 @@ struct ParserReviewRound1Tests {
         #expect(_HTMLEntities.stripStyleStatementTerminators(line) == expected)
     }
 
+    @Test("gantt flags followed by a %% comment still apply")
+    func ganttFlagsWithComment() async throws {
+        let document = try await DiagramEngine.parse("gantt\ndateFormat YYYY-MM-DD\ninclusiveEndDates %% inclusive\ntopAxis %% c\nTask : t1, 2024-01-01, 1d")
+        guard case .gantt(let diagram) = document.payload else {
+            Issue.record("expected gantt")
+            return
+        }
+        #expect(diagram.inclusiveEndDates)
+        #expect(diagram.topAxis)
+        #expect(diagram.tasks.count == 1)
+    }
+
     private static func node(_ graph: ParsedGraphModel, _ id: String) -> (label: String, shape: String)? {
         graph.nodesInOrder.first { $0.id == id }.map { ($0.node.label, "\($0.node.shape)") }
     }
