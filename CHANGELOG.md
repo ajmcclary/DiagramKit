@@ -4,6 +4,77 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.0-beta.10] - 2026-11-13
+
+Remediates the 2026-11-12 full review: canvas edits that 0.1.0-beta.9's
+export check refused although nothing would have been lost.
+
+### Changed — what a consumer will notice
+
+- **Fixed, regression in 0.1.0-beta.9: inserting catalog, icon and image
+  nodes.** Inserting a node whose shape has no bracket form (33 of the 48
+  catalog shapes, such as `cloud`, `document` and `delay`), an icon node or
+  an image node into a Mermaid flowchart, and changing a node to such a
+  shape, was refused by the export check ("would lose or change a node (its
+  properties)"). These edits are accepted again. A property an export really
+  drops (`icon:`, `img:`, `w:`, `pos:`) is still refused.
+- **Fixed, regression in 0.1.0-beta.9: state-diagram deletes.** Several
+  ordinary deletes were refused: a state whose removal only changed node
+  order, a composite or concurrency region, the last state of the region
+  holding the shared start/end markers, and a state with notes. They are
+  accepted, and each undoes in one step to the original source byte for
+  byte.
+- **What a delete now removes with it.** Deleting a state removes its notes
+  (its remaining notes keep their selection when renumbered). Deleting a
+  composite, a region or a flowchart subgraph removes the transitions or
+  edges that name it, with its nested states or nodes, in one undo step. A
+  start or end marker left with no transition is removed with the deleted
+  state. A marker shared by concurrency regions stays with the region that
+  still uses it, so deleting one region keeps the other regions' `[*]`
+  transitions. Deleting a note's connector leaves a floating note
+  (`note "…" as Id`).
+- **`<br>` in a floating state note now breaks the line**, as it already
+  did in an attached note.
+
+### Known limits
+
+- A composite state nested inside a concurrency region is exported into the
+  last region, so on such a diagram deletes and renames are refused with
+  `exportWouldLoseContent`. Nothing is written wrongly.
+
+### Fixed
+
+- **Editor safety net:** a `NodeProperties` with no field set (after the
+  documented exclusions, such as the raw `shape` alias) is compared as
+  absent, so an inserted node and its read-back agree.
+- **State deletes:** after a state-diagram delete the editor commits the
+  read-back document when it equals the edited model apart from node and
+  member order, which in state syntax is the order the source first names
+  each state. The safety net's own comparison is unchanged and still
+  order-sensitive.
+- **State delete tidy-up:** emptied regions are dropped after shared markers
+  move out, a composite left with one region becomes a plain composite, and
+  regions and notes are renumbered as the parser names them.
+- **State export:** a state that belongs to a composite but is first named
+  by a transition outside it is declared inside its composite first, so
+  deleting its sibling is accepted.
+
+### Tests
+
+- `CanvasEditSweepTests`: every flowchart insert and edit (all 48 catalog
+  shapes, icon and image nodes, edges, styles, groups, subgraphs, moves,
+  deletes, settings) and the state, sequence and gantt edits, on a fresh
+  and a corpus document, each accepted and read back as the edited model.
+- `NodePropertiesLossTests`: an exporter that drops `icon`, `img`, `w` or
+  `pos` is still refused.
+- `StateDeleteSweepTests`: every state, transition, note connector,
+  composite and region of every state corpus document and ten fixtures
+  deleted one at a time (251 deletes, all accepted), judged by an
+  independent reader of the source text and undone in one step; every
+  picker insert checked for its concrete shape, icon and image values.
+- `StateRegionDeleteTests`: the review's region and marker cases as named
+  regressions.
+
 ## [0.1.0-beta.9] - 2026-11-13
 
 Remediates the 2026-11-12 full review of the package (parsing, layout,
