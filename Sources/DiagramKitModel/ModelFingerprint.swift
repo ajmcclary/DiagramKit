@@ -47,6 +47,16 @@ let _fingerprintExclusions: Set<String> = [
     "ClassRelationship.text",
 ]
 
+/// Types an all-nil value of which is compared as absent.
+let _fingerprintEmptyAsNil: Set<String> = ["NodeProperties"]
+
+/// Whether a struct description `Name{a=nil,b=nil}` sets no field.
+private func _hasOnlyNilFields(_ description: String) -> Bool {
+    guard let open = description.firstIndex(of: "{"), description.hasSuffix("}") else { return false }
+    let body = description[description.index(after: open)..<description.index(before: description.endIndex)]
+    return body.isEmpty || body.split(separator: ",").allSatisfy { $0.hasSuffix("=nil") }
+}
+
 /// A sequence diagram's timeline with the parser's bookkeeping taken out:
 /// participants are compared as the ordered, merged list the layout uses
 /// (`actors`), not as the declaration items that produced it, and a note's
@@ -98,7 +108,17 @@ private func _describe(_ value: Any, into out: inout String, depth: Int) {
     switch mirror.displayStyle {
     case .optional:
         if let child = mirror.children.first {
-            _describe(child.value, into: &out, depth: depth + 1)
+            var inner = ""
+            _describe(child.value, into: &inner, depth: depth + 1)
+            // `@{ shape: … }` alone gives a node a NodeProperties holding
+            // only the raw alias, which is left out (see exclusions); with
+            // nothing else set it is the same node as one with none.
+            if _fingerprintEmptyAsNil.contains(String(describing: Mirror(reflecting: child.value).subjectType)),
+               _hasOnlyNilFields(inner) {
+                out += "nil"
+            } else {
+                out += inner
+            }
         } else {
             out += "nil"
         }

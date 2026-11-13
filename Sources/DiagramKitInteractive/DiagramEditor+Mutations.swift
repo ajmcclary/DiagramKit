@@ -288,6 +288,19 @@ extension DiagramEditor {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
         }
+        // A state diagram writes `[*]` only as a transition end, so a start
+        // or end marker whose last transition the delete removed cannot be
+        // saved; it goes with that transition (it had nothing left to mark).
+        if case .stateDiagram(var graph) = doc.payload {
+            let used = Set(graph.edges.flatMap { [$0.source, $0.target] })
+            let orphans = Set(graph.nodesInOrder.filter {
+                ($0.node.shape == .stateStart || $0.node.shape == .stateEnd) && !used.contains($0.id)
+            }.map(\.id))
+            if !orphans.isEmpty {
+                Self._purgeNodes(orphans, from: &graph)
+                doc.payload = .stateDiagram(graph)
+            }
+        }
         return doc
     }
 
