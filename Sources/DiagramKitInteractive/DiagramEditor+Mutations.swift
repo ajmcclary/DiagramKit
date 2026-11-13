@@ -69,14 +69,22 @@ extension DiagramEditor {
     func _commitMutation(
         newDocument: DiagramDocument,
         mutationDiagnostics: [DiagramDiagnostic] = [],
+        savedSource: String? = nil,
         actionName: String,
         updateSelection: ((_ previous: DiagramSelection?, _ in: DiagramDocument) -> DiagramSelection?)? = nil
     ) async throws {
+        // `savedSource`: a mutation that edited the text itself (a gantt
+        // resize changes one task line) saves that text instead of a fresh
+        // export; it is checked the same way.
         let exportResult: DiagramExportResult
-        do {
-            exportResult = try await _exportAsync(newDocument)
-        } catch {
-            throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
+        if let savedSource {
+            exportResult = DiagramExportResult(source: savedSource)
+        } else {
+            do {
+                exportResult = try await _exportAsync(newDocument)
+            } catch {
+                throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
+            }
         }
         try await _checkExport(exportResult.source, of: newDocument, replacing: document)
 

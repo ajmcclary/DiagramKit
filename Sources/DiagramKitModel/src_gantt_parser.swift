@@ -510,6 +510,23 @@ private func _dateFormatter(for dateFormat: String) -> DateFormatter {
     }
 }
 
+/// `date` written in the gantt's `dateFormat`, or nil when that format
+/// cannot write it so that it reads back as the same instant (timestamp
+/// formats, or a format too coarse for the date).
+public func _ganttFormatDate(_ date: Date, dateFormat: String) -> String? {
+    guard !_isTimestampFormat(dateFormat) else { return nil }
+    let formatter = _dateFormatter(for: dateFormat)
+    let text = formatter.string(from: date)
+    guard let back = formatter.date(from: text), back == date else { return nil }
+    return text
+}
+
+/// Whether `token` is an end date (not a duration or `until`) in `dateFormat`.
+public func _ganttIsDate(_ token: String, dateFormat: String) -> Bool {
+    guard !_isTimestampFormat(dateFormat) else { return false }
+    return _dateFormatter(for: dateFormat).date(from: token.trimmingCharacters(in: .whitespaces)) != nil
+}
+
 private func _isTimestampFormat(_ format: String) -> Bool {
     let trimmed = format.trimmingCharacters(in: .whitespaces)
     return trimmed == "x" || trimmed == "X"

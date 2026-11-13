@@ -8,6 +8,7 @@
 // file), and commits document + source + undo registration atomically.
 
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 
@@ -78,11 +79,143 @@ extension DiagramEditor {
             )
         }
 
+        // With a parser at hand (the default registry's read-back), a
+        // resize edits the task's own line in the source and re-reads the
+        // text, so every other line (durations, `after` dependencies,
+        // comments) stays as written and dependent tasks move as they would
+        // in Mermaid. Without one, the model is edited and exported.
+        if case .resizeTask(let taskId, let newEndTime) = mutation,
+           preferredExportFormat == .mermaid,
+           let readBack = exportRegistry.readBack {
+            let base: String
+            if let source {
+                base = source
+            } else {
+                base = try await _exportAsync(document).source
+            }
+            let current = document
+            let (edited, newDocument) = try await Self._runOnWorker {
+                try Self._resizeGanttTaskInSource(
+                    base, document: current, taskId: taskId, newEndTime: newEndTime, readBack: readBack
+                )
+            }
+            try await _commitMutation(
+                newDocument: newDocument,
+                savedSource: edited,
+                actionName: mutation.undoActionName
+            )
+            return
+        }
+
         let newDocument = try _applyGantt(mutation, to: document)
         try await _commitMutation(
             newDocument: newDocument,
             actionName: mutation.undoActionName
         )
+    }
+
+    // MARK: - Source-level resize
+
+    /// `source` with only the line of task `taskId` changed so the task
+    /// ends at `newEndTime`, and the document that text reads as. The end
+    /// keeps its form where the new end can be written in it (a duration
+    /// stays a duration in its unit, or in days, hours, minutes or seconds
+    /// when it is not a whole number of that unit; a date stays a date);
+    /// otherwise, for that line only, it becomes a date in the gantt's
+    /// `dateFormat`. Throws `exportWouldLoseContent` when the gantt uses
+    /// `excludes` (the written dates would not say where the bar ends) or
+    /// when no spelling reads back as the requested end.
+    nonisolated static func _resizeGanttTaskInSource(
+        _ source: String,
+        document: DiagramDocument,
+        taskId: String,
+        newEndTime: Date,
+        readBack: @Sendable (String, DiagramFormatID) throws -> DiagramDocument
+    ) throws -> (source: String, document: DiagramDocument) {
+        guard case .gantt(let model) = document.payload else {
+            throw DiagramEditorError.unsupportedMutation(mutation: "resizeTask", diagramType: document.type.rawValue)
+        }
+        guard let index = model.tasks.firstIndex(where: { $0.id == taskId }) else {
+            throw DiagramEditorError.elementNotFound(id: taskId, kind: "task")
+        }
+        let task = model.tasks[index]
+        func refuse(_ why: String) -> DiagramEditorError {
+            .exportWouldLoseContent(details: "task '\(taskId)' cannot be resized on the canvas: \(why)")
+        }
+        if !model.excludes.isEmpty {
+            throw refuse("the gantt excludes days (`excludes`), so the dates a resize writes would not say where the bar ends; edit the source")
+        }
+
+        // The task's line: the first line whose prefix of the source
+        // already holds the task (read by the real parser).
+        var lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var lineIndex: Int?
+        for i in lines.indices where lines[i].contains(":") {
+            let prefix = lines[...i].joined(separator: "\n") + "\n"
+            guard let doc = try? readBack(prefix, .mermaid), case .gantt(let partial) = doc.payload else { continue }
+            if partial.tasks.count > index {
+                lineIndex = i
+                break
+            }
+        }
+        guard let lineIndex,
+              let colon = lines[lineIndex].firstIndex(of: ":"),
+              lines[lineIndex][..<colon].trimmingCharacters(in: .whitespaces) == task.task else {
+            throw refuse("its line in the source was not found")
+        }
+
+        // The end is the last comma-separated field after the colon.
+        let line = lines[lineIndex]
+        let dataStart = line.index(after: colon)
+        let lastComma = line[dataStart...].lastIndex(of: ",")
+        let fieldStart = lastComma.map { line.index(after: $0) } ?? dataStart
+        let field = String(line[fieldStart...])
+        let leading = String(field.prefix(while: { $0 == " " || $0 == "\t" }))
+        let trailing = String(field.reversed().prefix(while: { $0 == " " || $0 == "\t" }).reversed())
+        let token = field.trimmingCharacters(in: .whitespaces)
+
+        var candidates: [String] = []
+        if let duration = Self._ganttDuration(token) {
+            let seconds = newEndTime.timeIntervalSince(task.startTime)
+            let units: [(String, Double)] = [("ms", 0.001), ("s", 1), ("m", 60), ("h", 3600), ("d", 86400), ("w", 604_800)]
+            let preferred = units.first { $0.0 == duration.unit }.map { [$0] } ?? []
+            for (unit, size) in preferred + units.reversed() where seconds >= 0 {
+                let value = seconds / size
+                if value.rounded() == value, value < 1e12 {
+                    candidates.append("\(Int(value))\(unit)")
+                    break
+                }
+            }
+        }
+        let writtenEnd = model.inclusiveEndDates
+            ? (_ganttCalendar.date(byAdding: .day, value: -1, to: newEndTime) ?? newEndTime)
+            : newEndTime
+        if let date = _ganttFormatDate(writtenEnd, dateFormat: model.dateFormat) {
+            candidates.append(date)
+        }
+
+        for candidate in candidates {
+            lines[lineIndex] = String(line[..<fieldStart]) + leading + candidate + trailing
+            let edited = lines.joined(separator: "\n")
+            guard let back = try? readBack(edited, .mermaid),
+                  case .gantt(let reread) = back.payload,
+                  reread.tasks.count == model.tasks.count,
+                  reread.tasks[index].id == taskId,
+                  reread.tasks[index].startTime == task.startTime,
+                  reread.tasks[index].endTime == newEndTime else { continue }
+            return (edited, back)
+        }
+        throw refuse("no spelling of its end in this gantt reads back as the requested date")
+    }
+
+    /// The value and unit of a gantt duration (`10d`, `1.5h`), or nil.
+    nonisolated static func _ganttDuration(_ token: String) -> (value: Double, unit: String)? {
+        guard let match = token.range(of: #"^\d+(?:\.\d+)?(ms|[Mdhmswy])$"#, options: .regularExpression), match == token.startIndex..<token.endIndex else {
+            return nil
+        }
+        let unit = token.hasSuffix("ms") ? "ms" : String(token.last!)
+        let number = token.dropLast(unit.count)
+        return Double(number).map { ($0, unit) }
     }
 
     // MARK: - Mutation application
