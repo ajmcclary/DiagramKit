@@ -89,7 +89,10 @@ extension DiagramEditor {
         ]
         if let thing = fields.first(where: { field.contains($0.0) })?.1 {
             let owner = types.first { $0.0 == type }?.1
-            return owner.map { "lose or change \(thing) of \($0)" } ?? "lose or change \(thing)"
+            if let owner, let noun = owner.split(separator: " ").last, !thing.contains(noun) {
+                return "lose or change \(thing) of \(owner)"
+            }
+            return "lose or change \(thing)"
         }
         if let owner = types.first(where: { $0.0 == type })?.1 {
             return "lose or change \(owner)\(field.isEmpty ? "" : " (its \(location.field!))")"

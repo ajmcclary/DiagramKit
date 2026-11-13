@@ -27,7 +27,7 @@ let catalogShapeAliases = [
     "triangle", "notched-pentagon", "lightning-bolt", "braces", "bang", "text",
 ]
 
-private typealias Step = (DiagramEditor) async throws -> Void
+private typealias Step = @MainActor (DiagramEditor) async throws -> Void
 
 private func node(_ id: String, _ type: DiagramType = .flowchart) -> DiagramSelection {
     DiagramSelection(diagramType: type, elementID: "node:\(id)")
@@ -78,8 +78,15 @@ private func flowchartEdits(existing x: String, other y: String, subgraph s: Str
             ("move to subgraph", [{ try await $0.performFlowchart(.moveToSubgraph(selections: [node(y)], target: s)) }]),
             ("rename subgraph", [{ try await $0.performFlowchart(.renameSubgraph(id: s, title: "Renamed group")) }]),
             ("ungroup", [{ try await $0.performFlowchart(.ungroupSubgraph(id: s)) }]),
+            ("move to root", [{ try await $0.performFlowchart(.moveToSubgraph(selections: [node(y)], target: nil)) }]),
+            ("delete group", [{ try await $0.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "group:\(s)"))) }]),
         ]
     }
+    edits.append(("delete edge", [{ @MainActor editor in
+        guard case .flowchart(let g) = editor.document.payload, let e = g.edges.first else { return }
+        let id = _guaranteedDiagramEdgeID(id: e.id, source: e.source, target: e.target, label: e.label)
+        try await editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: id)))
+    }]))
     return edits
 }
 
@@ -222,6 +229,183 @@ struct NodePropertiesLossTests {
         }
         #expect(edit.source == "flowchart TD\n  A[Start] --> B[End]\n")
         #expect(!edit.canUndo)
+    }
+}
+#endif
+#if canImport(UIKit) || canImport(AppKit)
+// Review of cc9e6ff2: the sweep must delete every state, transition,
+// composite and region; check undo; and check the result with concrete
+// facts rather than the safety net's own fingerprint.
+
+private func edgeSelectionIDs(_ graph: original_src_types.MermaidGraph) -> [(id: String, edge: original_src_types.MermaidEdge)] {
+    var counts: [String: Int] = [:]
+    return graph.edges.map { edge in
+        let base = _guaranteedDiagramEdgeID(id: edge.id, source: edge.source, target: edge.target, label: edge.label)
+        let n = counts[base, default: 0]
+        counts[base] = n + 1
+        return (n > 0 ? "\(base)/\(n)" : base, edge)
+    }
+}
+
+private func allSubgraphs(_ list: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
+    list.flatMap { [$0] + allSubgraphs($0.children) }
+}
+
+private func edgeKey(_ e: original_src_types.MermaidEdge) -> String { "\(e.source)->\(e.target):\(e.label ?? "")" }
+
+let stateDeleteFixtures: [(name: String, source: String)] = [
+    ("st-real", "stateDiagram-v2\n  [*] --> Draft\n  Draft --> [*] : discard\n  Draft --> Review\n  Review --> Published\n  Published --> [*]\n"),
+    ("st-comp", "stateDiagram-v2\n  [*] --> Active\n  state Active {\n    [*] --> Idle\n    Idle --> Busy : go\n    Busy --> [*]\n  }\n  Active --> Done\n  Done --> [*]\n"),
+    ("st-regions", "stateDiagram-v2\n  [*] --> Active\n  state Active {\n    [*] --> NumOff\n    NumOff --> NumOn\n    --\n    [*] --> CapsOff\n    CapsOff --> CapsOn\n    CapsOn --> [*]\n  }\n  Active --> [*]\n"),
+]
+
+private func checkIcon(_ node: original_src_types.MermaidNode) -> String? {
+    let props = node.properties
+    let ok: Bool = node.shape == .iconSquare && props?.icon == "fa:database" && props?.pos == "b" && props?.h != nil
+    return ok ? nil : "icon node \(node.shape) \(String(describing: props))"
+}
+
+private func checkImage(_ node: original_src_types.MermaidNode) -> String? {
+    let props = node.properties
+    let url: Bool = props?.img == "https://example.com/a.png?x=1"
+    let size: Bool = props?.w == 300.5 && props?.h == 4096
+    return node.shape == .imageSquare && url && size ? nil : "image node \(node.shape) \(String(describing: props))"
+}
+
+private func checkShape(_ alias: String) -> (original_src_types.MermaidNode) -> String? {
+    { node in node.shape == original_src_types.NodeShape.resolve(alias: alias) ? nil : "shape \(node.shape)" }
+}
+
+private func insertSteps(_ alias: String) -> [Step] {
+    [{ try await $0.performFlowchart(.insertNode(id: "zz1", label: "New node", type: alias)) }]
+}
+
+@Suite("State deletes: every element, with undo and concrete checks") @MainActor
+struct StateDeleteSweepTests {
+
+    @Test("deleting every state, transition, composite and region of every state corpus document and fixture is accepted, reads back as asked, and undoes exactly")
+    func deleteEverything() async throws {
+        let corpus = try DiagramCorpus.load().compactMap { entry -> (String, String)? in
+            guard let doc = try? MermaidImporter().parse(entry.source).document, doc.type == .stateDiagram else { return nil }
+            return (entry.id, entry.source)
+        }
+        var failures: [String] = []
+        var rows = 0
+        for (name, source) in corpus + stateDeleteFixtures {
+            let document = try MermaidImporter().parse(source).document
+            guard case .stateDiagram(let graph) = document.payload else { continue }
+            let markers = Set(graph.nodesInOrder.filter { $0.node.shape == .stateStart || $0.node.shape == .stateEnd }.map(\.id))
+            let subgraphs = allSubgraphs(graph.subgraphs)
+            let subgraphIDs = Set(subgraphs.map(\.id))
+            var targets: [(String, Set<String>, Set<String>)] = []   // selection, removed ids, removed edge keys
+            for (id, _) in graph.nodesInOrder where !markers.contains(id) && !subgraphIDs.contains(id) {
+                let edges = Set(graph.edges.filter { $0.source == id || $0.target == id }.map(edgeKey))
+                targets.append(("node:\(id)", [id], edges))
+            }
+            for (sid, edge) in edgeSelectionIDs(graph) {
+                targets.append((sid, [], [edgeKey(edge)]))
+            }
+            for sub in subgraphs {
+                var ids = Set([sub.id])
+                for inner in allSubgraphs([sub]) { ids.formUnion(inner.nodeIds); ids.insert(inner.id) }
+                let edges = Set(graph.edges.filter { ids.contains($0.source) || ids.contains($0.target) }.map(edgeKey))
+                targets.append(("group:\(sub.id)", ids, edges))
+            }
+            for (selection, removed, removedEdges) in targets {
+                rows += 1
+                let label = "[\(name) \(selection)]"
+                let editor = DiagramEditor(document: document, preferredExportFormat: .mermaid,
+                                           exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
+                do {
+                    try await editor.perform(.deleteElement(DiagramSelection(diagramType: .stateDiagram, elementID: selection)))
+                } catch {
+                    failures.append("\(label) refused: \(error.localizedDescription)"); continue
+                }
+                // Concrete facts, without the fingerprint. Notes are
+                // compared by (state, text): a state's notes are numbered
+                // in order, so deleting one renumbers the next, and a note
+                // goes with its state or its attaching link.
+                guard let saved = editor.source,
+                      case .stateDiagram(let back) = try MermaidImporter().parse(saved).document.payload else {
+                    failures.append("\(label) saved text does not parse"); continue
+                }
+                let noteIDs = Set(graph.nodesInOrder.filter { $0.node.shape == .stateNote }.map(\.id))
+                func notes(_ g: original_src_types.MermaidGraph, dropping removedIDs: Set<String>, edges removedEdgeKeys: Set<String>) -> [String] {
+                    g.nodesInOrder.filter { $0.node.shape == .stateNote && !removedIDs.contains($0.id) }.compactMap { note -> String? in
+                        let link = g.edges.first { $0.source == note.id || $0.target == note.id }
+                        if let link, removedEdgeKeys.contains(edgeKey(link)) { return nil }
+                        let state = link.map { $0.source == note.id ? $0.target : $0.source } ?? "floating"
+                        if removedIDs.contains(state) { return nil }
+                        return "\(state): \(note.node.label)"
+                    }.sorted()
+                }
+                let expectedNotes = notes(graph, dropping: removed, edges: removedEdges)
+                let backNotes = notes(back, dropping: [], edges: [])
+                if backNotes != expectedNotes { failures.append("\(label) notes \(backNotes) expected \(expectedNotes)") }
+                let isNoteEdge = { (e: original_src_types.MermaidEdge) in noteIDs.contains(e.source) || noteIDs.contains(e.target) || e.source.contains("----note") || e.target.contains("----note") }
+                let backIDs = Set(back.nodesInOrder.filter { $0.node.shape != .stateNote }.map(\.id))
+                for id in removed where !noteIDs.contains(id) && backIDs.contains(id) { failures.append("\(label) \(id) still present") }
+                if back.edges.contains(where: { !isNoteEdge($0) && (removed.contains($0.source) || removed.contains($0.target)) }) {
+                    failures.append("\(label) a transition still names a deleted id")
+                }
+                let expectedEdges = graph.edges.filter { !isNoteEdge($0) }.map(edgeKey).filter { !removedEdges.contains($0) }.sorted()
+                let backEdges = back.edges.filter { !isNoteEdge($0) }.map(edgeKey).sorted()
+                if backEdges != expectedEdges {
+                    failures.append("\(label) transitions \(backEdges) expected \(expectedEdges)")
+                }
+                let used = Set(back.edges.flatMap { [$0.source, $0.target] })
+                let expectedIDs = Set(graph.nodesInOrder.filter { $0.node.shape != .stateNote }.map(\.id)).subtracting(removed)
+                    .filter { !markers.contains($0) || used.contains($0) }
+                if backIDs != expectedIDs {
+                    failures.append("\(label) nodes \(backIDs.subtracting(expectedIDs)) extra, \(expectedIDs.subtracting(backIDs)) missing")
+                }
+                // One undo restores the source byte for byte.
+                await editor.undo()
+                if editor.source != source { failures.append("\(label) undo did not restore the source") }
+                if editor.canUndo { failures.append("\(label) more than one undo step") }
+            }
+        }
+        #expect(rows > 100)
+        #expect(failures.isEmpty, "\(failures.count) of \(rows):\n\(failures.prefix(25).joined(separator: "\n"))")
+    }
+
+    @Test("every picker insert into a flowchart reads back with the expected shape, icon and image, other nodes and edges unchanged, and undoes exactly")
+    func insertsConcrete() async throws {
+        let source = "flowchart TD\n  A[Start] --> B[End]\n"
+        var failures: [String] = []
+        let cases: [(String, [Step], (original_src_types.MermaidNode) -> String?)] =
+            catalogShapeAliases.map { alias in (alias, insertSteps(alias), checkShape(alias)) } + [
+                ("icon", [
+                    { try await $0.performFlowchart(.insertNode(id: "zz1", label: "New icon", type: "icon-circle")) },
+                    { try await $0.performFlowchart(.setNodeIcon(of: node("zz1"), to: IconSpec(name: "database", background: .square, size: .large, labelPosition: .bottom))) },
+                ], checkIcon),
+                ("image", [
+                    { try await $0.performFlowchart(.insertNode(id: "zz1", label: "Image", type: "image-square")) },
+                    { try await $0.performFlowchart(.setNodeImage(of: node("zz1"), to: ImageSpec(urlString: "https://example.com/a.png?x=1", width: 300.5, height: 4096, title: "Shot"))) },
+                ], checkImage),
+            ]
+        for (name, steps, check) in cases {
+            let editor = DiagramEditor(document: try MermaidImporter().parse(source).document, preferredExportFormat: .mermaid,
+                                       exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
+            editor.beginUndoGrouping()
+            do {
+                for step in steps { try await step(editor) }
+            } catch {
+                failures.append("[\(name)] refused: \(error.localizedDescription)")
+            }
+            editor.endUndoGrouping()
+            guard case .flowchart(let back) = try MermaidImporter().parse(editor.source ?? "").document.payload,
+                  let inserted = back.nodesInOrder.first(where: { $0.id == "zz1" }) else {
+                failures.append("[\(name)] inserted node missing"); continue
+            }
+            if let problem = check(inserted.node) { failures.append("[\(name)] \(problem)") }
+            if back.nodesInOrder.map(\.id) != ["A", "B", "zz1"] || back.edges.map(edgeKey) != ["A->B:"] {
+                failures.append("[\(name)] other nodes or edges changed")
+            }
+            await editor.undo()
+            if editor.source != source { failures.append("[\(name)] undo did not restore the source") }
+        }
+        #expect(failures.isEmpty, "\(failures.joined(separator: "\n"))")
     }
 }
 #endif
