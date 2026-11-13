@@ -13,7 +13,13 @@ public func renderC4Ascii(_ model: C4Diagram) -> String {
     let boundariesById = Dictionary(model.boundaries.map { ($0.alias, $0) }, uniquingKeysWith: { first, _ in first })
     let shapesByBoundary = Dictionary(grouping: model.shapes, by: \.parentBoundary)
 
+    // A boundary whose parent chain loops back (`Boundary(global, …)` is
+    // its own parent, since every top-level boundary's parent is `global`)
+    // recursed until the stack overflowed. Each alias is emitted once.
+    var visited: Set<String> = []
+
     func emit(boundaryAlias: String, depth: Int) {
+        guard visited.insert(boundaryAlias).inserted, depth < _diagramDefaultRecursionLimit else { return }
         let indent = String(repeating: "  ", count: depth)
         if boundaryAlias != "global", let boundary = boundariesById[boundaryAlias] {
             lines.append("\(indent)[\(boundary.label)]")

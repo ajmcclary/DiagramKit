@@ -33,9 +33,10 @@ enum MermaidC4Export {
         lines.append(kindStr)
 
         // Title
-        if let title = model.title {
-            let (q, _) = MermaidExportHelpers.quote(title)
-            lines.append("  title \(q)")
+        // The parser keeps the rest of the `title` line verbatim (quotes
+        // included), so quoting it here added a layer of quotes per export.
+        if let title = model.title, !title.isEmpty {
+            lines.append("  title \(MermaidFlowchartExport.singleLine(title))")
         }
 
         // Shapes
@@ -110,8 +111,11 @@ enum MermaidC4Export {
             lines.append(shapeLine)
         }
 
-        // Boundaries
-        for boundary in model.boundaries {
+        // Boundaries. The parser's synthetic root (`global`, type `global`)
+        // is not written: the source never declared it, and writing it
+        // produced `Boundary(global, "global")`, a boundary that is its own
+        // parent.
+        for boundary in model.boundaries where !(boundary.alias == "global" && boundary.type == "global") {
             let (sanitizedAlias, ad) = MermaidExportHelpers.sanitizeIdentifier(
                 boundary.alias,
                 usedAliases: &usedAliases
