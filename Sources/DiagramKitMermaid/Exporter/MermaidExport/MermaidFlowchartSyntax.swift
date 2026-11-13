@@ -36,10 +36,16 @@ enum MermaidFlowchartSyntax {
 
     /// Newlines are written as `<br>`, which the parser turns back into a
     /// newline.
+    ///
+    /// A `#` that would start an entity code (`#quot;`, `#35;`) is itself
+    /// written as `#35;`: the importer decodes entity codes, so a label
+    /// holding the text `#quot;` would otherwise come back as `"`.
     private static func lineBreaks(_ text: String) -> String {
-        text.replacingOccurrences(of: "\r\n", with: "<br>")
+        let broken = text.replacingOccurrences(of: "\r\n", with: "<br>")
             .replacingOccurrences(of: "\n", with: "<br>")
             .replacingOccurrences(of: "\r", with: "<br>")
+        guard broken.contains("#") else { return broken }
+        return broken.replacingOccurrences(of: #"#(?=[A-Za-z0-9]+;)"#, with: "#35;", options: .regularExpression)
     }
 
     /// Characters that make an unquoted label ambiguous inside a shape.
@@ -59,7 +65,10 @@ enum MermaidFlowchartSyntax {
         // outer quotes are stripped.
         guard let closeFirst = close.first else { return nil }
         if text.contains("\""), text.contains(closeFirst) { return nil }
-        return "\"\(text)\""
+        // A `"` inside the quotes is written `#quot;`, the form mermaid.js
+        // accepts (it ends a quoted string at the next `"`); the importer
+        // decodes it back.
+        return "\"\(text.replacingOccurrences(of: "\"", with: "#quot;"))\""
     }
 
     static func subgraphLabel(_ label: String) -> String {

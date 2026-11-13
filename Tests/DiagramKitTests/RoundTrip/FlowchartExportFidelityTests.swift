@@ -350,3 +350,32 @@ struct FlowchartExportFidelityTests {
         #expect(exported.contains("classDef hot color:#000,fill:#f96,stroke:#333,stroke-width:2px"))
     }
 }
+
+@Suite("Flowchart labels with quotes and entity text")
+struct FlowchartLabelQuoteTests {
+
+    private func roundTrip(_ label: String) throws -> (source: String, label: String?) {
+        var graph = try MermaidImporter().parse("flowchart TD\n  A[x]\n").document
+        guard case .flowchart(var g) = graph.payload else { return ("", nil) }
+        g.nodesInOrder[0].node.label = label
+        graph.payload = .flowchart(g)
+        graph.sourceAnnotations = nil
+        let source = try MermaidExporter().export(graph).source
+        let back = try MermaidImporter().parse(source).document
+        guard case .flowchart(let b) = back.payload else { return (source, nil) }
+        return (source, b.nodesInOrder.first(where: { $0.id == "A" })?.node.label)
+    }
+
+    @Test("a quote in a label is written #quot;, the form mermaid.js accepts, and reads back")
+    func quoteWrittenAsEntity() throws {
+        let (source, label) = try roundTrip("Say \"hi\"")
+        #expect(source.contains("A[\"Say #quot;hi#quot;\"]"), "\(source)")
+        #expect(label == "Say \"hi\"")
+    }
+
+    @Test("label text that looks like an entity code reads back as written")
+    func literalEntityText() throws {
+        let (source, label) = try roundTrip("use #quot; for quotes")
+        #expect(label == "use #quot; for quotes", "\(source)")
+    }
+}
