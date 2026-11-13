@@ -174,9 +174,11 @@ private func _drawInsideBoundary(
     positionedShapes: inout [PositionedC4Shape],
     positionedBoundaries: inout [PositionedC4Boundary],
     globalMaxX: inout Double,
-    globalMaxY: inout Double
+    globalMaxY: inout Double,
+    ancestors: Set<String> = []
 ) {
-    let c4BoundaryInRow = config.c4BoundaryInRow
+    // At least 1: `% 0` and `/ 0` trapped below.
+    let c4BoundaryInRow = max(1, config.c4BoundaryInRow)
 
     for (i, currentBoundary) in currentBoundaries.enumerated() {
         let currentBounds = Bounds()
@@ -227,8 +229,14 @@ private func _drawInsideBoundary(
         }
         currentBounds.bumpLastMargin(config.c4ShapeMargin)
 
-        // Recursively draw child boundaries
-        let childBoundaries = allBoundaries.filter { $0.parentBoundary == currentBoundary.alias }
+        // Recursively draw child boundaries. A boundary that is its own
+        // ancestor (models from D2/DOT/Structurizr, which do not run the
+        // Mermaid parser's checks, can say so) recursed until the stack
+        // overflowed; it is skipped, as is nesting past the recursion limit.
+        let path = ancestors.union([currentBoundary.alias])
+        let childBoundaries = path.count < _diagramDefaultRecursionLimit
+            ? allBoundaries.filter { $0.parentBoundary == currentBoundary.alias && !path.contains($0.alias) }
+            : []
         if !childBoundaries.isEmpty {
             _drawInsideBoundary(
                 parentAlias: currentBoundary.alias,
@@ -240,7 +248,8 @@ private func _drawInsideBoundary(
                 positionedShapes: &positionedShapes,
                 positionedBoundaries: &positionedBoundaries,
                 globalMaxX: &globalMaxX,
-                globalMaxY: &globalMaxY
+                globalMaxY: &globalMaxY,
+                ancestors: path
             )
         }
 

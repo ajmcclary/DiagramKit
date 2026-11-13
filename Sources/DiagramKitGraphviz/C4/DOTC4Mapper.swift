@@ -190,7 +190,7 @@ enum DOTC4Mapper {
                         boundaries[bidx].type = raw
                     }
                 case .c4RelKind(let edgeIndex, let raw):
-                    if edgeIndex < relationships.count,
+                    if relationships.indices.contains(edgeIndex),
                        let kind = C4RelationshipKind(rawValue: raw) {
                         relationships[edgeIndex].kind = kind
                     }

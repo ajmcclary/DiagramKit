@@ -94,11 +94,13 @@ public enum DiagramLoader {
         _ result: DiagramImportResult,
         importer: any DiagramSourceImporter
     ) -> DiagramImportResult {
-        guard result.formatID == nil else { return result }
+        // Every importer's model gets the containment invariants the
+        // layouts, renderers and exporters rely on (see ModelInvariants).
+        let (document, repairs) = _enforceModelInvariants(result.document)
         return DiagramImportResult(
-            document: result.document,
-            diagnostics: result.diagnostics,
-            formatID: importer.formatID
+            document: document,
+            diagnostics: result.diagnostics + repairs,
+            formatID: result.formatID ?? importer.formatID
         )
     }
 }

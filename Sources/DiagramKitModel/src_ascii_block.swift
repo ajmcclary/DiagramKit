@@ -10,8 +10,16 @@ public func renderBlockAscii(_ model: BlockDiagram) -> String {
         lines.append(String(repeating: "=", count: max(terminalDisplayWidth(title), 1)))
     }
 
+    // Ids on the current path: a model built by the D2/DOT importers can
+    // list a block among its own descendants, which recursed until the
+    // stack overflowed.
+    var path: Set<String> = []
+
     func emit(blockId: String, depth: Int) {
-        guard let node = model.blockDatabase[blockId] else { return }
+        guard depth < _diagramDefaultRecursionLimit, !path.contains(blockId),
+              let node = model.blockDatabase[blockId] else { return }
+        path.insert(blockId)
+        defer { path.remove(blockId) }
         let indent = String(repeating: "  ", count: depth)
         let label = node.label.isEmpty ? blockId : node.label
         lines.append("\(indent)[\(label)]")
