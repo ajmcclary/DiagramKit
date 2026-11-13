@@ -102,73 +102,80 @@ private func _parseGanttDiagramEntry(
             throw GanttParserError.invalidHeader(trimmed)
 
         case .body:
+            // Directives need a token boundary after the keyword
+            // (`_ganttHasKeyword`), as upstream's lexer rules
+            // (`"dateFormat"\s…`, case-insensitive) do; a bare prefix test
+            // also swallowed tasks such as `Topaxis review : …`. A task whose
+            // first word is the keyword itself (`Includes testing : …`) is
+            // that directive upstream as well. The argument-less flags
+            // (`inclusiveEndDates`, `topAxis`) must be the whole line.
             // dateFormat
-            if lower.hasPrefix("dateformat") {
+            if _ganttHasKeyword(trimmed, keyword: "dateformat") {
                 let value = _extractAfterKeyword(trimmed, keyword: "dateFormat")
                 diagram.dateFormat = value
                 continue
             }
 
             // axisFormat
-            if lower.hasPrefix("axisformat") {
+            if _ganttHasKeyword(trimmed, keyword: "axisformat") {
                 let value = _extractAfterKeyword(trimmed, keyword: "axisFormat")
                 diagram.axisFormat = value
                 continue
             }
 
             // tickInterval
-            if lower.hasPrefix("tickinterval") {
+            if _ganttHasKeyword(trimmed, keyword: "tickinterval") {
                 let value = _extractAfterKeyword(trimmed, keyword: "tickInterval")
                 diagram.tickInterval = value
                 continue
             }
 
             // inclusiveEndDates
-            if lower.hasPrefix("inclusiveenddates") {
+            if lower == "inclusiveenddates" {
                 diagram.inclusiveEndDates = true
                 continue
             }
 
             // topAxis
-            if lower.hasPrefix("topaxis") {
+            if lower == "topaxis" {
                 diagram.topAxis = true
                 continue
             }
 
             // todayMarker
-            if lower.hasPrefix("todaymarker") {
+            if _ganttHasKeyword(trimmed, keyword: "todaymarker") {
                 let value = _extractAfterKeyword(trimmed, keyword: "todayMarker")
                 diagram.todayMarker = value
                 continue
             }
 
-            // weekday
-            if lower.hasPrefix("weekday") {
+            // weekday / weekend: only a valid day name makes the line a
+            // directive (upstream lexes `weekday monday` … as single
+            // tokens), so `Weekend deploy : a2, after a1, 2d` is a task.
+            if _ganttHasKeyword(trimmed, keyword: "weekday") {
                 let value = _extractAfterKeyword(trimmed, keyword: "weekday").lowercased()
                 if ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].contains(value) {
                     diagram.weekday = value
+                    continue
                 }
-                continue
             }
-
-            // weekend
-            if lower.hasPrefix("weekend") {
+            if _ganttHasKeyword(trimmed, keyword: "weekend") {
                 let value = _extractAfterKeyword(trimmed, keyword: "weekend").lowercased()
                 if value == "friday" || value == "saturday" {
                     diagram.weekend = value
+                    continue
                 }
-                continue
             }
 
             // excludes
-            if lower.hasPrefix("excludes") {
+            if _ganttHasKeyword(trimmed, keyword: "excludes") {
                 let value = _extractAfterKeyword(trimmed, keyword: "excludes")
                 diagram.excludes = value.lowercased().split(whereSeparator: { $0.isWhitespace || $0 == "," }).map(String.init).filter { !$0.isEmpty }
                 continue
             }
 
             // includes
-            if lower.hasPrefix("includes") {
+            if _ganttHasKeyword(trimmed, keyword: "includes") {
                 let value = _extractAfterKeyword(trimmed, keyword: "includes")
                 diagram.includes = value.lowercased().split(whereSeparator: { $0.isWhitespace || $0 == "," }).map(String.init).filter { !$0.isEmpty }
                 continue
