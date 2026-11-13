@@ -25,6 +25,27 @@ public enum _HTMLEntities {
     /// in the number of bare `&`s.
     private static let maxEntityBodyLength = 32
 
+    /// Upstream's `encodeEntities` pre-pass: on a `style` / `classDef` /
+    /// `linkStyle` line that has a `:…#…;` colour, drop the line's last `;`
+    /// before entity decoding, so `fill:#000;` stays a colour instead of
+    /// decoding as the entity `#000;` (a NUL; `#333;` became `ō`). Mirrors
+    /// upstream's `/style.*:\S*#.*;/` and `/classDef.*:\S*#.*;/`, which are
+    /// unanchored and so also cover `linkStyle`.
+    public static func stripStyleStatementTerminators(_ text: String) -> String {
+        guard text.contains("#"), text.contains(";") else { return text }
+        var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var changed = false
+        for index in lines.indices {
+            let line = lines[index]
+            guard line.contains(";"), line.contains("#"),
+                  line.range(of: #"(?:style|classDef).*:\S*#.*;"#, options: .regularExpression) != nil,
+                  let last = line.lastIndex(of: ";") else { continue }
+            lines[index].remove(at: last)
+            changed = true
+        }
+        return changed ? lines.joined(separator: "\n") : text
+    }
+
     public static func decode(_ text: String) -> String {
         var result = ""
         var i = text.startIndex
@@ -83,7 +104,9 @@ public enum _HTMLEntities {
             if let named = namedHashEntities[entity] {
                 return named
             }
-            if let codePoint = UInt32(entity),
+            // A control character is never a meaningful label character and
+            // makes the exported SVG invalid XML; leave such text alone.
+            if let codePoint = UInt32(entity), !_isDisallowedControl(codePoint),
                let scalar = UnicodeScalar(codePoint) {
                 return String(scalar)
             }
@@ -96,14 +119,20 @@ public enum _HTMLEntities {
             let numStr = String(entity.dropFirst())
             if numStr.hasPrefix("x") || numStr.hasPrefix("X") {
                 if let codePoint = UInt32(String(numStr.dropFirst()), radix: 16),
+                   !_isDisallowedControl(codePoint),
                    let scalar = UnicodeScalar(codePoint) {
                     return String(scalar)
                 }
-            } else if let codePoint = UInt32(numStr),
+            } else if let codePoint = UInt32(numStr), !_isDisallowedControl(codePoint),
                       let scalar = UnicodeScalar(codePoint) {
                 return String(scalar)
             }
         }
         return nil
+    }
+
+    /// C0 controls other than tab, LF and CR, and DEL.
+    private static func _isDisallowedControl(_ codePoint: UInt32) -> Bool {
+        (codePoint < 0x20 && codePoint != 0x09 && codePoint != 0x0A && codePoint != 0x0D) || codePoint == 0x7F
     }
 }

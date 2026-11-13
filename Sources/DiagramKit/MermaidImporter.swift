@@ -36,7 +36,8 @@ public struct MermaidImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
-        let decoded = _HTMLEntities.decode(DiagramSourceNormalizer.normalizedLineEndings(source))
+        let normalized = DiagramSourceNormalizer.normalizedLineEndings(source)
+        let decoded = _HTMLEntities.decode(_HTMLEntities.stripStyleStatementTerminators(normalized))
         let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
 
         let header = DiagramHeader.detect(from: processed)
