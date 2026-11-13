@@ -78,3 +78,74 @@ public func _checkParserNestingDepth(_ depth: Int, _ context: @autoclosure () ->
         throw DiagramInputLimitError(.nestingDepth, context())
     }
 }
+
+// MARK: - Trees built from imported edge lists
+
+/// Guards a recursive tree build over a parent → children edge list that
+/// came from a source file (D2 / DOT tree-view and mindmap importers). The
+/// edge list is not known to be a tree: `a -> b`, `b -> a` is a cycle, and
+/// a shared child is duplicated under each parent (a diamond ladder doubles
+/// per rung). Children that close a cycle are skipped, depth stops at
+/// `_diagramDefaultRecursionLimit`, and the whole tree at `maxNodes`; each
+/// cut is reported once as a diagnostic.
+public struct _ImportedTreeWalkGuard {
+    public static let maxNodes = 10_000
+
+    public private(set) var diagnostics: [DiagramDiagnostic] = []
+    private var built = 0
+    private var reportedCycle = false
+    private var reportedDepth = false
+    private var reportedSize = false
+    private let family: String
+
+    public init(family: String) {
+        self.family = family
+    }
+
+    /// The children of `id` the build may visit. `ancestors` is the path
+    /// from the root down to `id` (exclusive of `id`).
+    public mutating func admissibleChildren(
+        _ children: [String],
+        of id: String,
+        ancestors: Set<String>,
+        depth: Int
+    ) -> [String] {
+        guard !children.isEmpty else { return [] }
+        if depth + 1 >= _diagramDefaultRecursionLimit {
+            if !reportedDepth {
+                reportedDepth = true
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "\(family) is nested deeper than \(_diagramDefaultRecursionLimit) levels; deeper nodes dropped"
+                ))
+            }
+            return []
+        }
+        var admitted: [String] = []
+        for child in children {
+            if child == id || ancestors.contains(child) {
+                if !reportedCycle {
+                    reportedCycle = true
+                    diagnostics.append(.featureDropped(
+                        .slotUnsupported,
+                        message: "\(family) edge \(id) -> \(child) closes a cycle; a tree has none, so it was dropped"
+                    ))
+                }
+                continue
+            }
+            if built >= Self.maxNodes {
+                if !reportedSize {
+                    reportedSize = true
+                    diagnostics.append(.featureDropped(
+                        .slotUnsupported,
+                        message: "\(family) expands to more than \(Self.maxNodes) nodes; the rest were dropped"
+                    ))
+                }
+                break
+            }
+            built += 1
+            admitted.append(child)
+        }
+        return admitted
+    }
+}

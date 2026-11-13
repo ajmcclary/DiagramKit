@@ -27,10 +27,12 @@ enum DOTMindmapExport {
                 diagnostics: diagnostics
             )
         }
-        lines.append("  \(DOTRecoveryMarker.emitTreeRoot(sanitize(root.nodeId)))")
+        // Mindmap node ids repeat (`A` under `A`); DOT ids must not.
+        let ids = _uniqueTreeIDs(roots: [root], children: { $0.children }, base: { sanitize($0.nodeId) })
+        lines.append("  \(DOTRecoveryMarker.emitTreeRoot(ids[[0]] ?? sanitize(root.nodeId)))")
 
-        emitNode(root, indent: "  ", lines: &lines, diagnostics: &diagnostics)
-        emitEdges(parent: root, indent: "  ", lines: &lines)
+        emitNode(root, path: [0], ids: ids, indent: "  ", lines: &lines, diagnostics: &diagnostics)
+        emitEdges(parent: root, path: [0], ids: ids, indent: "  ", lines: &lines)
 
         lines.append("}")
         return DiagramExportResult(
@@ -41,11 +43,13 @@ enum DOTMindmapExport {
 
     private static func emitNode(
         _ node: MindmapNode,
+        path: [Int],
+        ids: [[Int]: String],
         indent: String,
         lines: inout [String],
         diagnostics: inout [DiagramDiagnostic]
     ) {
-        let id = sanitize(node.nodeId)
+        let id = ids[path] ?? sanitize(node.nodeId)
         let mapped = dotShape(for: node.type)
         var attrs: [String] = []
         attrs.append("label=\"\(escape(node.descr))\"")
@@ -60,15 +64,18 @@ enum DOTMindmapExport {
                 message: "Mindmap node '\(node.nodeId)' shape '\(node.type.type2Str)' approximated; marker preserves shape"
             ))
         }
-        for child in node.children {
-            emitNode(child, indent: indent, lines: &lines, diagnostics: &diagnostics)
+        for (i, child) in node.children.enumerated() {
+            emitNode(child, path: path + [i], ids: ids, indent: indent, lines: &lines, diagnostics: &diagnostics)
         }
     }
 
-    private static func emitEdges(parent: MindmapNode, indent: String, lines: inout [String]) {
-        for child in parent.children {
-            lines.append("\(indent)\(sanitize(parent.nodeId)) -> \(sanitize(child.nodeId));")
-            emitEdges(parent: child, indent: indent, lines: &lines)
+    private static func emitEdges(
+        parent: MindmapNode, path: [Int], ids: [[Int]: String], indent: String, lines: inout [String]
+    ) {
+        for (i, child) in parent.children.enumerated() {
+            let childPath = path + [i]
+            lines.append("\(indent)\(ids[path] ?? sanitize(parent.nodeId)) -> \(ids[childPath] ?? sanitize(child.nodeId));")
+            emitEdges(parent: child, path: childPath, ids: ids, indent: indent, lines: &lines)
         }
     }
 

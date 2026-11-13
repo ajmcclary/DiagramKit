@@ -29,12 +29,15 @@ enum D2TreeViewExport {
         let isSyntheticRoot = (tree.root.name == "/" && tree.root.level == -1)
         let topLevelRoots: [TreeViewNode] = isSyntheticRoot ? tree.root.children : [tree.root]
 
-        if let first = topLevelRoots.first {
-            lines.append(D2RecoveryMarker.emitTreeRoot(sanitize(first.name)))
+        // Names repeat in ordinary trees (two `index.ts`, a directory
+        // holding a same-named entry); ids must not.
+        let ids = _uniqueTreeIDs(roots: topLevelRoots, children: { $0.children }, base: { sanitize($0.name) })
+        if !topLevelRoots.isEmpty, let first = ids[[0]] {
+            lines.append(D2RecoveryMarker.emitTreeRoot(first))
         }
-        for root in topLevelRoots {
-            emitNode(root, lines: &lines, diagnostics: &diagnostics)
-            emitEdges(parent: root, lines: &lines)
+        for (i, root) in topLevelRoots.enumerated() {
+            emitNode(root, path: [i], ids: ids, lines: &lines, diagnostics: &diagnostics)
+            emitEdges(parent: root, path: [i], ids: ids, lines: &lines)
         }
 
         return DiagramExportResult(
@@ -45,24 +48,29 @@ enum D2TreeViewExport {
 
     private static func emitNode(
         _ node: TreeViewNode,
+        path: [Int],
+        ids: [[Int]: String],
         lines: inout [String],
         diagnostics: inout [DiagramDiagnostic]
     ) {
-        let id = sanitize(node.name)
+        let id = ids[path] ?? sanitize(node.name)
         lines.append("\(id): \"\(escape(node.name))\"")
-        if id != node.name {
+        if sanitize(node.name) != node.name {
             diagnostics.append(.lossyTransform(
                 .idSanitization,
                 message: "TreeView node name '\(node.name)' sanitized to D2 id '\(id)'"
             ))
         }
-        for child in node.children { emitNode(child, lines: &lines, diagnostics: &diagnostics) }
+        for (i, child) in node.children.enumerated() {
+            emitNode(child, path: path + [i], ids: ids, lines: &lines, diagnostics: &diagnostics)
+        }
     }
 
-    private static func emitEdges(parent: TreeViewNode, lines: inout [String]) {
-        for child in parent.children {
-            lines.append("\(sanitize(parent.name)) -> \(sanitize(child.name))")
-            emitEdges(parent: child, lines: &lines)
+    private static func emitEdges(parent: TreeViewNode, path: [Int], ids: [[Int]: String], lines: inout [String]) {
+        for (i, child) in parent.children.enumerated() {
+            let childPath = path + [i]
+            lines.append("\(ids[path] ?? sanitize(parent.name)) -> \(ids[childPath] ?? sanitize(child.name))")
+            emitEdges(parent: child, path: childPath, ids: ids, lines: &lines)
         }
     }
 

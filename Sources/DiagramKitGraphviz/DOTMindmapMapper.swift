@@ -65,16 +65,20 @@ public struct DOTMindmapMapper {
             return (nil, diagnostics)
         }
 
+        // The edge list is not known to be a tree (a cycle overflowed the
+        // stack; a shared child is copied under each parent).
+        var walkGuard = _ImportedTreeWalkGuard(family: "Mindmap")
         var allBuilt: [MindmapNode] = []
         var nextID = 0
-        func build(_ id: String, level: Int, isRoot: Bool) -> MindmapNode {
+        func build(_ id: String, level: Int, isRoot: Bool, ancestors: Set<String> = []) -> MindmapNode {
             let nodeType = Self.mindmapNodeType(
                 dotShape: shapes[id],
                 dotStyle: styles[id],
                 iconKey: iconMarkers[id]
             )
             let assigned = nextID; nextID += 1
-            let kids = (children[id] ?? []).map { build($0, level: level + 1, isRoot: false) }
+            let kidIDs = walkGuard.admissibleChildren(children[id] ?? [], of: id, ancestors: ancestors, depth: level)
+            let kids = kidIDs.map { build($0, level: level + 1, isRoot: false, ancestors: ancestors.union([id])) }
             let node = MindmapNode(
                 id: assigned,
                 nodeId: id,
@@ -88,7 +92,7 @@ public struct DOTMindmapMapper {
             return node
         }
         let root = build(rootID, level: 0, isRoot: true)
-        return (MindmapDiagram(root: root, nodes: allBuilt), diagnostics)
+        return (MindmapDiagram(root: root, nodes: allBuilt), diagnostics + walkGuard.diagnostics)
     }
 
     private static func mindmapNodeType(

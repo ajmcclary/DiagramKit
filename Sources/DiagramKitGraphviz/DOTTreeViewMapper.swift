@@ -47,12 +47,15 @@ public struct DOTTreeViewMapper {
         }
         let roots = allNodes.subtracting(hasIncoming)
 
+        // The edge list is not known to be a tree (a cycle overflowed the
+        // stack; a shared child is copied under each parent).
+        var walkGuard = _ImportedTreeWalkGuard(family: "TreeView")
         var allBuilt: [TreeViewNode] = []
         var nextID = 0
-        func build(_ id: String, level: Int) -> TreeViewNode {
-            let kidIDs = children[id] ?? []
+        func build(_ id: String, level: Int, ancestors: Set<String> = []) -> TreeViewNode {
+            let kidIDs = walkGuard.admissibleChildren(children[id] ?? [], of: id, ancestors: ancestors, depth: level)
             let assigned = nextID; nextID += 1
-            let kids = kidIDs.map { build($0, level: level + 1) }
+            let kids = kidIDs.map { build($0, level: level + 1, ancestors: ancestors.union([id])) }
             let node = TreeViewNode(
                 id: assigned,
                 level: level,
@@ -81,16 +84,16 @@ public struct DOTTreeViewMapper {
             )
             nextID += 1
             allBuilt.append(syntheticRoot)
-            return (TreeViewDiagram(root: syntheticRoot, nodes: allBuilt), diagnostics)
+            return (TreeViewDiagram(root: syntheticRoot, nodes: allBuilt), diagnostics + walkGuard.diagnostics)
         }
 
         if let pinned = rootMarker, allNodes.contains(pinned) {
             let root = build(pinned, level: 0)
-            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics + walkGuard.diagnostics)
         }
         if roots.count == 1 {
             let root = build(roots.first!, level: 0)
-            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics + walkGuard.diagnostics)
         }
 
         diagnostics.append(.featureDropped(

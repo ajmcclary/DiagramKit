@@ -35,3 +35,34 @@ public enum StableID {
         return parts.map(String.init).joined(separator: "-")
     }
 }
+
+// MARK: - Unique ids for exported tree nodes
+
+/// Ids for every node of a tree (or forest) being written to a format that
+/// names nodes, keyed by the node's child-index path from its root
+/// (`[0]`, `[0, 2]`, …). Each node gets `base(node)`; a repeat gets `_2`,
+/// `_3`, … appended, in pre-order. Exporters used the display name as the id,
+/// so two entries named `index.ts` became one node with two parents, and a
+/// directory holding a same-named entry became a self-loop.
+public func _uniqueTreeIDs<Node>(
+    roots: [Node],
+    children: (Node) -> [Node],
+    base: (Node) -> String
+) -> [[Int]: String] {
+    var used: Set<String> = []
+    var ids: [[Int]: String] = [:]
+    func visit(_ node: Node, _ path: [Int]) {
+        let stem = base(node)
+        var candidate = stem
+        var counter = 2
+        while used.contains(candidate) {
+            candidate = "\(stem)_\(counter)"
+            counter += 1
+        }
+        used.insert(candidate)
+        ids[path] = candidate
+        for (i, child) in children(node).enumerated() { visit(child, path + [i]) }
+    }
+    for (i, root) in roots.enumerated() { visit(root, [i]) }
+    return ids
+}
