@@ -81,7 +81,8 @@ struct LayoutScaleTests {
                     _ = try DiagramPipeline.renderSVG(source: nestedBlocks(depth))
                     return "rendered"
                 } catch {
-                    return isLayoutSizeError(error) ? "limit" : "other: \(error)"
+                    guard isLayoutSizeError(error) else { return "other: \(error)" }
+                    return error.localizedDescription.contains("lays out to 15 levels") ? "limit" : "message: \(error.localizedDescription)"
                 }
             }
         }

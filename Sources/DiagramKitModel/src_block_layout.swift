@@ -134,6 +134,13 @@ private func getMaxChildSize(block: BlockNode, db: [String: BlockNode]) -> (widt
 /// never finished. Past this budget the layout throws instead of hanging.
 let _blockSizingCallBudget = 250_000
 
+/// The deepest single chain of nested blocks the budget lays out (pinned by
+/// `LayoutScaleTests.blockNestingThreshold`). The parser accepts nesting to
+/// `_maxParserNestingDepth` (100); 16 to 100 levels parse and then throw
+/// `DiagramInputLimitError(.layoutSize)` (an accepted limit, 2026-11-12
+/// review).
+let _blockLayoutMaxChainDepth = 15
+
 private func setBlockSizes(
     block: inout BlockNode,
     db: inout [String: BlockNode],
@@ -146,7 +153,7 @@ private func setBlockSizes(
     if budget < 0 {
         throw DiagramInputLimitError(
             .layoutSize,
-            "block nesting needs more than \(_blockSizingCallBudget) sizing steps; flatten some nested blocks"
+            "block nesting needs more than \(_blockSizingCallBudget) sizing steps (a chain of nested blocks lays out to \(_blockLayoutMaxChainDepth) levels; each level doubles the work); flatten some nested blocks"
         )
     }
     if block.size?.width == nil || block.size?.width == 0 {

@@ -126,7 +126,12 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   unrecognised state statements; other Mermaid families surface only
   layout-tier diagnostics via `PositionedGraph`). Parsers that meet
   nesting deeper than `_maxParserNestingDepth` (100) throw the
-  recoverable `DiagramInputLimitError`.
+  recoverable `DiagramInputLimitError`. Layout and ASCII limits, also
+  typed `DiagramInputLimitError`s: block nesting lays out to 15 levels in
+  a single chain (upstream's sizing doubles per level; 16–100 levels parse
+  and then throw `.layoutSize`, an accepted limit); flowchart/state ASCII
+  drawing stops at 150 million cell operations or 3 million path-search
+  steps (`.textDrawingSize`; SVG and image rendering are unaffected).
 - The Mermaid-prefixed public alias cohort (`MermaidParser`,
   `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`,
   `MermaidStructuralError`, `renderMermaidSVG`, etc.) has been removed,
