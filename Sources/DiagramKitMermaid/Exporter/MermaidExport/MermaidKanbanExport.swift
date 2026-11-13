@@ -48,8 +48,23 @@ enum MermaidKanbanExport {
         return DiagramExportResult(source: source, diagnostics: diagnostics)
     }
 
+    /// The kanban parser has no backslash escapes (a `\"` came back with
+    /// its backslash, one more per export); it reads node text between
+    /// matching brackets, toggles quoting on `"`, and decodes entity codes
+    /// afterwards. So `"` and anything else it would read as syntax go out
+    /// as entity codes; brackets only when they are unbalanced, and an
+    /// apostrophe only at either end (where it would be stripped as a quote).
     private static func escapeLabel(_ text: String, diagnostics: inout [DiagramDiagnostic]) -> String {
-        let (escaped, diags) = MermaidExportHelpers.escapeBracketLabel(text)
+        var depth = 0
+        var balanced = true
+        for ch in text {
+            if ch == "[" { depth += 1 }
+            if ch == "]" { depth -= 1; if depth < 0 { balanced = false } }
+        }
+        if depth != 0 { balanced = false }
+        let (escaped, diags) = MermaidExportHelpers.entityCodedText(
+            text, alsoEncode: balanced ? [] : ["[", "]"], edgeApostrophes: true
+        )
         diagnostics.append(contentsOf: diags)
         return escaped
     }

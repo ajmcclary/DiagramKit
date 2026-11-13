@@ -220,7 +220,7 @@ func _parseBlockDiagramLines(_ lines: [String], diagnostics: inout [DiagramDiagn
             var nextNodeIndex = j + 1
 
             if nextNodeIndex < tokens.count, isEdgeLabelToken(tokens[nextNodeIndex]) {
-                edgeLabel = String(tokens[nextNodeIndex].dropFirst().dropLast())
+                edgeLabel = _HTMLEntities.decode(String(tokens[nextNodeIndex].dropFirst().dropLast()))
                 if nextNodeIndex + 1 < tokens.count, isEdgeTokenStr(tokens[nextNodeIndex + 1]) {
                     edgeToken = tokens[nextNodeIndex + 1]
                     nextNodeIndex += 2
@@ -445,7 +445,7 @@ func _parseBlockDiagramLines(_ lines: [String], diagnostics: inout [DiagramDiagn
                     let next = tokens[j]
                     if next.hasPrefix("\"") && next.hasSuffix("\"") && !foundLabel {
                         foundLabel = true
-                        edgeLabel = String(next.dropFirst().dropLast())
+                        edgeLabel = _HTMLEntities.decode(String(next.dropFirst().dropLast()))
                         j += 1
                         continue
                     }
@@ -609,7 +609,7 @@ private func parseNodeToken(
             let afterColon = t[lastColon.upperBound...]
             if let n = _parseBlockSpan(afterColon, onClamp: onSpanClamp) { span = n }
         }
-        return (generateBlockId(), .blockArrow, label, span, dirs)
+        return (generateBlockId(), .blockArrow, label.map(_HTMLEntities.decode), span, dirs)
     }
 
     var id: String? = nil
@@ -663,7 +663,10 @@ private func parseNodeToken(
         nodeType = .square
     }
 
-    return (id, nodeType, label, span, nil)
+    // Entity codes are decoded after scanning (upstream decodes them in
+    // label text), so `#quot;` can stand for a `"` the tokenizer would
+    // otherwise read as the end of the label.
+    return (id, nodeType, label.map(_HTMLEntities.decode), span, nil)
 }
 
 private func isEdgeTokenStr(_ t: String) -> Bool {

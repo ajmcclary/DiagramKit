@@ -35,6 +35,8 @@ final class CorpusRoundTripTests: XCTestCase {
     ///
     /// Last verified 2026-10-13: 16 of the former 17 `knownFailures` still
     /// diverge; `flow-21-cicd-pipeline` was fixed and removed from the set.
+    /// 2026-11-12: `kanban-decorations` removed — kanban labels now export
+    /// as entity codes the parser decodes after scanning.
     static let knownIssues: Set<String> = [
         // Pre-existing class exporter id-sanitization issues
         "class-18-square-label",
@@ -61,9 +63,6 @@ final class CorpusRoundTripTests: XCTestCase {
         // Mermaid mindmap parser preserves newlines in `descr`; the
         // DSL has no syntax to encode them on round-trip emit.
         "mindmap-5-markdown",
-        // Kanban bracket-label escape: parser does not unescape
-        // `\[\]` and treats them as literal brackets.
-        "kanban-decorations",
     ]
 
     func testMermaidCorpusRoundTrip() throws {

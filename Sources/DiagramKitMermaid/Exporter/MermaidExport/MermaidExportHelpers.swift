@@ -55,6 +55,68 @@ enum MermaidExportHelpers {
         return (result, diagnostics)
     }
 
+    // MARK: - Entity-coded text (kanban, block)
+
+    /// `text` with every character that the kanban and block scanners would
+    /// read as syntax written as a Mermaid entity code (`#quot;`, `#91;`, …),
+    /// which those parsers decode after scanning, as upstream decodes entity
+    /// codes in label text. Always encoded: `"`. Encoded where they would
+    /// otherwise act: `%%`, `@{`, leading and trailing spaces, every
+    /// character in `alsoEncode` and (`edgeApostrophes`) a `'` at either end.
+    /// `&` and `#` are encoded whenever the result contains a `;` (an entity
+    /// scan runs from them to the next `;` and would swallow what follows).
+    /// Newlines become spaces (with a diagnostic).
+    static func entityCodedText(
+        _ text: String,
+        alsoEncode: Set<Character> = [],
+        edgeApostrophes: Bool = false
+    ) -> (text: String, diagnostics: [DiagramDiagnostic]) {
+        var diagnostics: [DiagramDiagnostic] = []
+        var chars: [Character] = []
+        for ch in text {
+            if ch == "\n" || ch == "\r" || ch == "\r\n" {
+                if chars.last != " " { chars.append(" ") }
+                if diagnostics.isEmpty {
+                    diagnostics.append(.lossyTransform(.labelNewlineEscape, message: "Newline in label replaced with space"))
+                }
+            } else {
+                chars.append(ch)
+            }
+        }
+        let firstNonSpace = chars.firstIndex(where: { $0 != " " }) ?? chars.count
+        let lastNonSpace = chars.lastIndex(where: { $0 != " " }) ?? -1
+
+        func coded(encodeEntityStarts: Bool) -> String {
+            var out = ""
+            for (i, ch) in chars.enumerated() {
+                let next: Character? = i + 1 < chars.count ? chars[i + 1] : nil
+                let atEdge = i == firstNonSpace || i == lastNonSpace
+                if ch == "\"" {
+                    out += "#quot;"
+                } else if (ch == "&" || ch == "#") && encodeEntityStarts {
+                    out += ch == "&" ? "#38;" : "#35;"
+                } else if ch == "%" && next == "%" {
+                    out += "#37;"
+                } else if ch == "@" && next == "{" {
+                    out += "#64;"
+                } else if ch == " " && (i < firstNonSpace || i > lastNonSpace) {
+                    out += "#32;"
+                } else if alsoEncode.contains(ch) || (edgeApostrophes && ch == "'" && atEdge),
+                          let scalar = ch.unicodeScalars.first {
+                    out += "#\(scalar.value);"
+                } else {
+                    out.append(ch)
+                }
+            }
+            return out
+        }
+        var out = coded(encodeEntityStarts: false)
+        if out.contains(";"), chars.contains(where: { $0 == "&" || $0 == "#" }) {
+            out = coded(encodeEntityStarts: true)
+        }
+        return (out, diagnostics)
+    }
+
     // MARK: - Identifiers
 
     /// Sanitize a Mermaid identifier (node ID, participant alias).

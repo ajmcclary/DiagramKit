@@ -209,12 +209,11 @@ enum MermaidBlockExport {
         return "\(startMark)\(stem)\(endMark.isEmpty ? "-" : endMark)"
     }
 
+    /// Text for inside `["…"]`. The block parser has no backslash escapes,
+    /// ends a label at `"`, trims `"` and `'` from both ends, and decodes
+    /// entity codes afterwards; so `"` (and an apostrophe at either end)
+    /// go out as entity codes.
     private static func escapeQuotedLabel(_ text: String) -> String {
-        text
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
+        MermaidExportHelpers.entityCodedText(text, edgeApostrophes: true).text
     }
 }

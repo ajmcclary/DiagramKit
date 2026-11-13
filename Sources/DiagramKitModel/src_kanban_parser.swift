@@ -76,33 +76,33 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
         }
 
         if let title = _kanbanTitleValue(commentStripped) {
-            diagramTitle = title
+            diagramTitle = _HTMLEntities.decode(title)
             index += 1
             continue
         }
 
         if let title = _kanbanColonDirectiveValue(commentStripped, keyword: "accTitle") {
-            accTitle = title
+            accTitle = _HTMLEntities.decode(title)
             index += 1
             continue
         }
 
         if let descr = _kanbanColonDirectiveValue(commentStripped, keyword: "accDescr") {
-            accDescr = descr
+            accDescr = _HTMLEntities.decode(descr)
             index += 1
             continue
         }
 
         if _kanbanAccessibilityBlockStart(commentStripped, keyword: "accDescr") {
             let parsed = try _parseKanbanAccessibilityBlock(lines, startIndex: index, keyword: "accDescr")
-            accDescr = parsed.text
+            accDescr = _HTMLEntities.decode(parsed.text)
             index = parsed.endIndex + 1
             continue
         }
 
         if _kanbanAccessibilityBlockStart(commentStripped, keyword: "accTitle") {
             let parsed = try _parseKanbanAccessibilityBlock(lines, startIndex: index, keyword: "accTitle")
-            accTitle = parsed.text
+            accTitle = _HTMLEntities.decode(parsed.text)
             index = parsed.endIndex + 1
             continue
         }
@@ -403,7 +403,8 @@ public func _parseSingleKanbanNode(
         let metaStr = String(remaining[atIdx.lowerBound...])
         let meta = try parseKanbanMetadata(metaStr)
         var unknown: [String: String] = [:]
-        for (k, v) in meta {
+        for (k, rawValue) in meta {
+            let v = _HTMLEntities.decode(rawValue)
             switch k {
             case "label": metaLabel = v
             case "icon": metaIcon = v
@@ -449,7 +450,10 @@ public func _parseSingleKanbanNode(
     // escaped model string showed up as `R&amp;D` there. The id keeps its
     // historical derivation from the escaped label so element ids are
     // unchanged.
-    let finalLabel = metaLabel ?? _kbnStripQuotes(label)
+    // Entity codes (`#quot;`, `#91;`) are decoded after scanning, as
+    // upstream does, so they can stand for characters the scanner treats
+    // as syntax.
+    let finalLabel = metaLabel ?? _HTMLEntities.decode(_kbnStripQuotes(label))
     let finalId = _kbnSanitizeText(id ?? _kbnSanitizeText(finalLabel))
     let generatedId = finalId.isEmpty ? kbnGenerator() : finalId
 

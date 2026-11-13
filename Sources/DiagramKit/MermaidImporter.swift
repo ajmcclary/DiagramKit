@@ -37,11 +37,21 @@ public struct MermaidImporter: DiagramSourceImporter {
 
     public func parse(_ source: String) throws -> DiagramImportResult {
         let normalized = DiagramSourceNormalizer.normalizedLineEndings(source)
-        let decoded = _HTMLEntities.decode(_HTMLEntities.stripStyleStatementTerminators(normalized))
-        let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
+        let terminated = _HTMLEntities.stripStyleStatementTerminators(normalized)
+        let decoded = _HTMLEntities.decode(terminated)
+        let preprocessed = _parseFrontMatterAndStripped(decoded)
+        var processed = preprocessed.0
+        let frontmatter = preprocessed.1
 
         let header = DiagramHeader.detect(from: processed)
         let descriptor = DiagramRegistry.detect(header)
+        if Self.decodesEntitiesAfterScanning.contains(descriptor.type) {
+            // Upstream decodes entity codes in label text, after parsing.
+            // Decoding first turns `#quot;` into a `"` the kanban and block
+            // scanners read as a quote, so a label could not hold one.
+            // These parsers decode their text themselves.
+            processed = _parseFrontMatterAndStripped(terminated).0
+        }
         var (document, diagnostics) = try descriptor.parse(processed, frontmatter)
         if let title = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title, !title.isEmpty {
             document.title = title
@@ -61,6 +71,10 @@ public struct MermaidImporter: DiagramSourceImporter {
 
         return DiagramImportResult(document: document, diagnostics: diagnostics)
     }
+
+    /// Families whose parsers decode entity codes in their text after
+    /// scanning it.
+    static let decodesEntitiesAfterScanning: Set<DiagramType> = [.kanban, .block]
 
     /// The frontmatter settings the document does not model itself, in the
     /// canonical order the exporter writes them.
