@@ -237,7 +237,14 @@ enum MermaidStateExport {
                     // (A state described before any transition is a
                     // rectangle; one described after stays rounded. An `as`
                     // label after creation applies, as upstream.)
-                    if createdByTransition(endpoint) || needsAttributes(endpoint) && nodes[endpoint]?.shape != .rectangle {
+                    // A state that belongs to a composite but is first
+                    // named by a transition outside it (`Start --> In2`
+                    // with In2 inside `Comp`) is declared in its composite
+                    // first: the transition would create it where it is
+                    // written.
+                    let elsewhere = !pseudostates.contains(endpoint) && compositeScope[endpoint] == nil
+                        && home[endpoint] != nil && endpointScope(endpoint) != edgeScope(index)
+                    if !elsewhere, createdByTransition(endpoint) || needsAttributes(endpoint) && nodes[endpoint]?.shape != .rectangle {
                         implicit.append(endpoint)
                     } else {
                         out.append(.declare(endpoint))

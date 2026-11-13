@@ -84,13 +84,19 @@ extension DiagramEditor {
                 }
             )
             return
-        case .deleteElement where document.type == .stateDiagram:
+        case .deleteElement(let selection) where document.type == .stateDiagram:
+            let (deleted, renames) = try _deleteElementReportingRenames(selection, from: document)
             try await _commitMutation(
-                newDocument: newDocument,
+                newDocument: deleted,
                 adoptsReadBackOrder: true,
                 actionName: mutation.undoActionName,
                 updateSelection: { [self] previous, document in
-                    _selectionAfterMutation(previousSelection: previous, in: document)
+                    // A renumbered note keeps its selection.
+                    var previous = previous
+                    if let p = previous, p.elementID.hasPrefix("node:"), let new = renames[String(p.elementID.dropFirst(5))] {
+                        previous = DiagramSelection(diagramType: p.diagramType, elementID: "node:\(new)")
+                    }
+                    return _selectionAfterMutation(previousSelection: previous, in: document)
                 }
             )
             return
@@ -282,6 +288,14 @@ extension DiagramEditor {
     func _deleteElement(
         _ selection: DiagramSelection, from document: DiagramDocument
     ) throws -> DiagramDocument {
+        try _deleteElementReportingRenames(selection, from: document).document
+    }
+
+    /// `_deleteElement`, also returning the node ids the delete renamed
+    /// (a state's notes are renumbered), so a selection can follow them.
+    func _deleteElementReportingRenames(
+        _ selection: DiagramSelection, from document: DiagramDocument
+    ) throws -> (document: DiagramDocument, renames: [String: String]) {
         try _validateSelection(selection, matches: document)
         var doc = document
         let id = selection.elementID
@@ -310,7 +324,21 @@ extension DiagramEditor {
                 // The group goes with its members (nested groups included)
                 // and every transition or edge that names any of them or
                 // the group itself, as a node delete takes its edges.
-                let removedIDs = Self._allMemberNodeIDs(in: removed).union(Self._allSubgraphIDs(in: removed))
+                var removedIDs = Self._allMemberNodeIDs(in: removed).union(Self._allSubgraphIDs(in: removed))
+                // A state composite's [*] markers are shared by its
+                // concurrency regions and filed under the first region that
+                // names them: a marker still used by a transition whose
+                // other end survives is not part of what is deleted.
+                let markers = Set(graph.nodesInOrder.filter {
+                    $0.node.shape == .stateStart || $0.node.shape == .stateEnd
+                }.map(\.id)).intersection(removedIDs)
+                let deletedStates = removedIDs.subtracting(markers)
+                for marker in markers where graph.edges.contains(where: { edge in
+                    (edge.source == marker && !deletedStates.contains(edge.target) && !markers.contains(edge.target))
+                        || (edge.target == marker && !deletedStates.contains(edge.source) && !markers.contains(edge.source))
+                }) {
+                    removedIDs.remove(marker)
+                }
                 graph.subgraphs = nextForest
                 Self._removeEdges(from: &graph) {
                     removedIDs.contains($0.source) || removedIDs.contains($0.target)
@@ -320,22 +348,29 @@ extension DiagramEditor {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
         }
+        var renames: [String: String] = [:]
         if case .stateDiagram(var graph) = doc.payload, case .stateDiagram(let before) = document.payload {
-            Self._tidyStateGraphAfterDelete(&graph, before: before)
+            renames = Self._tidyStateGraphAfterDelete(&graph, before: before)
             doc.payload = .stateDiagram(graph)
         }
-        return doc
+        return (doc, renames)
     }
 
     /// `_modelFingerprint` of a state diagram with its node list and each
-    /// group's member list in id order: equal for two models that differ
-    /// only in the order the source names states.
+    /// group's member list in id order, and a nested composite left out of
+    /// its parent's member list: equal for two models that differ only in
+    /// the order the source names states.
     nonisolated static func _stateFingerprintIgnoringOrder(_ document: DiagramDocument) -> String {
         guard case .stateDiagram(var graph) = document.payload else { return _modelFingerprint(document) }
         graph.nodesInOrder.sort { $0.id < $1.id }
         func sorted(_ list: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
             list.map { sub in
                 var sub = sub
+                // A nested composite is listed among its parent's members
+                // only when a transition names it before its block opens:
+                // naming order again, and the nesting itself is compared.
+                let childIDs = Set(sub.children.map(\.id))
+                sub.nodeIds.removeAll { childIDs.contains($0) }
                 sub.nodeIds.sort()
                 sub.children = sorted(sub.children)
                 return sub
@@ -351,37 +386,47 @@ extension DiagramEditor {
     /// the way the parser would read the saved text:
     /// - a `[*]` start or end marker with no transition left (state syntax
     ///   writes `[*]` only as a transition end);
-    /// - a note whose state or whose attaching link is gone (a note is
-    ///   written `note … of State`), and the remaining notes of a state
+    /// - a note whose state is gone (a note whose link alone is gone stays,
+    ///   as a floating note), and the remaining notes of a state
     ///   renumbered `X----note`, `X----note-2`, … as the parser names them;
     /// - an emptied concurrency region is dropped, a composite left with
     ///   one region is a plain composite, and the remaining regions are
     ///   renumbered `X_region_0`, `_1`, ….
+    @discardableResult
     static func _tidyStateGraphAfterDelete(
         _ graph: inout original_src_types.MermaidGraph,
         before: original_src_types.MermaidGraph
-    ) {
-        // Notes: a note node was attached by exactly one link before; it
-        // goes when that link or its state is gone.
+    ) -> [String: String] {
+        var renames: [String: String] = [:]
+        // Notes. A note goes with its state. A note whose attaching link
+        // was deleted (its state kept) stays as a floating note, which state
+        // syntax writes as `note "…" as Id`, under a fresh id.
         let ids = Set(graph.nodesInOrder.map(\.id))
         let noteIDs = Set(before.nodesInOrder.filter { $0.node.shape == .stateNote }.map(\.id))
-        var detached: Set<String> = []
+        var gone: Set<String> = []
         for note in noteIDs where ids.contains(note) {
-            let hadLink = before.edges.contains { $0.source == note || $0.target == note }
-            let hasLink = graph.edges.contains { $0.source == note || $0.target == note }
-            if hadLink && !hasLink { detached.insert(note) }
+            guard let link = before.edges.first(where: { $0.source == note || $0.target == note }),
+                  !graph.edges.contains(where: { $0.source == note || $0.target == note }) else { continue }
+            let state = link.source == note ? link.target : link.source
+            if ids.contains(state) {
+                var fresh = "\(state)_note"
+                var n = 2
+                while ids.contains(fresh) || renames.values.contains(fresh) { fresh = "\(state)_note_\(n)"; n += 1 }
+                renames[note] = fresh
+            } else {
+                gone.insert(note)
+            }
         }
-        if !detached.isEmpty {
-            _purgeNodes(detached, from: &graph)
-        }
-        // Markers.
+        _purgeNodes(gone, from: &graph)
+        if !renames.isEmpty { _renameNodes(renames, in: &graph) }
+        // Markers no transition uses any more.
         let used = Set(graph.edges.flatMap { [$0.source, $0.target] })
         let orphans = Set(graph.nodesInOrder.filter {
             ($0.node.shape == .stateStart || $0.node.shape == .stateEnd) && !used.contains($0.id)
         }.map(\.id))
         _purgeNodes(orphans, from: &graph)
         // Note numbering per state.
-        var renames: [String: String] = [:]
+        var numbering: [String: String] = [:]
         var perState: [String: Int] = [:]
         for (id, node) in graph.nodesInOrder where node.shape == .stateNote {
             guard let range = id.range(of: "----note") else { continue }
@@ -389,9 +434,46 @@ extension DiagramEditor {
             let n = perState[state, default: 0] + 1
             perState[state] = n
             let wanted = n == 1 ? "\(state)----note" : "\(state)----note-\(n)"
-            if wanted != id { renames[id] = wanted }
+            if wanted != id { numbering[id] = wanted }
         }
-        if !renames.isEmpty { _renameNodes(renames, in: &graph) }
+        if !numbering.isEmpty {
+            _renameNodes(numbering, in: &graph)
+            for (old, new) in renames { if let next = numbering[new] { renames[old] = next } }
+            for (old, new) in numbering where renames[old] == nil { renames[old] = new }
+        }
+        // A composite's [*] belongs to the region (or the composite) of its
+        // first remaining transition, as the parser files it; regions share
+        // one marker per composite. Done before regions are tidied, so a
+        // region left holding only the markers counts as emptied.
+        func owner(of id: String, in list: [original_src_types.MermaidSubgraph]) -> String? {
+            for sub in list {
+                if let inner = owner(of: id, in: sub.children) { return inner }
+                if sub.nodeIds.contains(id) { return sub.id }
+            }
+            return nil
+        }
+        var moves: [String: String] = [:]
+        for (id, node) in graph.nodesInOrder where node.shape == .stateStart || node.shape == .stateEnd {
+            let scope = id.hasSuffix("_start") ? String(id.dropLast(6)) : (id.hasSuffix("_end") ? String(id.dropLast(4)) : "")
+            guard !scope.isEmpty, scope != "root",
+                  let edge = graph.edges.first(where: { $0.source == id || $0.target == id }) else { continue }
+            let other = edge.source == id ? edge.target : edge.source
+            guard let wanted = owner(of: other, in: graph.subgraphs),
+                  wanted == scope || wanted.hasPrefix("\(scope)_region_") else { continue }
+            if owner(of: id, in: graph.subgraphs) != wanted { moves[id] = wanted }
+        }
+        if !moves.isEmpty {
+            func move(_ list: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
+                list.map { sub in
+                    var sub = sub
+                    sub.nodeIds.removeAll { moves[$0] != nil && moves[$0] != sub.id }
+                    for (id, target) in moves where target == sub.id && !sub.nodeIds.contains(id) { sub.nodeIds.append(id) }
+                    sub.children = move(sub.children)
+                    return sub
+                }
+            }
+            graph.subgraphs = move(graph.subgraphs)
+        }
         // Regions.
         func fixRegions(_ list: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
             list.map { sub in
@@ -420,38 +502,7 @@ extension DiagramEditor {
             }
         }
         graph.subgraphs = fixRegions(graph.subgraphs)
-        // A composite's `[*]` belongs to the region of its first remaining
-        // transition (concurrency regions share one marker per composite),
-        // as the parser places it.
-        func owner(of id: String, in list: [original_src_types.MermaidSubgraph]) -> String? {
-            for sub in list {
-                if let inner = owner(of: id, in: sub.children) { return inner }
-                if sub.nodeIds.contains(id) { return sub.id }
-            }
-            return nil
-        }
-        var moves: [String: String] = [:]
-        for (id, node) in graph.nodesInOrder where node.shape == .stateStart || node.shape == .stateEnd {
-            guard let current = owner(of: id, in: graph.subgraphs),
-                  let edge = graph.edges.first(where: { $0.source == id || $0.target == id }) else { continue }
-            let other = edge.source == id ? edge.target : edge.source
-            if let wanted = owner(of: other, in: graph.subgraphs), wanted != current,
-               wanted.hasPrefix(current.components(separatedBy: "_region_").first ?? current) {
-                moves[id] = wanted
-            }
-        }
-        if !moves.isEmpty {
-            func move(_ list: [original_src_types.MermaidSubgraph]) -> [original_src_types.MermaidSubgraph] {
-                list.map { sub in
-                    var sub = sub
-                    sub.nodeIds.removeAll { moves[$0] != nil && moves[$0] != sub.id }
-                    for (id, target) in moves where target == sub.id && !sub.nodeIds.contains(id) { sub.nodeIds.append(id) }
-                    sub.children = move(sub.children)
-                    return sub
-                }
-            }
-            graph.subgraphs = move(graph.subgraphs)
-        }
+        return renames
     }
 
     /// Rename node ids everywhere the graph names them.

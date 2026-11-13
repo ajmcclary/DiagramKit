@@ -861,7 +861,8 @@ private func _parseStateDiagram(
         // --- floating note ---
         if let fn = _regexGroups(sPat(#"^note\s+\"([^\"]+)\"\s+as\s+({{SID}})\s*$"#), line),
            let noteText = fn[safe: 1], let noteId = fn[safe: 2], isValidStateID(noteId) {
-            _registerStateNode(&graph, &compositeStack, ParsedNode(id: noteId, label: noteText, shape: .stateNote))
+            // `<br>` is a line break, as in an attached note.
+            _registerStateNode(&graph, &compositeStack, ParsedNode(id: noteId, label: original_src_multiline_utils.normalizeBrTags(noteText), shape: .stateNote))
             continue
         }
 

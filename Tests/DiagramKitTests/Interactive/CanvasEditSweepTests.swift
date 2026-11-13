@@ -283,81 +283,85 @@ private func insertSteps(_ alias: String) -> [Step] {
 @Suite("State deletes: every element, with undo and concrete checks") @MainActor
 struct StateDeleteSweepTests {
 
-    @Test("deleting every state, transition, composite and region of every state corpus document and fixture is accepted, reads back as asked, and undoes exactly")
+    /// Deletes whose refusal is a known residual (M-R1: a state nested in a
+    /// composite and reached only from outside it; the exporter cannot yet
+    /// write it inside its composite once its sibling is gone).
+    static let knownRefusals: Set<String> = []
+
+    @Test("deleting every state, transition, composite and region of every state corpus document and fixture keeps everything else, judged from the source text, and undoes exactly")
     func deleteEverything() async throws {
         let corpus = try DiagramCorpus.load().compactMap { entry -> (String, String)? in
             guard let doc = try? MermaidImporter().parse(entry.source).document, doc.type == .stateDiagram else { return nil }
             return (entry.id, entry.source)
         }
         var failures: [String] = []
+        var census: [String: (accepted: Int, refused: [String])] = [:]
         var rows = 0
-        for (name, source) in corpus + stateDeleteFixtures {
+        for (name, source) in corpus + stateDeleteFixtures + reviewerStateFixtures {
             let document = try MermaidImporter().parse(source).document
             guard case .stateDiagram(let graph) = document.payload else { continue }
+            let facts = StateSourceFacts(source)
             let markers = Set(graph.nodesInOrder.filter { $0.node.shape == .stateStart || $0.node.shape == .stateEnd }.map(\.id))
+            let noteIDs = Set(graph.nodesInOrder.filter { $0.node.shape == .stateNote }.map(\.id))
             let subgraphs = allSubgraphs(graph.subgraphs)
             let subgraphIDs = Set(subgraphs.map(\.id))
-            var targets: [(String, Set<String>, Set<String>)] = []   // selection, removed ids, removed edge keys
-            for (id, _) in graph.nodesInOrder where !markers.contains(id) && !subgraphIDs.contains(id) {
-                let edges = Set(graph.edges.filter { $0.source == id || $0.target == id }.map(edgeKey))
-                targets.append(("node:\(id)", [id], edges))
+            // (selection, kind, what the source says should go)
+            var targets: [(String, String, StateSourceFacts.Deletion)] = []
+            for (id, node) in graph.nodesInOrder where !markers.contains(id) && !subgraphIDs.contains(id) {
+                if node.shape == .stateNote {
+                    targets.append(("node:\(id)", "node", .note(text: node.label)))
+                } else {
+                    targets.append(("node:\(id)", "node", .state(id)))
+                }
             }
             for (sid, edge) in edgeSelectionIDs(graph) {
-                targets.append((sid, [], [edgeKey(edge)]))
+                if noteIDs.contains(edge.source) || noteIDs.contains(edge.target) {
+                    let note = noteIDs.contains(edge.source) ? edge.source : edge.target
+                    let state = note == edge.source ? edge.target : edge.source
+                    let text = graph.nodesInOrder.first { $0.id == note }?.node.label ?? ""
+                    targets.append((sid, "transition", .noteLink(state: state, text: text)))
+                } else {
+                    targets.append((sid, "transition", .transition(StateSourceFacts.key(edge.source, edge.target, edge.label ?? ""))))
+                }
             }
             for sub in subgraphs {
-                var ids = Set([sub.id])
-                for inner in allSubgraphs([sub]) { ids.formUnion(inner.nodeIds); ids.insert(inner.id) }
-                let edges = Set(graph.edges.filter { ids.contains($0.source) || ids.contains($0.target) }.map(edgeKey))
-                targets.append(("group:\(sub.id)", ids, edges))
+                if let range = sub.id.range(of: "_region_"), let index = Int(sub.id[range.upperBound...]) {
+                    targets.append(("group:\(sub.id)", "group", .region(String(sub.id[..<range.lowerBound]), index)))
+                } else {
+                    targets.append(("group:\(sub.id)", "group", .composite(sub.id)))
+                }
             }
-            for (selection, removed, removedEdges) in targets {
+            for (selection, kind, deletion) in targets {
                 rows += 1
                 let label = "[\(name) \(selection)]"
                 let editor = DiagramEditor(document: document, preferredExportFormat: .mermaid,
                                            exportRegistry: DiagramPipeline.defaultExportRegistry, initialSource: source)
+                var counts = census[kind] ?? (0, [])
                 do {
                     try await editor.perform(.deleteElement(DiagramSelection(diagramType: .stateDiagram, elementID: selection)))
                 } catch {
-                    failures.append("\(label) refused: \(error.localizedDescription)"); continue
+                    counts.refused.append("\(label) \(error.localizedDescription)")
+                    census[kind] = counts
+                    if !Self.knownRefusals.contains("\(name) \(selection)") {
+                        failures.append("\(label) refused: \(error.localizedDescription)")
+                    }
+                    continue
                 }
-                // Concrete facts, without the fingerprint. Notes are
-                // compared by (state, text): a state's notes are numbered
-                // in order, so deleting one renumbers the next, and a note
-                // goes with its state or its attaching link.
-                guard let saved = editor.source,
-                      case .stateDiagram(let back) = try MermaidImporter().parse(saved).document.payload else {
-                    failures.append("\(label) saved text does not parse"); continue
+                counts.accepted += 1
+                census[kind] = counts
+                // What should survive, from the source text alone.
+                let expected = facts.after(deleting: deletion)
+                let saved = StateSourceFacts(editor.source ?? "")
+                if saved.transitions.sorted() != expected.transitions.sorted() {
+                    let lost = expected.transitions.filter { !saved.transitions.contains($0) }
+                    let extra = saved.transitions.filter { !expected.transitions.contains($0) }
+                    failures.append("\(label) transitions lost \(lost), unexpected \(extra)")
                 }
-                let noteIDs = Set(graph.nodesInOrder.filter { $0.node.shape == .stateNote }.map(\.id))
-                func notes(_ g: original_src_types.MermaidGraph, dropping removedIDs: Set<String>, edges removedEdgeKeys: Set<String>) -> [String] {
-                    g.nodesInOrder.filter { $0.node.shape == .stateNote && !removedIDs.contains($0.id) }.compactMap { note -> String? in
-                        let link = g.edges.first { $0.source == note.id || $0.target == note.id }
-                        if let link, removedEdgeKeys.contains(edgeKey(link)) { return nil }
-                        let state = link.map { $0.source == note.id ? $0.target : $0.source } ?? "floating"
-                        if removedIDs.contains(state) { return nil }
-                        return "\(state): \(note.node.label)"
-                    }.sorted()
+                if saved.states != expected.states {
+                    failures.append("\(label) states lost \(expected.states.subtracting(saved.states).sorted()), unexpected \(saved.states.subtracting(expected.states).sorted())")
                 }
-                let expectedNotes = notes(graph, dropping: removed, edges: removedEdges)
-                let backNotes = notes(back, dropping: [], edges: [])
-                if backNotes != expectedNotes { failures.append("\(label) notes \(backNotes) expected \(expectedNotes)") }
-                let isNoteEdge = { (e: original_src_types.MermaidEdge) in noteIDs.contains(e.source) || noteIDs.contains(e.target) || e.source.contains("----note") || e.target.contains("----note") }
-                let backIDs = Set(back.nodesInOrder.filter { $0.node.shape != .stateNote }.map(\.id))
-                for id in removed where !noteIDs.contains(id) && backIDs.contains(id) { failures.append("\(label) \(id) still present") }
-                if back.edges.contains(where: { !isNoteEdge($0) && (removed.contains($0.source) || removed.contains($0.target)) }) {
-                    failures.append("\(label) a transition still names a deleted id")
-                }
-                let expectedEdges = graph.edges.filter { !isNoteEdge($0) }.map(edgeKey).filter { !removedEdges.contains($0) }.sorted()
-                let backEdges = back.edges.filter { !isNoteEdge($0) }.map(edgeKey).sorted()
-                if backEdges != expectedEdges {
-                    failures.append("\(label) transitions \(backEdges) expected \(expectedEdges)")
-                }
-                let used = Set(back.edges.flatMap { [$0.source, $0.target] })
-                let expectedIDs = Set(graph.nodesInOrder.filter { $0.node.shape != .stateNote }.map(\.id)).subtracting(removed)
-                    .filter { !markers.contains($0) || used.contains($0) }
-                if backIDs != expectedIDs {
-                    failures.append("\(label) nodes \(backIDs.subtracting(expectedIDs)) extra, \(expectedIDs.subtracting(backIDs)) missing")
+                if saved.notes.sorted() != expected.notes.sorted() {
+                    failures.append("\(label) notes \(saved.notes.sorted()) expected \(expected.notes.sorted())")
                 }
                 // One undo restores the source byte for byte.
                 await editor.undo()
@@ -365,7 +369,9 @@ struct StateDeleteSweepTests {
                 if editor.canUndo { failures.append("\(label) more than one undo step") }
             }
         }
-        #expect(rows > 100)
+        let summary = census.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.accepted) accepted, \($0.value.refused.count) refused \($0.value.refused)" }
+        print("STATE-DELETE-CENSUS " + summary.joined(separator: " | "))
+        #expect(rows > 200)
         #expect(failures.isEmpty, "\(failures.count) of \(rows):\n\(failures.prefix(25).joined(separator: "\n"))")
     }
 
@@ -409,3 +415,184 @@ struct StateDeleteSweepTests {
     }
 }
 #endif
+
+/// What a state diagram's source text says, read without DiagramKit's
+/// parser: its transitions (`[*]` named by its enclosing composite), the
+/// states it names, and its notes by (state, text). The delete sweep judges
+/// an edit by these facts, independently of the editor's membership rules.
+struct StateSourceFacts {
+    struct Transition: Hashable, Comparable, CustomStringConvertible {
+        let from: String, to: String, label: String
+        static func < (a: Self, b: Self) -> Bool { a.description < b.description }
+        var description: String { "\(from) --> \(to)\(label.isEmpty ? "" : " : \(label)")" }
+    }
+    enum Deletion {
+        case state(String), note(text: String), noteLink(state: String, text: String), transition(Transition)
+        case composite(String), region(String, Int)
+    }
+
+    var transitions: [Transition] = []
+    var states: Set<String> = []
+    var notes: [String] = []                       // "state: text" or "floating: text"
+    /// Where each transition and state sits: the (composite, region) pairs
+    /// enclosing it, outermost first.
+    var transitionScopes: [[(String, Int)]] = []
+    var stateScopes: [String: [(String, Int)]] = [:]
+    var noteStates: [String] = []                  // the state each note in `notes` is on, or ""
+    var noteScopes: [[(String, Int)]] = []         // where each note is written
+
+    /// A model edge's ends as the source writes them.
+    static func key(_ source: String, _ target: String, _ label: String) -> Transition {
+        func end(_ id: String) -> String {
+            if id.hasSuffix("_start") { return "[*]@\(id.dropLast(6))" }
+            if id.hasSuffix("_end") { return "[*]@\(id.dropLast(4))" }
+            return id
+        }
+        return Transition(from: end(source), to: end(target), label: label)
+    }
+
+    init(_ text: String) {
+        var stack: [(name: String, region: Int)] = []
+        var pendingNote: (state: String, lines: [String])?
+        func normalize(_ t: String) -> String {
+            t.replacingOccurrences(of: "<br/>", with: "\n").replacingOccurrences(of: "<br>", with: "\n")
+                .split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: "\n")
+        }
+        func scope() -> [(String, Int)] { stack.map { ($0.name, $0.region) } }
+        func mention(_ s: String) {
+            guard s != "[*]", !s.isEmpty else { return }
+            states.insert(s)
+            if stateScopes[s] == nil { stateScopes[s] = scope() }
+        }
+        let keywords = ["classDef", "class ", "style ", "click ", "direction", "hide ", "scale ", "accTitle", "accDescr", "linkStyle", "%%", "---", "stateDiagram"]
+        for raw in text.split(separator: "\n").map(String.init) {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            if var note = pendingNote {
+                if line.lowercased() == "end note" {
+                    notes.append("\(note.state): \(normalize(note.lines.joined(separator: "\n")))")
+                    noteStates.append(note.state)
+                    noteScopes.append(scope())
+                    pendingNote = nil
+                } else {
+                    note.lines.append(line)
+                    pendingNote = note
+                }
+                continue
+            }
+            if line.isEmpty || keywords.contains(where: { line.hasPrefix($0) }) { continue }
+            if line == "}" { _ = stack.popLast(); continue }
+            if line == "--" { if !stack.isEmpty { stack[stack.count - 1].region += 1 }; continue }
+            if line.hasPrefix("note ") {
+                let rest = line.dropFirst(5)
+                if rest.hasPrefix("\"") {
+                    let parts = rest.dropFirst().split(separator: "\"", maxSplits: 1)
+                    notes.append("floating: \(normalize(String(parts.first ?? "")))")
+                    noteStates.append("")
+                    noteScopes.append(scope())
+                    continue
+                }
+                for side in ["left of ", "right of "] where rest.hasPrefix(side) {
+                    let body = rest.dropFirst(side.count)
+                    if let colon = body.firstIndex(of: ":") {
+                        let state = body[..<colon].trimmingCharacters(in: .whitespaces)
+                        notes.append("\(state): \(normalize(String(body[body.index(after: colon)...]).trimmingCharacters(in: .whitespaces)))")
+                        noteStates.append(state)
+                        noteScopes.append(scope())
+                        mention(state)
+                    } else {
+                        let state = body.trimmingCharacters(in: .whitespaces)
+                        mention(state)
+                        pendingNote = (state, [])
+                    }
+                }
+                continue
+            }
+            if line.hasPrefix("state ") {
+                var rest = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+                let opens = rest.hasSuffix("{")
+                if opens { rest = String(rest.dropLast()).trimmingCharacters(in: .whitespaces) }
+                if let asRange = rest.range(of: " as ") { rest = String(rest[asRange.upperBound...]) }
+                let name = rest.split(separator: " ").first.map(String.init) ?? rest
+                let id = name.replacingOccurrences(of: "<<choice>>", with: "").replacingOccurrences(of: "<<fork>>", with: "").replacingOccurrences(of: "<<join>>", with: "")
+                mention(id)
+                if opens { stack.append((id, 0)) }
+                continue
+            }
+            if let arrow = line.range(of: "-->") {
+                let from = line[..<arrow.lowerBound].trimmingCharacters(in: .whitespaces)
+                var rhs = line[arrow.upperBound...].trimmingCharacters(in: .whitespaces)
+                var label = ""
+                if let colon = rhs.firstIndex(of: ":") {
+                    label = rhs[rhs.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+                    rhs = rhs[..<colon].trimmingCharacters(in: .whitespaces)
+                }
+                let here = stack.last?.name ?? "root"
+                func end(_ e: String) -> String { e == "[*]" ? "[*]@\(here)" : e }
+                mention(from)
+                mention(rhs)
+                transitions.append(Transition(from: end(from), to: end(rhs), label: label))
+                transitionScopes.append(scope())
+                continue
+            }
+            if let colon = line.firstIndex(of: ":") {
+                mention(line[..<colon].trimmingCharacters(in: .whitespaces))
+                continue
+            }
+            mention(line)
+        }
+    }
+
+    /// The facts the text should state after `deletion`.
+    func after(deleting deletion: Deletion) -> (transitions: [Transition], states: Set<String>, notes: [String]) {
+        var deletedStates: Set<String> = []
+        var inDeletedBlock: (([(String, Int)]) -> Bool) = { _ in false }
+        var removedTransition: Transition?
+        var floated: String?
+        var deletedNoteText: String?
+        func clean(_ t: String) -> String {
+            t.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: "\n")
+        }
+        switch deletion {
+        case .state(let s):
+            deletedStates = [s]
+        case .note(let text):
+            deletedNoteText = text
+        case .noteLink(let state, let text):
+            floated = "\(state): \(clean(text))"
+        case .transition(let t):
+            removedTransition = t
+        case .composite(let c):
+            deletedStates = [c]
+            inDeletedBlock = { scope in scope.contains { $0.0 == c } }
+        case .region(let c, let k):
+            inDeletedBlock = { scope in scope.contains { $0.0 == c && $0.1 == k } }
+        }
+        for (state, scope) in stateScopes where inDeletedBlock(scope) { deletedStates.insert(state) }
+        var kept: [Transition] = []
+        var removedOne = false
+        for (t, scope) in zip(transitions, transitionScopes) {
+            if let r = removedTransition, !removedOne, t == r { removedOne = true; continue }
+            if inDeletedBlock(scope) || deletedStates.contains(t.from) || deletedStates.contains(t.to) { continue }
+            kept.append(t)
+        }
+        var keptNotes: [String] = []
+        var droppedOneNote = false
+        for ((note, state), scope) in zip(zip(notes, noteStates), noteScopes) {
+            // A note goes with its state, or with the block it is written in.
+            if deletedStates.contains(state) || inDeletedBlock(scope) { continue }
+            let text = String(note.drop(while: { $0 != ":" }).dropFirst()).trimmingCharacters(in: .whitespaces)
+            if let d = deletedNoteText, !droppedOneNote, text == clean(d) {
+                droppedOneNote = true
+                continue
+            }
+            if let f = floated, note == f {
+                // The note whose link was deleted stays, unattached.
+                floated = nil
+                keptNotes.append("floating: \(text)")
+                continue
+            }
+            keptNotes.append(note)
+        }
+        return (kept, states.subtracting(deletedStates), keptNotes)
+    }
+}
