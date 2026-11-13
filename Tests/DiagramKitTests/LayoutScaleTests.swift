@@ -4,7 +4,8 @@ import DiagramKit
 import DiagramKitCommon
 
 // Inputs that used to hang a layout or renderer. Each now either finishes
-// or throws the typed `DiagramInputLimitError(.layoutSize)`.
+// or throws the typed `DiagramInputLimitError(.layoutSize)` (ASCII:
+// `.textDrawingSize`).
 
 private func nestedBlocks(_ depth: Int) -> String {
     "block-beta\n" + (0..<depth).map { "block:g\($0)" }.joined(separator: "\n") + "\n  leaf\n" + (0..<depth).map { _ in "end" }.joined(separator: "\n")
@@ -43,6 +44,14 @@ private func isLayoutSizeError(_ error: Error) -> Bool {
     (error as? DiagramInputLimitError)?.limit == .layoutSize
 }
 
+private func isTextDrawingSizeError(_ error: Error) -> Bool {
+    (error as? DiagramInputLimitError)?.limit == .textDrawingSize
+}
+
+private func tree(_ count: Int) -> String {
+    "flowchart TD\n" + (1..<count).map { "  n\(($0 - 1) / 2) --> n\($0)" }.joined(separator: "\n")
+}
+
 @Suite("Layouts that used to hang")
 struct LayoutScaleTests {
 
@@ -64,6 +73,21 @@ struct LayoutScaleTests {
         #expect(outcome == "limit")
     }
 
+    @Test("block nesting lays out to depth 15 and is refused from depth 16 (the parser accepts 100)")
+    func blockNestingThreshold() async throws {
+        let outcomes: [String] = try await onDiagramWorker {
+            [15, 16].map { depth in
+                do {
+                    _ = try DiagramPipeline.renderSVG(source: nestedBlocks(depth))
+                    return "rendered"
+                } catch {
+                    return isLayoutSizeError(error) ? "limit" : "other: \(error)"
+                }
+            }
+        }
+        #expect(outcomes == ["rendered", "limit"])
+    }
+
     @Test("a 40-set venn with a 40-way union and pairwise unions lays out")
     func largeVenn() async throws {
         let union = venn(40) + "\n  union " + (0..<40).map { "S\($0)" }.joined(separator: ",") + "[\"U\"]"
@@ -83,11 +107,26 @@ struct LayoutScaleTests {
                 _ = try DiagramPipeline.renderASCII(source: source)
                 return (svg, "rendered")
             } catch {
-                return (svg, isLayoutSizeError(error) ? "limit" : "other: \(error)")
+                return (svg, isTextDrawingSizeError(error) ? "limit" : "other: \(error)")
             }
         }
         #expect(svg.hasPrefix("<svg"), "\(name)")
         #expect(ascii == "rendered" || ascii == "limit", "\(name): \(ascii)")
+    }
+
+    @Test("a 150-node tree draws as ASCII; a 300-node tree is refused as too large to draw as text")
+    func asciiTreeBudget() async throws {
+        let (small, large): (String, String) = try await onDiagramWorker {
+            let small = try DiagramPipeline.renderASCII(source: tree(150)).text
+            do {
+                _ = try DiagramPipeline.renderASCII(source: tree(300))
+                return (small, "rendered")
+            } catch {
+                return (small, isTextDrawingSizeError(error) ? error.localizedDescription : "other: \(error)")
+            }
+        }
+        #expect(small.contains("n149"))
+        #expect(large.hasPrefix("The diagram is too large to draw as text:"), "\(large)")
     }
 
     @Test("treemap, C4 and architecture nesting past the parse limit throws", arguments: [deepTreemap, deepC4, deepArchitecture])

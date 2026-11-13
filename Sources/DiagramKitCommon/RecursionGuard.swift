@@ -56,6 +56,10 @@ public struct DiagramInputLimitError: Error, LocalizedError, Equatable, Sendable
         /// The diagram is within the parse limits but its layout would
         /// take more work than the layout is allowed (it used to hang).
         case layoutSize
+        /// The diagram laid out, but drawing it as text (ASCII) would take
+        /// more work than the text renderer is allowed. SVG and image
+        /// rendering of the same diagram are unaffected.
+        case textDrawingSize
     }
 
     public let limit: Limit
@@ -74,6 +78,8 @@ public struct DiagramInputLimitError: Error, LocalizedError, Equatable, Sendable
             return "Number out of range: \(detail)"
         case .layoutSize:
             return "The diagram is too large to lay out: \(detail)"
+        case .textDrawingSize:
+            return "The diagram is too large to draw as text: \(detail)"
         }
     }
 }

@@ -40,9 +40,11 @@ private func sortSubgraphsByDepth(_ subgraphs: [AsciiSubgraph]) -> [AsciiSubgrap
 /// the size of the whole diagram, so the work is cells × layers: an
 /// 800-node chain, a 50×50 `&` fan-out or 200 nested subgraphs took 50 s to
 /// several minutes. Past this the ASCII renderer throws
-/// `DiagramInputLimitError(.layoutSize)` instead; SVG and image rendering of
-/// the same diagram are unaffected.
-public let _asciiFlowchartDrawBudget: Double = 60_000_000
+/// `DiagramInputLimitError(.textDrawingSize)` instead; SVG and image
+/// rendering of the same diagram are unaffected. A 150-node tree estimates
+/// 66 million and a 200-node tree about 117 million; a 300-node tree
+/// (about 260 million, minutes to draw) is refused.
+public let _asciiFlowchartDrawBudget: Double = 150_000_000
 
 /// Estimated cell operations `drawGraph` will perform on `graph`.
 public func _asciiFlowchartDrawWork(_ graph: AsciiGraph) -> Double {

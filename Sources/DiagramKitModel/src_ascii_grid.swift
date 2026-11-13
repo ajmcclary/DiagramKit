@@ -327,7 +327,7 @@ open class original_src_ascii_grid {
             // renderer throws instead.
             guard graph.pathCellsExplored <= _asciiPathSearchBudget else {
                 throw DiagramInputLimitError(
-                    .layoutSize,
+                    .textDrawingSize,
                     "routing \(graph.edges.count) edges in ASCII needs more than \(_asciiPathSearchBudget / 1_000_000) million search steps; render it as SVG or an image instead"
                 )
             }
