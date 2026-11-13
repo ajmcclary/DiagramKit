@@ -222,6 +222,37 @@ let flowchartFidelityFixtures: [(name: String, source: String)] = [
     graph TD
       A --> B
     """),
+    // Mermaid's documentation example: a2 and c1 are named outside first
+    // and belong to the subgraphs that list them later.
+    ("docs-subgraph-membership", """
+    flowchart TB
+        c1-->a2
+        subgraph one
+        a1-->a2
+        end
+        subgraph two
+        b1-->b2
+        end
+        subgraph three
+        c1-->c2
+        end
+    """),
+    ("first-subgraph-keeps-a-node", """
+    flowchart LR
+      subgraph S1
+        A[One]
+      end
+      subgraph S2
+        A[Two]
+        B
+      end
+      subgraph Outer
+        C
+        subgraph Inner
+          C --> D
+        end
+      end
+    """),
 ]
 
 private func parseFlowchart(_ source: String) throws -> DiagramDocument {
@@ -377,5 +408,37 @@ struct FlowchartLabelQuoteTests {
     func literalEntityText() throws {
         let (source, label) = try roundTrip("use #quot; for quotes")
         #expect(label == "use #quot; for quotes", "\(source)")
+    }
+}
+
+@Suite("Flowchart subgraph membership matches upstream")
+struct FlowchartSubgraphMembershipTests {
+
+    private func members(_ source: String) throws -> [String: [String]] {
+        guard case .flowchart(let g) = try MermaidImporter().parse(source).document.payload else { return [:] }
+        var out: [String: [String]] = [:]
+        func walk(_ s: original_src_types.MermaidSubgraph) {
+            out[s.id] = s.nodeIds
+            s.children.forEach(walk)
+        }
+        g.subgraphs.forEach(walk)
+        return out
+    }
+
+    @Test("a node named outside first belongs to the subgraph that lists it later (Mermaid docs example)")
+    func laterListingClaims() throws {
+        let m = try members(flowchartFidelityFixtures.first { $0.name == "docs-subgraph-membership" }!.source)
+        #expect(m["one"] == ["a1", "a2"])
+        #expect(m["two"] == ["b1", "b2"])
+        #expect(m["three"] == ["c1", "c2"])
+    }
+
+    @Test("of two subgraphs listing a node, the first to close keeps it; an inner subgraph wins over its parent")
+    func firstCloserKeeps() throws {
+        let m = try members(flowchartFidelityFixtures.first { $0.name == "first-subgraph-keeps-a-node" }!.source)
+        #expect(m["S1"] == ["A"])
+        #expect(m["S2"] == ["B"])
+        #expect(m["Inner"] == ["C", "D"])
+        #expect(m["Outer"] == [])
     }
 }

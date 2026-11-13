@@ -304,6 +304,18 @@ private func _parseFlowchart(
 
     var graph = _WorkingGraph(direction: direction, rendererType: rendererType, config: config)
     var subgraphStack: [ParsedSubgraph] = []
+    // Upstream's subgraph membership: every node mentioned in a subgraph's
+    // body (declared, bare or as an edge end) is listed by it, and when it
+    // closes it keeps only the nodes no earlier-closed subgraph kept
+    // (`makeUniq`). Inner subgraphs close first, so they win over outer
+    // ones, and of two siblings the first keeps a node both list.
+    var claimedBySubgraph = Set<String>()
+    func uniqueMembers(_ subgraph: ParsedSubgraph) -> ParsedSubgraph {
+        var subgraph = subgraph
+        subgraph.nodeIds = subgraph.nodeIds.filter { !claimedBySubgraph.contains($0) }
+        claimedBySubgraph.formUnion(subgraph.nodeIds)
+        return subgraph
+    }
 
     if lines.count <= 1 {
         return graph.toParsedGraph()
@@ -523,7 +535,7 @@ private func _parseFlowchart(
         }
 
         if line == "end" {
-            let completed = subgraphStack.popLast()
+            let completed = subgraphStack.popLast().map(uniqueMembers)
             if let completed {
                 if !subgraphStack.isEmpty {
                     _appendSubgraphChild(&subgraphStack, completed)
@@ -549,7 +561,8 @@ private func _parseFlowchart(
 
     // A `subgraph` still open at the end of the source used to vanish with
     // no trace. Close it there, keep its contents, and say so.
-    while let open = subgraphStack.popLast() {
+    while let unclosed = subgraphStack.popLast() {
+        let open = uniqueMembers(unclosed)
         diagnostics.append(.lossyTransform(
             .subgraphFlatten,
             message: "[Flowchart] subgraph \"\(open.id)\" has no matching end; closed at the end of the diagram",
@@ -1278,6 +1291,11 @@ private func _consumeNode(_ text: String, graph: inout _WorkingGraph, subgraphSt
         id = bareId
         if graph.nodesById[bareId] == nil && !graph.subgraphIds.contains(bareId) {
             _registerNode(&graph, &subgraphStack, ParsedNode(id: bareId, label: bareId, shape: .rectangle))
+        } else if graph.nodesById[bareId] != nil && !graph.subgraphIds.contains(bareId) {
+            // A bare mention of a known node inside a subgraph body lists
+            // it there too (upstream: `c1-->a2` then `subgraph one` /
+            // `a1-->a2` puts a2 in one).
+            _trackInSubgraph(&subgraphStack, bareId)
         }
         remaining = String(text.dropFirst(full.count))
     }
