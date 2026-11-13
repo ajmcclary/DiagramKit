@@ -174,6 +174,13 @@ private func _scanEdgeOpBody(_ text: String) -> _ParsedEdgeOp? {
         var dashCount = 1
         while i < chars.count, chars[i] == "-" { dashCount += 1; i += 1 }
 
+        // Text-embedded label written without spaces: `A--text-->B`. Upstream
+        // enters its edge-text state on `--` whatever follows, so `text` is
+        // the label of one edge, not a node between two edges.
+        if dashCount == 2, let labeled = _scanUnspacedTextLabel(chars, i, into: &op) {
+            return labeled
+        }
+
         if dashCount >= 2 {
             op.minlen = dashCount - 2  // 2 dashes = normal, 3+ = minlen
             // Check for arrowhead end variant: o, x, >
@@ -278,6 +285,24 @@ private func _matchSeq(_ chars: [Character], _ start: Int, _ pattern: String) ->
 
 /// Scan a text-embedded label of the form "-- text -->" or "-. text .->" or "== text ==>".
 /// Returns (label text, chars consumed, arrow end type) or nil.
+/// `--text-->`: the opening `--` is consumed and `start` is the first label
+/// character. Only applies when that character cannot continue the operator
+/// itself (`>`, `o`, `x`, `-`), open a pipe label, or be the space of the
+/// spaced form, and only when a closing operator follows a non-empty label.
+private func _scanUnspacedTextLabel(_ chars: [Character], _ start: Int, into op: inout _ParsedEdgeOp) -> _ParsedEdgeOp? {
+    guard start < chars.count else { return nil }
+    let first = chars[start]
+    guard !first.isWhitespace, !">ox-|".contains(first) else { return nil }
+    guard let (label, closeLen, closeArrowEnd) = _scanTextEmbeddedLabel(chars, start), !label.isEmpty else {
+        return nil
+    }
+    var labeled = op
+    labeled.label = label
+    labeled.arrowHeadEnd = closeArrowEnd
+    labeled.consumedLength = start + closeLen
+    return labeled
+}
+
 private func _scanTextEmbeddedLabel(_ chars: [Character], _ start: Int) -> (String, Int, original_src_types.ArrowHeadType)? {
     let remaining = String(chars[start...])
     let patterns: [(String, original_src_types.ArrowHeadType)] = [

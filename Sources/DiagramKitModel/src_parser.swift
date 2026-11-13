@@ -178,22 +178,36 @@ private let _bareNodeRegex = _regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)"#)
 private let _classShorthandRegex = _regex(#"^:::([\w][\w-]*)"#)
 private let _clickRegex = _regex(#"^click\s+((?:[\w\p{L}.]|-(?![>\-.]))+)\s+(.+)$"#)
 
+/// Label alternatives for a node shape. A label that starts with `"` runs to
+/// the next `"`, so a quoted label may contain the shape's own closing
+/// delimiter (`B["array[0]"]`, `C("Start (init)")`, `D{"{x}"}`), as in
+/// upstream Mermaid. Without the quoted branch the lazy `(.+?)` stopped at
+/// the first delimiter, truncating the label and dropping the rest of the
+/// line. The unquoted branch is unchanged.
+private let _quotedOrLazyLabel = #"("[^"]*"|.+?)"#
+/// The slash shapes (`[/…/]`, `[\…\]`, `[/…\]`, `[\…/]`) are tried before the
+/// plain rectangle, and a lazy label could run past the first `]` into the
+/// next node on the line (`W[/para/] --> X[\alt\]` became one node). Their
+/// unquoted label stops at `]`.
+private let _quotedOrBracketFreeLabel = #"("[^"]*"|[^\]]+?)"#
+private let _nodeIdPattern = #"^((?:[\w\p{L}.]|-(?![>\-.]))+)"#
+
 private let _nodePatterns: [(regex: NSRegularExpression, shape: ParsedNodeShape)] = [
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\(\((.+?)\)\)\)"#), .doublecircle),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\[(.+?)\]\)"#), .stadium),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(\((.+?)\)\)"#), .circle),
+    (_regex(_nodeIdPattern + #"\(\(\("# + _quotedOrLazyLabel + #"\)\)\)"#), .doublecircle),
+    (_regex(_nodeIdPattern + #"\(\["# + _quotedOrLazyLabel + #"\]\)"#), .stadium),
+    (_regex(_nodeIdPattern + #"\(\("# + _quotedOrLazyLabel + #"\)\)"#), .circle),
     (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\(-([^-]*?)-\)"#), .ellipse),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\[(.+?)\]\]"#), .subroutine),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\((.+?)\)\]"#), .cylinder),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\/(.+?)\\\]"#), .trapezoid),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\\(.+?)\/\]"#), .trapezoidAlt),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\/(.+?)\/\]"#), .parallelogram),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[\\(.+?)\\\]"#), .parallelogramAlt),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)>(.+?)\]"#), .asymmetric),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\{\{(.+?)\}\}"#), .hexagon),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\[(.+?)\]"#), .rectangle),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\((.+?)\)"#), .rounded),
-    (_regex(#"^((?:[\w\p{L}.]|-(?![>\-.]))+)\{(.+?)\}"#), .diamond),
+    (_regex(_nodeIdPattern + #"\[\["# + _quotedOrLazyLabel + #"\]\]"#), .subroutine),
+    (_regex(_nodeIdPattern + #"\[\("# + _quotedOrLazyLabel + #"\)\]"#), .cylinder),
+    (_regex(_nodeIdPattern + #"\[\/"# + _quotedOrBracketFreeLabel + #"\\\]"#), .trapezoid),
+    (_regex(_nodeIdPattern + #"\[\\"# + _quotedOrBracketFreeLabel + #"\/\]"#), .trapezoidAlt),
+    (_regex(_nodeIdPattern + #"\[\/"# + _quotedOrBracketFreeLabel + #"\/\]"#), .parallelogram),
+    (_regex(_nodeIdPattern + #"\[\\"# + _quotedOrBracketFreeLabel + #"\\\]"#), .parallelogramAlt),
+    (_regex(_nodeIdPattern + #">"# + _quotedOrLazyLabel + #"\]"#), .asymmetric),
+    (_regex(_nodeIdPattern + #"\{\{"# + _quotedOrLazyLabel + #"\}\}"#), .hexagon),
+    (_regex(_nodeIdPattern + #"\["# + _quotedOrLazyLabel + #"\]"#), .rectangle),
+    (_regex(_nodeIdPattern + #"\("# + _quotedOrLazyLabel + #"\)"#), .rounded),
+    (_regex(_nodeIdPattern + #"\{"# + _quotedOrLazyLabel + #"\}"#), .diamond),
 ]
 
 public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> (DiagramDocument, [DiagramDiagnostic]) {
