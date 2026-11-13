@@ -180,19 +180,23 @@ private struct BlockMarkerIds {
 private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColors, fontFamily: String) -> String {
     if node.type == .space || node.type == .columnSetting { return "" }
 
-    let id = node.domId ?? "block-" + node.id
+    // Ids, style values and class names come from the diagram text and are
+    // written into double-quoted attributes: escape them once here
+    // (`a x" onload="…` used to add an attribute; `blockArrowId1<` and
+    // `fill:<b>` made the SVG unparseable).
+    let id = SVG.escapeText(node.domId ?? "block-" + node.id)
     let x = node.x - node.width / 2
     let y = node.y - node.height / 2
     let w = node.width
     let h = node.height
 
-    let fill = resolveBlockFill(node, defaultFill: colors.surface ?? colors.bg)
-    let stroke = resolveBlockStroke(node, defaultColor: colors.border ?? colors.line ?? "#333")
-    let textColor = resolveBlockTextColor(node, defaultColor: colors.fg)
+    let fill = SVG.escapeText(resolveBlockFill(node, defaultFill: colors.surface ?? colors.bg))
+    let stroke = SVG.escapeText(resolveBlockStroke(node, defaultColor: colors.border ?? colors.line ?? "#333"))
+    let textColor = SVG.escapeText(resolveBlockTextColor(node, defaultColor: colors.fg))
 
     let hasExplicitClasses = !node.classes.isEmpty
     let classList: [String] = hasExplicitClasses ? node.classes : ["default"]
-    let fullClassList = (classList + ["flowchart-label"]).joined(separator: " ")
+    let fullClassList = SVG.escapeText((classList + ["flowchart-label"]).joined(separator: " "))
 
     if node.type == .composite {
         let clusterBkg = colors.surface ?? colors.bg

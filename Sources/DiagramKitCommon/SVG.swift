@@ -12,13 +12,22 @@ public enum SVG {
 
     // MARK: - Escaping
 
-    /// Escape text content for use between XML tags (e.g. `<text>...</text>`).
-    /// Escapes `&`, `<`, `>`.
+    /// Escape text for an XML text node (e.g. `<text>...</text>`), a
+    /// `<style>` block, or a double-quoted attribute value.
+    /// Escapes `&`, `<`, `>` and `"`.
+    ///
+    /// The renderers use this helper in all three positions; it used to
+    /// leave `"` alone, so in an attribute a value such as
+    /// `red" onload="…` added an attribute, and a `font-family` of
+    /// `"Open Sans"` inside `style="…"` made the SVG unparseable. With `"`
+    /// escaped there is one escaping path for every position the renderers
+    /// write (all attributes are double-quoted).
     public static func escapeText(_ value: String) -> String {
         value
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
     }
 
     /// Escape a value for use in an XML attribute (e.g. `id="..."`).
@@ -32,5 +41,18 @@ public enum SVG {
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
             .replacingOccurrences(of: "'", with: "&#39;")
+    }
+
+    /// A theme or style value for a CSS position — a `<style>` block or a
+    /// `style="…"` / presentation attribute. Returns `value` when
+    /// `_isSafeCSSThemeValue` accepts it (no `<`, `>`, quotes, braces, `;`,
+    /// `url(` …), so it can neither close the attribute nor the `<style>`
+    /// element; otherwise `fallback`. Theme values used to be interpolated
+    /// raw, so `cScale0: "red}</style><script>…"` produced a script
+    /// element.
+    public static func cssValue(_ value: String?, fallback: String) -> String {
+        guard let value, !value.trimmingCharacters(in: .whitespaces).isEmpty,
+              _isSafeCSSThemeValue(value) else { return fallback }
+        return value
     }
 }

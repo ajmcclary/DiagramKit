@@ -84,6 +84,6 @@ line { stroke: #27272A; }
 <path class="mouth" d="M 417.5 302 A 7.15 6.82 0 0 0 432.5 302" fill="none" stroke="#27272A" stroke-width="2"/>
 </g>
 </g>
-<text x="150" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family=""trebuchet ms", verdana, arial, sans-serif">E-Commerce</text>
+<text x="150" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family="&quot;trebuchet ms&quot;, verdana, arial, sans-serif">E-Commerce</text>
 <line x1="150" y1="220" x2="540" y2="220" stroke="#939394" stroke-width="4" marker-end="url(#33832C32-41F4-2F3D-6137-F6C9F1E0B93D-arrowhead)"/>
 </svg>

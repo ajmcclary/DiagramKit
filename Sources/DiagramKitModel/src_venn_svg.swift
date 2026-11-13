@@ -35,7 +35,7 @@ public func renderVennSvg(
     let titleColor = positioned.themeVariables?["vennTitleTextColor"] ?? colors.fg
 
     if let title = positioned.title {
-        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(_vi(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(_vi(title.fontSize))px\" fill=\"\(titleColor)\">\(SVG.escapeText(title.text))</text>\n"
+        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(_vi(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(_vi(title.fontSize))px\" fill=\"\(SVG.escapeText(titleColor))\">\(SVG.escapeText(title.text))</text>\n"
     }
 
     svg += "<g transform=\"translate(0, \(_vi(positioned.titleHeight)))\">\n"
@@ -89,21 +89,21 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, isHan
         if isHandDrawn {
             let seed = handDrawnSeed + i * 137
             let sketchPath = handDrawnCirclePath(cx: circle.center.x, cy: circle.center.y, r: circle.radius, seed: seed, segments: 36)
-            result += "<path d=\"\(sketchPath)\" fill=\"\(area.fillColor)\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(area.strokeColor)\" stroke-width=\"\(fmt(area.strokeWidth))\" stroke-opacity=\"\(String(format: "%.3f", strokeOpacity))\" />\n"
+            result += "<path d=\"\(sketchPath)\" fill=\"\(SVG.escapeText(area.fillColor))\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(SVG.escapeText(area.strokeColor))\" stroke-width=\"\(fmt(area.strokeWidth))\" stroke-opacity=\"\(String(format: "%.3f", strokeOpacity))\" />\n"
 
             // Hachure fill lines
             let hachureAngle = -41.0 + Double(i) * 60.0
             let hachureLines = handDrawnHachureLines(cx: circle.center.x, cy: circle.center.y, r: circle.radius, seed: seed, angle: hachureAngle, gap: 8, strokeColor: area.fillColor)
             for line in hachureLines {
-                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(area.fillColor)\" stroke-width=\"1.5\" stroke-opacity=\"0.4\" />\n"
+                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(SVG.escapeText(area.fillColor))\" stroke-width=\"1.5\" stroke-opacity=\"0.4\" />\n"
             }
         } else {
-            result += "<circle cx=\"\(fmt(circle.center.x))\" cy=\"\(fmt(circle.center.y))\" r=\"\(fmt(circle.radius))\" fill=\"\(area.fillColor)\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(area.strokeColor)\" stroke-width=\"\(fmt(area.strokeWidth))\" stroke-opacity=\"\(String(format: "%.3f", strokeOpacity))\" />\n"
+            result += "<circle cx=\"\(fmt(circle.center.x))\" cy=\"\(fmt(circle.center.y))\" r=\"\(fmt(circle.radius))\" fill=\"\(SVG.escapeText(area.fillColor))\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(SVG.escapeText(area.strokeColor))\" stroke-width=\"\(fmt(area.strokeWidth))\" stroke-opacity=\"\(String(format: "%.3f", strokeOpacity))\" />\n"
         }
 
         let labelText = area.label ?? area.sets.first ?? ""
         if !labelText.isEmpty {
-            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
+            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(SVG.escapeText(area.textColor))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
         }
 
         result += "</g>\n"
@@ -127,19 +127,19 @@ private func renderVennIntersectionSvg(_ area: PositionedVennArea, font: String,
             let lines1 = handDrawnHachureForPath(pathSpec, angle: 45, gap: 6, seed: handDrawnSeed, strokeColor: fill)
             let lines2 = handDrawnHachureForPath(pathSpec, angle: -45, gap: 6, seed: handDrawnSeed + 100, strokeColor: fill)
             for line in lines1 {
-                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(fill)\" stroke-width=\"1.5\" stroke-opacity=\"0.6\" />\n"
+                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(SVG.escapeText(fill))\" stroke-width=\"1.5\" stroke-opacity=\"0.6\" />\n"
             }
             for line in lines2 {
-                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(fill)\" stroke-width=\"1.5\" stroke-opacity=\"0.4\" />\n"
+                result += "<line x1=\"\(fmt(line.x1))\" y1=\"\(fmt(line.y1))\" x2=\"\(fmt(line.x2))\" y2=\"\(fmt(line.y2))\" stroke=\"\(SVG.escapeText(fill))\" stroke-width=\"1.5\" stroke-opacity=\"0.4\" />\n"
             }
         } else {
-            result += "<path d=\"\(pathSpec)\" fill=\"\(fill)\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(area.strokeColor)\" stroke-width=\"\(fmt(area.strokeWidth))\" />\n"
+            result += "<path d=\"\(pathSpec)\" fill=\"\(SVG.escapeText(fill))\" fill-opacity=\"\(String(format: "%.3f", fillOpacity))\" stroke=\"\(SVG.escapeText(area.strokeColor))\" stroke-width=\"\(fmt(area.strokeWidth))\" />\n"
         }
     }
 
     let labelText = area.label ?? area.sets.joined(separator: " & ")
     if !labelText.isEmpty {
-        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
+        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(_vi(area.textFontSize))px\" fill=\"\(SVG.escapeText(area.textColor))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
     }
 
     result += "</g>\n"
@@ -157,7 +157,7 @@ private func renderVennTextNodeSvg(_ node: PositionedVennTextNode, font: String,
     let fontSize = _vi(node.fontSize)
 
     result += "<foreignObject class=\"venn-text-node-fo\" width=\"\(fmt(node.width))\" height=\"\(fmt(node.height))\" x=\"\(fmt(node.x))\" y=\"\(fmt(node.y))\" overflow=\"visible\">\n"
-    result += "<span xmlns=\"http://www.w3.org/1999/xhtml\" class=\"venn-text-node\" style=\"display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:\(node.textColor);font-family:\(font);font-size:\(fontSize)px;word-wrap:break-word;overflow-wrap:break-word;\">\(SVG.escapeText(displayText))</span>\n"
+    result += "<span xmlns=\"http://www.w3.org/1999/xhtml\" class=\"venn-text-node\" style=\"display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:\(SVG.escapeText(node.textColor));font-family:\(font);font-size:\(fontSize)px;word-wrap:break-word;overflow-wrap:break-word;\">\(SVG.escapeText(displayText))</span>\n"
     result += "</foreignObject>\n"
 
     if debugLayout {

@@ -31,12 +31,12 @@ public func renderTreeViewSvg(_ positioned: PositionedTreeViewDiagram, diagramId
     }
 
     svg += "<style>"
-    svg += ".treeView-node-label{font-size:\(theme.labelFontSize);fill:\(theme.labelColor)}"
+    svg += ".treeView-node-label{font-size:\(SVG.escapeText(theme.labelFontSize));fill:\(SVG.escapeText(theme.labelColor))}"
     svg += ".treeView-node-dir{font-weight:bold}"
-    svg += ".treeView-node-line{stroke:\(theme.lineColor)}"
-    svg += ".treeView-node-icon{fill:\(theme.iconColor)}"
-    svg += ".treeView-node-description{font-size:\(theme.labelFontSize);fill:\(theme.descriptionColor);font-style:italic}"
-    svg += ".treeView-highlight-bg{fill:\(theme.highlightBg);stroke:\(theme.highlightStroke);stroke-width:1}"
+    svg += ".treeView-node-line{stroke:\(SVG.escapeText(theme.lineColor))}"
+    svg += ".treeView-node-icon{fill:\(SVG.escapeText(theme.iconColor))}"
+    svg += ".treeView-node-description{font-size:\(SVG.escapeText(theme.labelFontSize));fill:\(SVG.escapeText(theme.descriptionColor));font-style:italic}"
+    svg += ".treeView-highlight-bg{fill:\(SVG.escapeText(theme.highlightBg));stroke:\(SVG.escapeText(theme.highlightStroke));stroke-width:1}"
     svg += "</style>"
 
     if config.showIcons, !positioned.iconDefs.isEmpty {

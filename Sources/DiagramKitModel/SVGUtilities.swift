@@ -111,12 +111,17 @@ public struct SVGDocumentBuilder: Sendable {
             extraAttrs.append("class=\"\(SVG.escapeAttribute(cls))\"")
         }
         let extraHasRoleDescription = extraAttributes?.contains("aria-roledescription") ?? false
-        if !svgTag.contains("role=") {
+        // A caller that passes its own `role` (wardley, sankey) must not get
+        // a second one: a repeated attribute makes the SVG unparseable.
+        let extraHasRole = (" " + (extraAttributes ?? "")).contains(" role=")
+        if !svgTag.contains("role="), !extraHasRole {
             extraAttrs.append(
                 extraHasRoleDescription
                     ? "role=\"graphics-document\""
                     : "role=\"graphics-document\" aria-roledescription=\"diagram\""
             )
+        } else if extraHasRole, !extraHasRoleDescription, !svgTag.contains("aria-roledescription=") {
+            extraAttrs.append("aria-roledescription=\"diagram\"")
         }
         if let extra = extraAttributes {
             extraAttrs.append(extra)
@@ -156,9 +161,11 @@ public struct SVGDocumentBuilder: Sendable {
     // MARK: - Private
 
     private func _formatSvgNum(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
+        // `Int(value)` trapped on ±inf and on anything ≥ 2^63 reaching the
+        // root tag (frontmatter widths, margins).
+        if let integral = _safeIntegralInt(value) {
+            return String(integral)
         }
-        return String(value)
+        return value.isFinite ? String(value) : "0"
     }
 }

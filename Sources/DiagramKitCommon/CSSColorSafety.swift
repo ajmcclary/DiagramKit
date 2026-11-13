@@ -171,6 +171,16 @@ public func _sanitizeSVGIdToken(_ value: String) -> String {
     String(value.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" })
 }
 
+/// Sanitizes a string used as part of an XML attribute *name* (for example
+/// the key in `data-prop-<key>`). Keeps `[A-Za-z0-9_-]`; anything else
+/// (spaces, `=`, quotes) would end the name and corrupt the element.
+public func _svgAttributeNameToken(_ value: String) -> String {
+    let token = String(value.unicodeScalars.filter {
+        ($0.value < 0x80) && (CharacterSet.alphanumerics.contains($0) || $0 == "-" || $0 == "_")
+    }.map(Character.init))
+    return token.isEmpty ? "x" : token
+}
+
 /// Escapes raw text so it is safe inside an HTML `<span>` or other
 /// element context used by the ASCII renderer.
 public func _escapeHTMLText(_ value: String) -> String {

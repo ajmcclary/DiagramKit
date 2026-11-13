@@ -1663,12 +1663,7 @@ private extension String {
 // MARK: - URL Security Validation
 
 private func _isUnsafeURL(_ url: String) -> Bool {
-    let lower = url.trimmingCharacters(in: .whitespaces).lowercased()
-    let dangerousPrefixes = ["javascript:", "data:", "vbscript:", "file:"]
-    for prefix in dangerousPrefixes {
-        if lower.hasPrefix(prefix) { return true }
-    }
-    return false
+    !_isSafeLinkURL(url)
 }
 
 // MARK: - Wrapper class

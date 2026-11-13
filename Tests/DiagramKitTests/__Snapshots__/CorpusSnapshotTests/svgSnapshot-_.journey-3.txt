@@ -169,6 +169,6 @@ line { stroke: #27272A; }
 <path class="mouth" d="M 1975.7 302 A 7.15 6.82 0 0 0 1990.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
 </g>
 </g>
-<text x="508.2" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family=""trebuchet ms", verdana, arial, sans-serif">Web hook life cycle</text>
+<text x="508.2" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family="&quot;trebuchet ms&quot;, verdana, arial, sans-serif">Web hook life cycle</text>
 <line x1="508.2" y1="220" x2="2098.2" y2="220" stroke="#939394" stroke-width="4" marker-end="url(#17EE06E3-09F1-2552-F4E9-29DAE80A67D8-arrowhead)"/>
 </svg>

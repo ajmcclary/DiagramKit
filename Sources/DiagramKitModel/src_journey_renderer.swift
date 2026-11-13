@@ -228,7 +228,7 @@ private func _renderJourneySvgEntry(
         let escapedTitle = SVG.escapeText(title)
         let titleColor = conf.titleColor.isEmpty ? "var(--fg, #000)" : conf.titleColor
         parts.append("""
-        <text x="\(_fmt(leftMargin))" y="25" font-size="\(conf.titleFontSize)" font-weight="bold" fill="\(titleColor)" font-family="\(conf.titleFontFamily)">\(escapedTitle)</text>
+        <text x="\(_fmt(leftMargin))" y="25" font-size="\(SVG.escapeText(conf.titleFontSize))" font-weight="bold" fill="\(SVG.escapeText(titleColor))" font-family="\(SVG.escapeText(conf.titleFontFamily))">\(escapedTitle)</text>
         """)
     }
 

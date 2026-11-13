@@ -54,3 +54,26 @@ public func _safeSubstring(
     guard let lower, let upper else { return nil }
     return _safeSubstring(string, from: lower, to: upper)
 }
+
+// MARK: - Link targets
+
+/// Schemes a diagram link may use.
+private let _allowedLinkSchemes: Set<String> = ["http", "https", "mailto", "tel", "ftp"]
+
+/// True when `url` is safe to write as a link or image target in SVG: a
+/// fragment (`#x`), a relative reference, or a URL whose scheme is
+/// http(s), mailto, tel or ftp. Whitespace and control characters are
+/// removed before the scheme is read, as a browser does when it parses a
+/// URL, so `java<TAB>script:` is caught; prefix blocklists after a
+/// space-only trim let it through.
+public func _isSafeLinkURL(_ url: String) -> Bool {
+    let squeezed = String(String.UnicodeScalarView(url.unicodeScalars.filter {
+        $0.value > 0x20 && $0.value != 0x7F && !$0.properties.isWhitespace
+    })).lowercased()
+    guard !squeezed.isEmpty else { return false }
+    guard let colon = squeezed.firstIndex(of: ":") else { return true }
+    if let delimiter = squeezed.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" }), delimiter < colon {
+        return true // relative reference: the colon is in a path, query or fragment
+    }
+    return _allowedLinkSchemes.contains(String(squeezed[..<colon]))
+}

@@ -155,7 +155,7 @@ public func renderGanttSvg(
         let textMarkup = #"<text id="\#(safeTaskId)-text" class="\#(safeLabelClass)" x="\#(ptask.labelPoint.x)" y="\#(ptask.labelPoint.y)"\#(interactionAttrs)>\#(SVG.escapeText(ptask.task.task))</text>"#
 
         let taskMarkup = rectMarkup + "\n" + textMarkup + "\n"
-        if let link = ptask.task.link {
+        if let link = ptask.task.link, _isSafeLinkURL(link) {
             svg += #"<a xlink:href="\#(SVG.escapeAttribute(link))" target="_self">"#
             svg += "\n"
             svg += taskMarkup

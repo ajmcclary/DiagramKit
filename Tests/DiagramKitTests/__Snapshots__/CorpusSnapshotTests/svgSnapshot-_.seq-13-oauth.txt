@@ -121,7 +121,7 @@
 <line class="messageLine1" x1="227.5" y1="400.0" x2="87.5" y2="400.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
 <text class="messageText" x="157.5" y="394.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA">Display data</text>
 </g>
-<g class="actor"data-id="U" data-label="User" data-type="actor">
+<g class="actor" data-id="U" data-label="User" data-type="actor">
   <g transform="translate(58.25,13.25) scale(2.4375)">
     <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="none" stroke="#939394" stroke-width="1.0" />
     <path d="M15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10Z" fill="none" stroke="#939394" stroke-width="1.0" />
@@ -129,19 +129,19 @@
   </g>
 <text class="actor-label" x="87.5" y="89.0" font-size="13.0" text-anchor="middle" fill="#A9A9AA">User</text>
 </g>
-<g class="actor"data-id="App" data-label="Client App" data-type="participant">
+<g class="actor" data-id="App" data-label="Client App" data-type="participant">
 <rect x="181.25549999999998" y="10.0" width="92.489" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="227.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Client App</text>
 </g>
-<g class="actor"data-id="Auth" data-label="Auth Server" data-type="participant">
+<g class="actor" data-id="Auth" data-label="Auth Server" data-type="participant">
 <rect x="314.5865" y="10.0" width="105.827" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="367.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Auth Server</text>
 </g>
-<g class="actor"data-id="API" data-label="Resource API" data-type="participant">
+<g class="actor" data-id="API" data-label="Resource API" data-type="participant">
 <rect x="460.4135" y="10.0" width="116.20099999999998" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="518.514" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Resource API</text>
 </g>
-<g class="actor"data-id="U" data-label="User" data-type="actor">
+<g class="actor" data-id="U" data-label="User" data-type="actor">
   <g transform="translate(58.25,448.25) scale(2.4375)">
     <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="none" stroke="#939394" stroke-width="1.0" />
     <path d="M15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10Z" fill="none" stroke="#939394" stroke-width="1.0" />
@@ -149,15 +149,15 @@
   </g>
 <text class="actor-label" x="87.5" y="524.0" font-size="13.0" text-anchor="middle" fill="#A9A9AA">User</text>
 </g>
-<g class="actor"data-id="App" data-label="Client App" data-type="participant">
+<g class="actor" data-id="App" data-label="Client App" data-type="participant">
 <rect x="181.25549999999998" y="445.0" width="92.489" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="227.5" y="477.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Client App</text>
 </g>
-<g class="actor"data-id="Auth" data-label="Auth Server" data-type="participant">
+<g class="actor" data-id="Auth" data-label="Auth Server" data-type="participant">
 <rect x="314.5865" y="445.0" width="105.827" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="367.5" y="477.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Auth Server</text>
 </g>
-<g class="actor"data-id="API" data-label="Resource API" data-type="participant">
+<g class="actor" data-id="API" data-label="Resource API" data-type="participant">
 <rect x="460.4135" y="445.0" width="116.20099999999998" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="518.514" y="477.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Resource API</text>
 </g>

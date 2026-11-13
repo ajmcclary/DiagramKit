@@ -320,11 +320,7 @@ private func _kanbanPriorityColor(_ priority: String?) -> String? {
 private func _safeKanbanTicketURL(baseUrl: String, ticket: String) -> String? {
     let trimmed = baseUrl.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return nil }
-    let lowered = trimmed.lowercased()
-    let dangerousPrefixes = ["javascript:", "data:", "vbscript:", "file:"]
-    guard !dangerousPrefixes.contains(where: { lowered.hasPrefix($0) }) else {
-        return nil
-    }
-    return trimmed.replacingOccurrences(of: "#TICKET#", with: ticket)
+    let url = trimmed.replacingOccurrences(of: "#TICKET#", with: ticket)
+    return _isSafeLinkURL(url) ? url : nil
 }
 

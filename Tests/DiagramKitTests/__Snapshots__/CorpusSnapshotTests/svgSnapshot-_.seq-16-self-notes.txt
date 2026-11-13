@@ -144,35 +144,35 @@
   <polygon points="425.845,611.0 431.845,617.0 425.845,617.0" fill="#666666" />
   <text class="noteText" x="371.845" y="624.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA">Panel reopens</text>
 </g>
-<g class="actor"data-id="User" data-label="User" data-type="participant">
+<g class="actor" data-id="User" data-label="User" data-type="participant">
 <rect x="50.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="87.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">User</text>
 </g>
-<g class="actor"data-id="Main" data-label="Main Process" data-type="participant">
+<g class="actor" data-id="Main" data-label="Main Process" data-type="participant">
 <rect x="169.029" y="10.0" width="116.942" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="227.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Main Process</text>
 </g>
-<g class="actor"data-id="Renderer" data-label="Renderer" data-type="participant">
+<g class="actor" data-id="Renderer" data-label="Renderer" data-type="participant">
 <rect x="325.971" y="10.0" width="91.74799999999999" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="371.845" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Renderer</text>
 </g>
-<g class="actor"data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
+<g class="actor" data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
 <rect x="457.71900000000005" y="10.0" width="139.17200000000003" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="527.3050000000001" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">3s Fallback Timer</text>
 </g>
-<g class="actor"data-id="User" data-label="User" data-type="participant">
+<g class="actor" data-id="User" data-label="User" data-type="participant">
 <rect x="50.0" y="758.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="87.5" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">User</text>
 </g>
-<g class="actor"data-id="Main" data-label="Main Process" data-type="participant">
+<g class="actor" data-id="Main" data-label="Main Process" data-type="participant">
 <rect x="169.029" y="758.0" width="116.942" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="227.5" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Main Process</text>
 </g>
-<g class="actor"data-id="Renderer" data-label="Renderer" data-type="participant">
+<g class="actor" data-id="Renderer" data-label="Renderer" data-type="participant">
 <rect x="325.971" y="758.0" width="91.74799999999999" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="371.845" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Renderer</text>
 </g>
-<g class="actor"data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
+<g class="actor" data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
 <rect x="457.71900000000005" y="758.0" width="139.17200000000003" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="527.3050000000001" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">3s Fallback Timer</text>
 </g>

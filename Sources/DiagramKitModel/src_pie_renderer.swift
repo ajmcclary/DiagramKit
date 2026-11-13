@@ -36,21 +36,23 @@ public func renderPieSvg(
     let pieSectionTextColor = _isSafeCSSColor(chart.theme.resolvedPieSectionTextColor) ? chart.theme.resolvedPieSectionTextColor : "var(--_text)"
     let pieLegendTextColor = _isSafeCSSColor(chart.theme.resolvedPieLegendTextColor) ? chart.theme.resolvedPieLegendTextColor : "var(--_text)"
     let pieFontFamily = SVG.escapeText(chart.theme.resolvedFontFamily)
+    // Theme sizes are copied into the `<style>` block; an unsafe value
+    // (`2px}</style><script>…`) falls back to the default.
     parts.append("<style>")
     parts.append("""
     .pieCircle{
       stroke: \(SVG.escapeText(pieStroke));
-      stroke-width : \(chart.theme.pieStrokeWidth);
-      opacity : \(chart.theme.pieOpacity);
+      stroke-width : \(SVG.cssValue(chart.theme.pieStrokeWidth, fallback: "2px"));
+      opacity : \(SVG.cssValue(chart.theme.pieOpacity, fallback: "0.7"));
     }
     .pieOuterCircle{
       stroke: \(SVG.escapeText(pieOuterStroke));
-      stroke-width: \(chart.theme.pieOuterStrokeWidth);
+      stroke-width: \(SVG.cssValue(chart.theme.pieOuterStrokeWidth, fallback: "2px"));
       fill: none;
     }
     .pieTitleText {
       text-anchor: middle;
-      font-size: \(chart.theme.pieTitleTextSize);
+      font-size: \(SVG.cssValue(chart.theme.pieTitleTextSize, fallback: "25px"));
       fill: \(SVG.escapeText(pieTitleTextColor));
       font-family: \(pieFontFamily);
     }
@@ -58,12 +60,12 @@ public func renderPieSvg(
       text-anchor: middle;
       font-family: \(pieFontFamily);
       fill: \(SVG.escapeText(pieSectionTextColor));
-      font-size:\(chart.theme.pieSectionTextSize);
+      font-size:\(SVG.cssValue(chart.theme.pieSectionTextSize, fallback: "17px"));
     }
     .legend text {
       fill: \(SVG.escapeText(pieLegendTextColor));
       font-family: \(pieFontFamily);
-      font-size: \(chart.theme.pieLegendTextSize);
+      font-size: \(SVG.cssValue(chart.theme.pieLegendTextSize, fallback: "17px"));
     }
     """)
     parts.append("</style>")

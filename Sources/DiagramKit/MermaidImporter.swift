@@ -39,9 +39,8 @@ public struct MermaidImporter: DiagramSourceImporter {
         let normalized = DiagramSourceNormalizer.normalizedLineEndings(source)
         let terminated = _HTMLEntities.stripStyleStatementTerminators(normalized)
         let decoded = _HTMLEntities.decode(terminated)
-        let preprocessed = _parseFrontMatterAndStripped(decoded)
-        var processed = preprocessed.0
-        let frontmatter = preprocessed.1
+        let (decodedBody, frontmatter) = _parseFrontMatterAndStripped(decoded)
+        var processed = decodedBody
 
         let header = DiagramHeader.detect(from: processed)
         let descriptor = DiagramRegistry.detect(header)
@@ -50,7 +49,7 @@ public struct MermaidImporter: DiagramSourceImporter {
             // Decoding first turns `#quot;` into a `"` the kanban and block
             // scanners read as a quote, so a label could not hold one.
             // These parsers decode their text themselves.
-            processed = _parseFrontMatterAndStripped(terminated).0
+            processed = Self.undecodedBody(terminated)
         }
         var (document, diagnostics) = try descriptor.parse(processed, frontmatter)
         if let title = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title, !title.isEmpty {
@@ -70,6 +69,15 @@ public struct MermaidImporter: DiagramSourceImporter {
         }
 
         return DiagramImportResult(document: document, diagnostics: diagnostics)
+    }
+
+    /// The diagram body of `source` with frontmatter and init directives
+    /// removed and entity codes left as written. Out of line: the
+    /// `DiagramFrontmatter` it discards is large, and `parse` runs on
+    /// callers' stacks (swift-testing's cooperative threads among them).
+    @inline(never)
+    static func undecodedBody(_ source: String) -> String {
+        _parseFrontMatterAndStripped(source).0
     }
 
     /// Families whose parsers decode entity codes in their text after

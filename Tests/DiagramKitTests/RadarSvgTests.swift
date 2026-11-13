@@ -167,7 +167,8 @@ struct RadarSvgTests {
         let svg = renderRadarSvg(pos, colors: DiagramColors(bg: "#FFF", fg: "#000"), transparent: false)
         #expect(svg.contains("A &amp; B"))
         #expect(svg.contains("Test &lt;Radar&gt;"))
-        #expect(svg.contains("<title>AT \"quoted\"</title>"))
+        // `SVG.escapeText` escapes `"` (it is also used in attributes).
+        #expect(svg.contains("<title>AT &quot;quoted&quot;</title>"))
     }
 
     @Test("SVG with empty diagram")

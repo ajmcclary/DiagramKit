@@ -465,6 +465,9 @@ private func _nodeAnchorAttributes(_ node: _SvgNode) -> String? {
     default:
         return nil
     }
+    // Checked again at the sink: models built by other importers (or by
+    // hand) never went through the Mermaid parser's check.
+    guard _isSafeLinkURL(url) else { return nil }
     let target = (interaction.target?.isEmpty == false) ? interaction.target! : "_blank"
     var attrs = [
         #"xlink:href="\#(SVG.escapeAttribute(url))""#,
@@ -620,10 +623,7 @@ private func _renderFilledCircle(x: Double, y: Double, w: Double, h: Double) -> 
 
 private func _renderIconContent(icon: String?, img: String?, x: Double, y: Double, w: Double, h: Double) -> String {
     if let imageUrl = img, !imageUrl.isEmpty {
-        let lowered = imageUrl.lowercased().trimmingCharacters(in: .whitespaces)
-        let dangerous = ["javascript:", "data:", "vbscript:", "file:"]
-        let isSafe = !dangerous.contains(where: { lowered.hasPrefix($0) })
-        if isSafe {
+        if _isSafeLinkURL(imageUrl) {
             let pad: Double = 4
             return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(SVG.escapeAttribute(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
         }

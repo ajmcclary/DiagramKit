@@ -81,12 +81,12 @@ private func _renderSectionSvg(_ section: PositionedTreemapSection, font: String
 
     if let label = section.label, !label.hidden {
         let labelStyle = _textStyle(label, font: font, clipId: section.clipId, hidden: section.depth == 0, cssStyles: section.cssCompiledStyles)
-        result += "<text class=\"treemapSectionLabel\" x=\"6\" y=\"\(_ti(SECTION_HEADER_HEIGHT / 2))\" dominant-baseline=\"middle\" font-weight=\"bold\" font-family=\"\(SVG.escapeText(font))\"\(labelStyle)>\(SVG.escapeText(label.text))</text>\n"
+        result += "<text class=\"treemapSectionLabel\" x=\"6\" y=\"\(_ti(SECTION_HEADER_HEIGHT / 2))\" dominant-baseline=\"middle\"\(label.fontWeight == nil ? " font-weight=\"bold\"" : "") font-family=\"\(SVG.escapeText(font))\"\(labelStyle)>\(SVG.escapeText(label.text))</text>\n"
     }
 
     if let value = section.value, !value.hidden, section.depth != 0 {
         let valueStyle = _textStyle(value, font: font, clipId: section.clipId, hidden: false, cssStyles: section.cssCompiledStyles)
-        result += "<text class=\"treemapSectionValue\" x=\"\(w - 10)\" y=\"\(_ti(SECTION_HEADER_HEIGHT / 2))\" text-anchor=\"end\" dominant-baseline=\"middle\" font-style=\"italic\" font-family=\"\(SVG.escapeText(font))\"\(valueStyle)>\(SVG.escapeText(value.text))</text>\n"
+        result += "<text class=\"treemapSectionValue\" x=\"\(w - 10)\" y=\"\(_ti(SECTION_HEADER_HEIGHT / 2))\" text-anchor=\"end\" dominant-baseline=\"middle\"\(value.fontStyle == nil ? " font-style=\"italic\"" : "") font-family=\"\(SVG.escapeText(font))\"\(valueStyle)>\(SVG.escapeText(value.text))</text>\n"
     }
 
     result += "</g>\n"
@@ -135,10 +135,10 @@ private func _textStyle(_ text: PositionedTreemapText, font: String, clipId: Str
     var style = ""
 
     if let fw = text.fontWeight {
-        style += " font-weight=\"\(fw)\""
+        style += " font-weight=\"\(SVG.escapeText(fw))\""
     }
     if let fs = text.fontStyle {
-        style += " font-style=\"\(fs)\""
+        style += " font-style=\"\(SVG.escapeText(fs))\""
     }
     style += " font-size=\"\(_ti(text.fontSize))px\""
     style += " fill=\"\(SVG.escapeText(text.fillColor))\""

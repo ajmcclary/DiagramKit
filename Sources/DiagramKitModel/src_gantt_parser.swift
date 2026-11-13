@@ -956,11 +956,7 @@ private func _cleanCallbackArg(_ value: String) -> String {
 
 private func _sanitizeGanttUrl(_ href: String) -> String? {
     let trimmed = href.trimmingCharacters(in: .whitespacesAndNewlines)
-    let lowered = trimmed.lowercased()
-    if lowered.hasPrefix("javascript:") || lowered.hasPrefix("data:") || lowered.hasPrefix("vbscript:") || lowered.hasPrefix("file:") {
-        return nil
-    }
-    return trimmed
+    return _isSafeLinkURL(trimmed) ? trimmed : nil
 }
 
 

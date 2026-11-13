@@ -27,57 +27,65 @@ struct TreeImportCycleTests {
         ("# diagramkit:family=mindmap\ndigraph G { r -> a; a -> b; b -> a; }\n", .graphviz),
         ("# diagramkit:family=treeView\nr -> r\n", .d2),
     ])
-    func cyclicImport(source: String, format: DiagramFormatID) throws {
-        let result = try DiagramPipeline.parseImportResult(source, sourceFormat: format)
-        switch result.document.payload {
-        case .treeView, .mindmap:
-            #expect(result.diagnostics.contains { $0.message.contains("cycle") }, "\(result.diagnostics)")
-        default:
-            break // fell back to flowchart: no tree was built
+    func cyclicImport(source: String, format: DiagramFormatID) async throws {
+        try await onDiagramWorker {
+            let result = try DiagramPipeline.parseImportResult(source, sourceFormat: format)
+            switch result.document.payload {
+            case .treeView, .mindmap:
+                #expect(result.diagnostics.contains { $0.message.contains("cycle") }, "\(result.diagnostics)")
+            default:
+                break // fell back to flowchart: no tree was built
+            }
+            _ = try DiagramPipeline.renderSVG(source: source, sourceFormat: format)
         }
-        _ = try DiagramPipeline.renderSVG(source: source, sourceFormat: format)
     }
 
     @Test("a diamond ladder stops at the node budget", arguments: [DiagramFormatID.d2])
-    func diamondLadder(format: DiagramFormatID) throws {
-        var lines = ["# diagramkit:family=treeView"]
-        for i in 0..<40 {
-            lines.append("n\(i) -> a\(i)")
-            lines.append("n\(i) -> b\(i)")
-            lines.append("a\(i) -> n\(i + 1)")
-            lines.append("b\(i) -> n\(i + 1)")
+    func diamondLadder(format: DiagramFormatID) async throws {
+        try await onDiagramWorker {
+            var lines = ["# diagramkit:family=treeView"]
+            for i in 0..<40 {
+                lines.append("n\(i) -> a\(i)")
+                lines.append("n\(i) -> b\(i)")
+                lines.append("a\(i) -> n\(i + 1)")
+                lines.append("b\(i) -> n\(i + 1)")
+            }
+            let result = try DiagramPipeline.parseImportResult(lines.joined(separator: "\n"), sourceFormat: format)
+            guard case .treeView(let tree) = result.document.payload else { Issue.record("not a tree view"); return }
+            #expect(tree.nodes.count <= 10_001)
+            #expect(result.diagnostics.contains { $0.message.contains("more than") })
         }
-        let result = try DiagramPipeline.parseImportResult(lines.joined(separator: "\n"), sourceFormat: format)
-        guard case .treeView(let tree) = result.document.payload else { Issue.record("not a tree view"); return }
-        #expect(tree.nodes.count <= 10_001)
-        #expect(result.diagnostics.contains { $0.message.contains("more than") })
     }
 
     @Test("a tree with repeated names survives export and re-import", arguments: [DiagramFormatID.d2, .graphviz])
-    func repeatedTreeNames(format: DiagramFormatID) throws {
-        let source = "treeView-beta\n  src\n    src\n      index.ts\n    lib\n      index.ts\n"
-        let original = try DiagramPipeline.parse(source)
-        guard case .treeView(let before) = original.payload else { Issue.record("not a tree view"); return }
-        let exported = try DiagramExportLoader.export(original, to: format, registry: DiagramPipeline.defaultExportRegistry)
-        let reparsed = try DiagramPipeline.parse(exported.source, as: format)
-        guard case .treeView(let after) = reparsed.payload else { Issue.record("not a tree view: \(exported.source)"); return }
-        // A single tree under Mermaid's synthetic `/` container exports as
-        // that one tree (pre-existing convention).
-        let expected = before.root.name == "/" && before.root.children.count == 1 ? before.root.children[0] : before.root
-        #expect(treeShape(after.root) == treeShape(expected), "\(exported.source)")
+    func repeatedTreeNames(format: DiagramFormatID) async throws {
+        try await onDiagramWorker {
+            let source = "treeView-beta\n  src\n    src\n      index.ts\n    lib\n      index.ts\n"
+            let original = try DiagramPipeline.parse(source)
+            guard case .treeView(let before) = original.payload else { Issue.record("not a tree view"); return }
+            let exported = try DiagramExportLoader.export(original, to: format, registry: DiagramPipeline.defaultExportRegistry)
+            let reparsed = try DiagramPipeline.parse(exported.source, as: format)
+            guard case .treeView(let after) = reparsed.payload else { Issue.record("not a tree view: \(exported.source)"); return }
+            // A single tree under Mermaid's synthetic `/` container exports as
+            // that one tree (pre-existing convention).
+            let expected = before.root.name == "/" && before.root.children.count == 1 ? before.root.children[0] : before.root
+            #expect(treeShape(after.root) == treeShape(expected), "\(exported.source)")
+        }
     }
 
     @Test("a mindmap with repeated ids survives export and re-import", arguments: [DiagramFormatID.d2, .graphviz])
-    func repeatedMindmapIDs(format: DiagramFormatID) throws {
-        let original = try DiagramPipeline.parse("mindmap\n  root((Top))\n    A\n      A\n    B\n      A\n")
-        guard case .mindmap(let before) = original.payload, let beforeRoot = before.root else {
-            Issue.record("not a mindmap"); return
+    func repeatedMindmapIDs(format: DiagramFormatID) async throws {
+        try await onDiagramWorker {
+            let original = try DiagramPipeline.parse("mindmap\n  root((Top))\n    A\n      A\n    B\n      A\n")
+            guard case .mindmap(let before) = original.payload, let beforeRoot = before.root else {
+                Issue.record("not a mindmap"); return
+            }
+            let exported = try DiagramExportLoader.export(original, to: format, registry: DiagramPipeline.defaultExportRegistry)
+            let reparsed = try DiagramPipeline.parse(exported.source, as: format)
+            guard case .mindmap(let after) = reparsed.payload, let afterRoot = after.root else {
+                Issue.record("not a mindmap: \(exported.source)"); return
+            }
+            #expect(mindmapShape(afterRoot) == mindmapShape(beforeRoot), "\(exported.source)")
         }
-        let exported = try DiagramExportLoader.export(original, to: format, registry: DiagramPipeline.defaultExportRegistry)
-        let reparsed = try DiagramPipeline.parse(exported.source, as: format)
-        guard case .mindmap(let after) = reparsed.payload, let afterRoot = after.root else {
-            Issue.record("not a mindmap: \(exported.source)"); return
-        }
-        #expect(mindmapShape(afterRoot) == mindmapShape(beforeRoot), "\(exported.source)")
     }
 }

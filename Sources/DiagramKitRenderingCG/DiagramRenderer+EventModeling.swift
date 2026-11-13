@@ -198,6 +198,7 @@ extension DiagramRenderer {
     private func _decodeHTMLEntities(_ text: String) -> String {
         text
             .replacingOccurrences(of: "&nbsp;", with: " ")
+            .replacingOccurrences(of: "&#160;", with: " ")
             .replacingOccurrences(of: "&amp;", with: "&")
             .replacingOccurrences(of: "&lt;", with: "<")
             .replacingOccurrences(of: "&gt;", with: ">")

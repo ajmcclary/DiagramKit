@@ -104,35 +104,35 @@
 <line class="messageLine1" x1="237.5" y1="254.0" x2="97.5" y2="254.0" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
 <text class="messageText" x="167.5" y="248.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA">Combined response</text>
 </g>
-<g class="actor"data-id="C" data-label="Client" data-type="participant">
+<g class="actor" data-id="C" data-label="Client" data-type="participant">
 <rect x="60.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="97.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Client</text>
 </g>
-<g class="actor"data-id="A" data-label="AuthService" data-type="participant">
+<g class="actor" data-id="A" data-label="AuthService" data-type="participant">
 <rect x="183.475" y="10.0" width="108.05" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="237.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">AuthService</text>
 </g>
-<g class="actor"data-id="U" data-label="UserService" data-type="participant">
+<g class="actor" data-id="U" data-label="UserService" data-type="participant">
 <rect x="331.52500000000003" y="10.0" width="111.01400000000001" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="387.03200000000004" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">UserService</text>
 </g>
-<g class="actor"data-id="O" data-label="OrderService" data-type="participant">
+<g class="actor" data-id="O" data-label="OrderService" data-type="participant">
 <rect x="482.539" y="10.0" width="116.94200000000001" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="541.01" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">OrderService</text>
 </g>
-<g class="actor"data-id="C" data-label="Client" data-type="participant">
+<g class="actor" data-id="C" data-label="Client" data-type="participant">
 <rect x="60.0" y="299.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="97.5" y="331.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Client</text>
 </g>
-<g class="actor"data-id="A" data-label="AuthService" data-type="participant">
+<g class="actor" data-id="A" data-label="AuthService" data-type="participant">
 <rect x="183.475" y="299.0" width="108.05" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="237.5" y="331.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">AuthService</text>
 </g>
-<g class="actor"data-id="U" data-label="UserService" data-type="participant">
+<g class="actor" data-id="U" data-label="UserService" data-type="participant">
 <rect x="331.52500000000003" y="299.0" width="111.01400000000001" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="387.03200000000004" y="331.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">UserService</text>
 </g>
-<g class="actor"data-id="O" data-label="OrderService" data-type="participant">
+<g class="actor" data-id="O" data-label="OrderService" data-type="participant">
 <rect x="482.539" y="299.0" width="116.94200000000001" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="541.01" y="331.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">OrderService</text>
 </g>

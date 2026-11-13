@@ -673,20 +673,7 @@ private func _parseLink(_ text: String) -> (label: String, url: String)? {
 }
 
 private func _isSafeURL(_ url: String) -> Bool {
-    let lowercased = url.lowercased()
-    let unsafePrefixes = ["javascript:", "data:", "vbscript:", "file:"]
-    for prefix in unsafePrefixes {
-        if lowercased.hasPrefix(prefix) { return false }
-    }
-    if lowercased.contains("javascript:") { return false }
-    guard let parsed = URL(string: url) else {
-        return !lowercased.starts(with: "unsafe:")
-    }
-    let allowedSchemes: Set<String> = ["https", "http", "mailto", "tel", "ftp"]
-    if let scheme = parsed.scheme?.lowercased(), !allowedSchemes.contains(scheme) {
-        return false
-    }
-    return true
+    _isSafeLinkURL(url)
 }
 
 // MARK: - Helpers

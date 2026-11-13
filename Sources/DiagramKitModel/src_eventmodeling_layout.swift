@@ -389,7 +389,9 @@ private func sanitizeDataText(_ text: String) -> String {
         .replacingOccurrences(of: "<", with: "&lt;")
         .replacingOccurrences(of: ">", with: "&gt;")
         .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: " ", with: "&nbsp;")
+        // `&nbsp;` is an HTML entity, not an XML one: in a standalone SVG it
+        // is an undefined-entity error. The numeric form is valid in both.
+        .replacingOccurrences(of: " ", with: "&#160;")
 }
 
 private func _measureTextDimensions(

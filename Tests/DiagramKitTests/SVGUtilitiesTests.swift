@@ -29,9 +29,11 @@ import Testing
         #expect(SVG.escapeText("customer's") == "customer's")
     }
 
-    @Test func escapeText_quote_isIdentity() {
-        // Text content must NOT escape double quotes.
-        #expect(SVG.escapeText(#"say "hello""#) == #"say "hello""#)
+    @Test func escapeText_escapesDoubleQuote() {
+        // The renderers use escapeText in double-quoted attributes and in
+        // `<style>` text as well as in text nodes; `"` must not end an
+        // attribute. `&quot;` is valid (and displays as `"`) in a text node.
+        #expect(SVG.escapeText(#"say "hello""#) == "say &quot;hello&quot;")
     }
 
     @Test func escapeText_combined() {
@@ -79,9 +81,9 @@ import Testing
 
     // MARK: - Round-trip sanity
 
-    @Test func escapeText_doesNotEscapeQuote() {
-        // Double quotes in text content stay as-is (not escaped).
-        #expect(SVG.escapeText("\"test\"") == "\"test\"")
+    @Test func escapeText_attributeBreakoutIsInert() {
+        let value = #"red" onload="alert(1)"#
+        #expect(!SVG.escapeText(value).contains("\""))
     }
 
     @Test func escapeAttribute_escapesAllFive() {

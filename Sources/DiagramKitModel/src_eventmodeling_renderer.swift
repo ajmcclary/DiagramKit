@@ -67,7 +67,7 @@ public func renderEventModelingSvg(
     // Boxes
     for box in positioned.boxes {
         svg += "<g class=\"em-box\">"
-        svg += "<rect x=\"\(box.x)\" y=\"\(box.y)\" rx=\"3\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(box.fill)\" stroke=\"\(box.stroke)\"/>"
+        svg += "<rect x=\"\(box.x)\" y=\"\(box.y)\" rx=\"3\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(SVG.escapeText(box.fill))\" stroke=\"\(SVG.escapeText(box.stroke))\"/>"
 
         let foreignX = box.x + 10 // boxPadding
         let foreignY = box.y + 10
@@ -75,7 +75,9 @@ public func renderEventModelingSvg(
         let foreignH = box.height - 20
 
         svg += "<foreignObject x=\"\(foreignX)\" y=\"\(foreignY)\" width=\"\(foreignW)\" height=\"\(foreignH)\">"
-        svg += "<xhtml:div style=\"display: table; height: 100%; width: 100%\">"
+        // The prefix must be declared; without `xmlns:xhtml` the SVG is not
+        // well-formed XML and a standalone file shows a parse error.
+        svg += "<xhtml:div xmlns:xhtml=\"http://www.w3.org/1999/xhtml\" style=\"display: table; height: 100%; width: 100%\">"
         svg += "<span style=\"display: table-cell; text-align: center; vertical-align: middle\">"
         svg += box.textContent
         svg += "</span>"

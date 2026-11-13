@@ -1043,15 +1043,8 @@ private func _parseStyleProps(_ propsStr: String) -> [String: String] {
 
 private typealias ParsedNodeInteraction = original_src_types.NodeInteraction
 
-private let _dangerousURLPrefixes = ["javascript:", "data:", "vbscript:", "file:"]
-
 private func _validateURL(_ url: String) -> Bool {
-    let lowered = url.lowercased().trimmingCharacters(in: .whitespaces)
-    guard !lowered.isEmpty else { return false }
-    for prefix in _dangerousURLPrefixes {
-        if lowered.hasPrefix(prefix) { return false }
-    }
-    return true
+    _isSafeLinkURL(url)
 }
 
 private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {

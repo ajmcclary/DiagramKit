@@ -192,7 +192,7 @@ private func _renderPopup(_ actor: PositionedSequenceActor, index: Int, forceMen
     parts.append("  <rect x=\"\(menuX)\" y=\"\(menuY)\" width=\"\(menuWidth)\" height=\"\(menuHeight)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"1\" rx=\"4\" ry=\"4\" />")
 
     var linkY = menuY + 14
-    for (label, url) in links.sorted(by: { $0.key < $1.key }) {
+    for (label, url) in links.sorted(by: { $0.key < $1.key }) where _isSafeLinkURL(url) {
         parts.append("  <a xlink:href=\"\(SVG.escapeAttribute(url))\" target=\"_blank\">")
         parts.append("    <text x=\"\(menuX + 12)\" y=\"\(linkY)\" font-size=\"10\" fill=\"var(--_text-muted)\">\(SVG.escapeText(label))</text>")
         parts.append("  </a>")
@@ -217,16 +217,16 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int, interact
     var parts: [String] = []
     var dataAttrs = "data-id=\"\(SVG.escapeAttribute(actor.id))\" data-label=\"\(SVG.escapeAttribute(label))\" data-type=\"\(SVG.escapeAttribute(pType.rawValue))\""
     for (key, url) in actor.links.sorted(by: { $0.key < $1.key }) {
-        dataAttrs += " data-link-\(SVG.escapeAttribute(key))=\"\(SVG.escapeAttribute(url))\""
+        dataAttrs += " data-link-\(_svgAttributeNameToken(key))=\"\(SVG.escapeAttribute(url))\""
     }
     for (key, value) in actor.properties.sorted(by: { $0.key < $1.key }) {
-        dataAttrs += " data-prop-\(SVG.escapeAttribute(key))=\"\(SVG.escapeAttribute(value))\""
+        dataAttrs += " data-prop-\(_svgAttributeNameToken(key))=\"\(SVG.escapeAttribute(value))\""
     }
     if let detailsId = actor.detailsElementId {
         dataAttrs += " data-details=\"\(SVG.escapeAttribute(detailsId))\""
     }
     let interactiveAttr = (interactive && hasLinks) ? " onclick=\"popupMenuToggle('actor\(index)_popup')\" cursor=\"pointer\"" : ""
-    parts.append("<g class=\"actor\"\(dataAttrs)\(interactiveAttr)>")
+    parts.append("<g class=\"actor\" \(dataAttrs)\(interactiveAttr)>")
 
     switch pType {
     case .actor:

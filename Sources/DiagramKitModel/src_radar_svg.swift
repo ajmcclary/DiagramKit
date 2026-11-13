@@ -86,17 +86,19 @@ public func renderRadarSvg(
 
 private func _radarStyleBlock(_ theme: RadarThemeConfig, includeLegend: Bool) -> String {
     var css = "<style>\n"
-    css += ".radarTitle { font-size: \(Int(theme.fontSize))px; color: \(theme.titleColor); dominant-baseline: hanging; text-anchor: middle; }\n"
-    css += ".radarAxisLine { stroke: \(theme.axisColor); stroke-width: \(Int(theme.axisStrokeWidth)); }\n"
-    css += ".radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: \(Int(theme.axisLabelFontSize))px; color: \(theme.axisColor); }\n"
-    css += ".radarGraticule { fill: \(theme.graticuleColor); fill-opacity: \(_rN(theme.graticuleOpacity)); stroke: \(theme.graticuleColor); stroke-width: \(Int(theme.graticuleStrokeWidth)); }\n"
+    css += ".radarTitle { font-size: \(_safeInt(theme.fontSize, default: 0))px; color: \(SVG.escapeText(theme.titleColor)); dominant-baseline: hanging; text-anchor: middle; }\n"
+    css += ".radarAxisLine { stroke: \(SVG.escapeText(theme.axisColor)); stroke-width: \(_safeInt(theme.axisStrokeWidth, default: 0)); }\n"
+    css += ".radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: \(_safeInt(theme.axisLabelFontSize, default: 0))px; color: \(SVG.escapeText(theme.axisColor)); }\n"
+    css += ".radarGraticule { fill: \(SVG.escapeText(theme.graticuleColor)); fill-opacity: \(_rN(theme.graticuleOpacity)); stroke: \(SVG.escapeText(theme.graticuleColor)); stroke-width: \(_safeInt(theme.graticuleStrokeWidth, default: 0)); }\n"
     if includeLegend {
-        css += ".radarLegendText { text-anchor: start; font-size: \(Int(theme.legendFontSize))px; dominant-baseline: hanging; }\n"
+        css += ".radarLegendText { text-anchor: start; font-size: \(_safeInt(theme.legendFontSize, default: 0))px; dominant-baseline: hanging; }\n"
     }
 
-    for i in 0..<theme.themeColorLimit {
-        let color = theme.curveColor(at: i)
-        css += ".radarCurve-\(i) { color: \(color); fill: \(color); fill-opacity: \(_rN(theme.curveOpacity)); stroke: \(color); stroke-width: \(Int(theme.curveStrokeWidth)); }\n"
+    // `themeColorLimit` comes from frontmatter: a negative value trapped
+    // the range, a huge one built megabytes of CSS.
+    for i in 0..<min(max(0, theme.themeColorLimit), 256) {
+        let color = SVG.escapeText(theme.curveColor(at: i))
+        css += ".radarCurve-\(i) { color: \(color); fill: \(color); fill-opacity: \(_rN(theme.curveOpacity)); stroke: \(color); stroke-width: \(_safeInt(theme.curveStrokeWidth, default: 0)); }\n"
         if includeLegend {
             css += ".radarLegendBox-\(i) { fill: \(color); fill-opacity: \(_rN(theme.curveOpacity)); stroke: \(color); }\n"
         }

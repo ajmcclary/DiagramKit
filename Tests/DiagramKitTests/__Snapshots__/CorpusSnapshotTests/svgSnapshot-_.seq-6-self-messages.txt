@@ -90,11 +90,11 @@
 <polyline class="messageLine0" points="88.464,215.0 118.464,215.0 118.464,235.0 88.464,235.0" fill="none" stroke="#939394" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
 <text class="messageText" x="126.464" y="225.0" font-size="11.0" text-anchor="start" fill="#A9A9AA">Log</text>
 </g>
-<g class="actor"data-id="S" data-label="Server" data-type="participant">
+<g class="actor" data-id="S" data-label="Server" data-type="participant">
 <rect x="50.0" y="10.0" width="76.928" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="88.464" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Server</text>
 </g>
-<g class="actor"data-id="S" data-label="Server" data-type="participant">
+<g class="actor" data-id="S" data-label="Server" data-type="participant">
 <rect x="50.0" y="290.0" width="76.928" height="65.0" rx="4" ry="4" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.0" />
 <text class="actor-label" x="88.464" y="322.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA">Server</text>
 </g>
