@@ -51,7 +51,20 @@ public struct MermaidImporter: DiagramSourceImporter {
             // These parsers decode their text themselves.
             processed = Self.undecodedBody(terminated)
         }
+        // Upstream shields entity codes before lexing, so `#59;` is a `;`
+        // in the text, never a statement end, and `#35;` never starts a
+        // comment. The sequence parser reads text with the codes held as
+        // placeholders, and the decoded characters go back in afterwards.
+        var shieldedEntities: [String] = []
+        if descriptor.type == .sequenceDiagram {
+            (processed, shieldedEntities) = _HTMLEntities.shieldingEntities(Self.undecodedBody(terminated))
+        }
         var (document, diagnostics) = try descriptor.parse(processed, frontmatter)
+        if !shieldedEntities.isEmpty, case .sequenceDiagram(let model) = document.payload {
+            document.payload = .sequenceDiagram(model._mappingText {
+                _HTMLEntities.restoringShieldedEntities($0, shieldedEntities)
+            })
+        }
         if let title = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title, !title.isEmpty {
             document.title = title
         }

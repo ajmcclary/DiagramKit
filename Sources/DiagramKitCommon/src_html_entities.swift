@@ -91,6 +91,46 @@ public enum _HTMLEntities {
     }
 
     public static func decode(_ text: String) -> String {
+        _replacingEntities(in: text) { $0 }
+    }
+
+    /// `text` with every entity code `decode` would decode replaced by an
+    /// opaque placeholder, and the decoded text of each, in order. A parser
+    /// that scans the shielded text cannot mistake a coded `;`, `#` or `%`
+    /// for syntax (upstream's `encodeEntities`); `restoringShieldedEntities`
+    /// puts the decoded characters back into the parsed strings.
+    public static func shieldingEntities(_ text: String) -> (text: String, entities: [String]) {
+        var entities: [String] = []
+        let shielded = _replacingEntities(in: text) { decoded in
+            entities.append(decoded)
+            return "\u{E000}\(entities.count - 1)\u{E001}"
+        }
+        return (shielded, entities)
+    }
+
+    /// `text` with each placeholder from `shieldingEntities` replaced by
+    /// its decoded entity.
+    public static func restoringShieldedEntities(_ text: String, _ entities: [String]) -> String {
+        guard !entities.isEmpty, text.unicodeScalars.contains("\u{E000}") else { return text }
+        var result = ""
+        var scalars = text.unicodeScalars[...]
+        while let open = scalars.firstIndex(of: "\u{E000}") {
+            result.unicodeScalars += scalars[..<open]
+            let rest = scalars[scalars.index(after: open)...]
+            guard let close = rest.firstIndex(of: "\u{E001}"),
+                  let n = Int(String(String.UnicodeScalarView(rest[..<close]))), entities.indices.contains(n) else {
+                result.unicodeScalars.append("\u{E000}")
+                scalars = rest
+                continue
+            }
+            result += entities[n]
+            scalars = rest[rest.index(after: close)...]
+        }
+        result.unicodeScalars += scalars
+        return result
+    }
+
+    private static func _replacingEntities(in text: String, with replacement: (String) -> String) -> String {
         var result = ""
         var i = text.startIndex
 
@@ -107,7 +147,7 @@ public enum _HTMLEntities {
                 if i < text.endIndex && text[i] == ";" {
                     i = text.index(after: i)
                     if let decoded = decodeEntity(entity, prefix: "&") {
-                        result.append(decoded)
+                        result.append(replacement(decoded))
                         continue
                     }
                 }
@@ -126,7 +166,7 @@ public enum _HTMLEntities {
                     if i < text.endIndex && text[i] == ";" {
                         i = text.index(after: i)
                         if let decoded = decodeEntity(entity, prefix: "#") {
-                            result.append(decoded)
+                            result.append(replacement(decoded))
                             continue
                         }
                     }

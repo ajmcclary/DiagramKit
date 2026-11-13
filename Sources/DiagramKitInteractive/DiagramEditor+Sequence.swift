@@ -110,21 +110,35 @@ extension DiagramEditor {
             )
         }
 
-        // Extract the message-only timeline (ordered) and remember
-        // each message's slot index in the full items list. The slot
-        // positions stay fixed — only the messages in those slots get
-        // reordered, so surrounding notes/activations don't drift.
-        var messageList: [SequenceMessage] = []
-        var messageSlots: [Int] = []
-        for (index, item) in model.items.enumerated() {
-            if case .message(let msg) = item {
-                messageList.append(msg)
-                messageSlots.append(index)
+        // Each message moves as a unit with the items that belong to it:
+        // the activation its own `+`/`-` shorthand created (`A->>+B` is
+        // read as `activate B` then the message), and a `create` or
+        // `destroy` directly before it, which the parser ties to the next
+        // message. Every other item — notes, explicit activations, blocks —
+        // keeps its place; only the units in the message slots are
+        // reordered.
+        var units: [[SequenceItem]] = []
+        var layout: [SequenceItem?] = []   // nil marks a message slot
+        for item in model.items {
+            guard case .message(let msg) = item else {
+                layout.append(item)
+                continue
             }
+            var unit = [item]
+            if let last = layout.last, let previous = last, Self._isShorthandActivation(previous, of: msg) {
+                layout.removeLast()
+                unit.insert(previous, at: 0)
+            }
+            if let last = layout.last, let previous = last, Self._isLifecycleItem(previous, of: msg) {
+                layout.removeLast()
+                unit.insert(previous, at: 0)
+            }
+            units.append(unit)
+            layout.append(nil)
         }
 
-        guard from >= 0, from < messageList.count,
-              to >= 0, to < messageList.count else {
+        guard from >= 0, from < units.count,
+              to >= 0, to < units.count else {
             throw DiagramEditorError.elementNotFound(
                 id: "message[\(from)]→[\(to)]",
                 kind: "message"
@@ -132,17 +146,43 @@ extension DiagramEditor {
         }
         guard from != to else { return doc }
 
-        let moved = messageList.remove(at: from)
-        messageList.insert(moved, at: to)
+        let moved = units.remove(at: from)
+        units.insert(moved, at: to)
 
-        var newItems = model.items
-        for (i, slot) in messageSlots.enumerated() {
-            newItems[slot] = .message(messageList[i])
+        var newItems: [SequenceItem] = []
+        var next = 0
+        for entry in layout {
+            if let entry {
+                newItems.append(entry)
+            } else {
+                newItems += units[next]
+                next += 1
+            }
         }
         model.items = newItems
 
         doc.payload = .sequenceDiagram(model)
         return doc
+    }
+
+    /// Whether `item` is a `create` or `destroy` the parser ties to
+    /// `message`, the next message after it.
+    nonisolated static func _isLifecycleItem(_ item: SequenceItem, of message: SequenceMessage) -> Bool {
+        switch item {
+        case .createParticipant(let actor): return message.to == actor.id
+        case .destroyParticipant(let id): return message.from == id || message.to == id
+        default: return false
+        }
+    }
+
+    /// Whether `item`, directly before `message`, is the activation item
+    /// the parser makes for that message's `+` or `-` shorthand.
+    nonisolated static func _isShorthandActivation(_ item: SequenceItem, of message: SequenceMessage) -> Bool {
+        switch item {
+        case .activationStart(let id): return message.activate && id == message.to
+        case .activationEnd(let id): return message.deactivate && !message.activate && id == message.from
+        default: return false
+        }
     }
 }
 #endif

@@ -49,7 +49,7 @@ The full parameterized `CorpusSnapshotTests` run has a known `swift-testing`
 - **84 cross-format directed-pair directories (42 unordered pairs)** under
   `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
 - `CorpusRoundTripTests` walks the whole Mermaid corpus through the harness;
-  11 entries with pre-existing exporter/parser divergences are tracked via
+  9 entries with pre-existing exporter/parser divergences are tracked via
   `withExpectedIssue` (`CorpusRoundTripTests.knownIssues`), not skipped.
 
 ### Discipline gates

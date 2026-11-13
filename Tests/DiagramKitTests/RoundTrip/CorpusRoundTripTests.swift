@@ -51,10 +51,6 @@ final class CorpusRoundTripTests: XCTestCase {
         "er-24-numeric-entities",
         // Pre-existing ER parser cannot re-parse `|--}o` parent-marker
         "er-25-parent-marker",
-        // Pre-existing sequence exporter arrow-type narrowing and
-        // reverse-arrow drop
-        "seq-4-arrow-types",
-        "seq-17-reverse-arrows",
         // Mermaid mindmap parser preserves newlines in `descr`; the
         // DSL has no syntax to encode them on round-trip emit.
         "mindmap-5-markdown",
