@@ -44,6 +44,21 @@ extension EngineHostileInputTests {
         return [er1, er2, er3, er4, wardley, classOpen]
     }()
 
+    /// Round-2 review: two patterns that stay under a second at 5 KB but
+    /// were quadratic (4 s at 20 KB), so the sweep runs at 20 KB.
+    static let round2SweepInputs: [String] = {
+        let n = 20_000
+        let note: String = "sequenceDiagram\nnote over" + String(repeating: " ", count: n) + "A"
+        let member: String = "classDiagram\nA : +m" + String(repeating: "(", count: n)
+        let bodyMember: String = "classDiagram\nclass A {\n+m" + String(repeating: "(", count: n) + "\n}"
+        return [note, member, bodyMember]
+    }()
+
+    @Test("sequence note and class member patterns are linear at 20 KB", arguments: round2SweepInputs)
+    func round2SweepLinear(_ source: String) async {
+        #expect(await Self.parseTime(source) < 1)
+    }
+
     @Test("parse-side regexes found by the sweep are linear", arguments: sweepInputs)
     func sweepFoundRegexesLinear(_ source: String) async {
         #expect(await Self.parseTime(source) < 1)

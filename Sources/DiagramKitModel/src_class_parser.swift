@@ -1168,7 +1168,11 @@ private func _parseMember(_ line: String) -> _ParsedMember? {
     }
 
     // Method detection: name(params) returnType with optional classifier
-    if let groups = _groups(#"^(.+?)\(([^)]*)\)(?:\s*([\s$*]))?(?:\s*(.+?))?([$*])?$"#, rest),
+    // The name runs to the first `(` after its first character: the lazy
+    // `(.+?)\(` could only ever stop there (a later `(` has no `)` after
+    // it when the first has none), but it retried every `(` on a run of
+    // them, scanning to the end each time (quadratic: 20 KB took 4 s).
+    if let groups = _groups(#"^(.[^(]*+)\(([^)]*)\)(?:\s*([\s$*]))?(?:\s*(.+?))?([$*])?$"#, rest),
        let nameRaw = groups[safe: 1] {
         let params = groups[safe: 2]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let classifierMiddle = groups[safe: 3]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

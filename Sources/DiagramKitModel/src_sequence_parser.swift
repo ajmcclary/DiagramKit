@@ -191,7 +191,11 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
         }
 
         // --- Note ---
-        if let m = _match(#"^note\s+(left of|right of|over)\s+([^:]+):\s*(.+)$"#, line, caseInsensitive: true) {
+        // Possessive runs: `\s+` and `[^:]+` both match spaces, so a long
+        // space run with no colon was split between them every way
+        // (quadratic: 20 KB took 4 s). The actor list never starts with a
+        // space, so the possessive form matches the same lines.
+        if let m = _match(#"^note\s++(left of|right of|over)\s++([^:]++):\s*(.+)$"#, line, caseInsensitive: true) {
             let positionRaw = m[1].lowercased()
             let actorTokens = _splitActorTokens(m[2])
             let text = _decodeEntities(_brTagsToNewlines(m[3].trimmingCharacters(in: .whitespacesAndNewlines)))
