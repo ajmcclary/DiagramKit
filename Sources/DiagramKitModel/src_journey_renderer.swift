@@ -20,7 +20,12 @@ private func _renderJourneySvgEntry(
 ) throws -> String {
     var parts: [String] = []
 
-    let conf = diagram.config ?? .default
+    var conf = diagram.config ?? .default
+    conf.faceColor = _journeySVGColor(conf.faceColor, fallback: JourneyDiagramConfig.default.faceColor)
+    conf.actorColours = conf.actorColours.map { _journeySVGColor($0, fallback: JourneyRenderConstants.defaultActorColor) }
+    conf.sectionFills = conf.sectionFills.map { _journeySVGColor($0, fallback: "#191970") }
+    conf.taskFontFamily = _journeySVGFontFamily(conf.taskFontFamily)
+    let diagramId = SVG.escapeAttribute(diagramId)
 
     let _builder = SVGDocumentBuilder(
         width: diagram.width, height: diagram.height,
@@ -62,9 +67,10 @@ private func _renderJourneySvgEntry(
         let cy = _fmt(actor.circleCenter.y)
         let lx = _fmt(actor.labelOrigin.x)
         let escapedName = SVG.escapeText(actor.name)
+        let actorColor = _journeySVGColor(actor.color, fallback: JourneyRenderConstants.defaultActorColor)
 
         parts.append("""
-        <circle class="actor-\(actor.index)" cx="\(cx)" cy="\(cy)" r="7" fill="\(actor.color)" stroke="var(--line, #666)"><title>\(escapedName)</title></circle>
+        <circle class="actor-\(actor.index)" cx="\(cx)" cy="\(cy)" r="7" fill="\(actorColor)" stroke="var(--line, #666)"><title>\(escapedName)</title></circle>
         """)
         for (lineIndex, line) in actor.lines.enumerated() {
             let lineY = _fmt(actor.labelOrigin.y + Double(lineIndex) * 20)
@@ -82,10 +88,12 @@ private func _renderJourneySvgEntry(
         let sy = _fmt(section.y)
         let sw = _fmt(section.width)
         let sh = _fmt(section.height)
+        let sectionFill = _journeySVGColor(section.fill, fallback: "#191970")
+        let sectionColor = _journeySVGColor(section.colour, fallback: "#fff")
 
         parts.append("""
         <g class="journey-section section-type-\(section.num)">
-        <rect x="\(sx)" y="\(sy)" width="\(sw)" height="\(sh)" fill="\(section.fill)" rx="3" ry="3"/>
+        <rect x="\(sx)" y="\(sy)" width="\(sw)" height="\(sh)" fill="\(sectionFill)" rx="3" ry="3"/>
         """)
 
         // Section label
@@ -102,23 +110,23 @@ private func _renderJourneySvgEntry(
                 let labelH = conf.taskFontSize * 1.5
                 let foY = _fmt(section.y + (section.height - labelH) / 2)
                 parts.append("""
-                <switch><foreignObject x="\(sx)" y="\(foY)" width="\(sw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(section.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedRawLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text></switch>
+                <switch><foreignObject x="\(sx)" y="\(foY)" width="\(sw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(sectionColor);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedRawLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(sectionColor)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text></switch>
                 """)
             } else {
                 parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedRawLabel)</text>
+                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(sectionColor)" font-size="\(_fmt(conf.taskFontSize))">\(escapedRawLabel)</text>
                 """)
             }
         } else {
             // tspan: split on <br> (Mermaid's byTspan behavior)
             if brLines.count == 1 {
                 parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text>
+                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(sectionColor)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text>
                 """)
             } else {
                 let tspanLines = brLines.map { "<tspan x=\"\(textX)\">\(SVG.escapeText($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
+                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(sectionColor)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
                 """)
             }
         }
@@ -132,10 +140,12 @@ private func _renderJourneySvgEntry(
         let ty = _fmt(task.y)
         let trw = _fmt(task.rectWidth)
         let trh = _fmt(task.rectHeight)
+        let taskFill = _journeySVGColor(task.fill, fallback: "#191970")
+        let taskColor = _journeySVGColor(task.colour, fallback: "#fff")
 
         parts.append("""
         <g class="task task-type-\(task.num)">
-        <rect x="\(tx)" y="\(ty)" width="\(trw)" height="\(trh)" fill="\(task.fill)" rx="3" ry="3"/>
+        <rect x="\(tx)" y="\(ty)" width="\(trw)" height="\(trh)" fill="\(taskFill)" rx="3" ry="3"/>
         """)
 
         let taskRawLabel = task.task
@@ -152,23 +162,23 @@ private func _renderJourneySvgEntry(
                 let labelH = conf.taskFontSize * 1.5
                 let foY = _fmt(task.y + (task.rectHeight - labelH) / 2)
                 parts.append("""
-                <switch><foreignObject x="\(tx)" y="\(foY)" width="\(trw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(task.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedTaskLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text></switch>
+                <switch><foreignObject x="\(tx)" y="\(foY)" width="\(trw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(taskColor);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedTaskLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(taskColor)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text></switch>
                 """)
             } else {
                 parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedTaskLabel)</text>
+                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(taskColor)" font-size="\(_fmt(conf.taskFontSize))">\(escapedTaskLabel)</text>
                 """)
             }
         } else {
             // tspan: split on <br>
             if taskBrLines.count == 1 {
                 parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text>
+                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(taskColor)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text>
                 """)
             } else {
                 let tspanLines = taskBrLines.map { "<tspan x=\"\(taskTextX)\">\(SVG.escapeText($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
+                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(taskColor)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
                 """)
             }
         }
@@ -226,7 +236,7 @@ private func _renderJourneySvgEntry(
     // Title
     if let title = diagram.title, !title.isEmpty {
         let escapedTitle = SVG.escapeText(title)
-        let titleColor = conf.titleColor.isEmpty ? "var(--fg, #000)" : conf.titleColor
+        let titleColor = _journeySVGColor(conf.titleColor, fallback: "var(--fg, #000)")
         parts.append("""
         <text x="\(_fmt(leftMargin))" y="25" font-size="\(SVG.escapeText(conf.titleFontSize))" font-weight="bold" fill="\(SVG.escapeText(titleColor))" font-family="\(SVG.escapeText(conf.titleFontFamily))">\(escapedTitle)</text>
         """)
@@ -256,6 +266,24 @@ private func _fmt(_ value: Double) -> String {
 
 private func _formatNum(_ value: Double) -> String {
     _fmt(value)
+}
+
+// These values are emitted in both XML attributes and CSS declarations.
+private func _journeySVGColor(_ value: String, fallback: String) -> String {
+    guard _isSafeCSSColor(value), !value.contains(";"), !value.contains("&") else { return fallback }
+    return value
+}
+
+// A family list can include quoted names (including the built-in default).
+// Restrict the CSS text to name characters, separators and quotes so a
+// family cannot introduce another CSS declaration or XML element.
+private func _journeySVGFontFamily(_ value: String) -> String {
+    let punctuation = CharacterSet(charactersIn: " -,._'\"")
+    let allowed = CharacterSet.alphanumerics.union(punctuation)
+    guard !value.isEmpty, value.unicodeScalars.allSatisfy(allowed.contains) else {
+        return JourneyDiagramConfig.default.taskFontFamily
+    }
+    return value
 }
 
 private func _journeySvgPaletteValue(_ palette: [String], index: Int, fallback: String) -> String {

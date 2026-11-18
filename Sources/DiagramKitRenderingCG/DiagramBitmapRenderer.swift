@@ -42,7 +42,20 @@ public enum DiagramBitmapRenderer {
         theme: DiagramTheme,
         draw: (CGContext) -> Void
     ) -> BMImage? {
-        guard size.width > 0, size.height > 0, scale > 0 else { return nil }
+        guard size.width.isFinite, size.height.isFinite, scale.isFinite, scale > 0,
+              size.width > 0, size.height > 0,
+              size.width <= 32767, size.height <= 32767,
+              size.width * size.height <= 100_000_000 else {
+            return nil
+        }
+
+        let scaledWidth = size.width * scale
+        let scaledHeight = size.height * scale
+        let allocationWidth = scaledWidth.rounded(.up)
+        let allocationHeight = scaledHeight.rounded(.up)
+        guard allocationWidth > 0, allocationHeight > 0,
+              allocationWidth <= 32767 * 4, allocationHeight <= 32767 * 4,
+              allocationWidth * allocationHeight <= 400_000_000 else { return nil }
 
         #if canImport(UIKit)
         let format = UIGraphicsImageRendererFormat()
@@ -57,17 +70,9 @@ public enum DiagramBitmapRenderer {
             draw(ctx)
         }
         #elseif canImport(AppKit)
-        guard size.width.isFinite, size.height.isFinite,
-              size.width > 0, size.height > 0,
-              size.width <= 32767, size.height <= 32767,
-              size.width * size.height <= 100_000_000 else {
-            return nil
-        }
-        let pixelWidth = _safeInt(size.width * scale, default: 0)
-        let pixelHeight = _safeInt(size.height * scale, default: 0)
+        let pixelWidth = Int(scaledWidth)
+        let pixelHeight = Int(scaledHeight)
         guard pixelWidth > 0, pixelHeight > 0,
-              pixelWidth <= 32767 * 4, pixelHeight <= 32767 * 4,
-              pixelWidth * pixelHeight <= 400_000_000,
               let ctx = CGContext(
                   data: nil,
                   width: pixelWidth,

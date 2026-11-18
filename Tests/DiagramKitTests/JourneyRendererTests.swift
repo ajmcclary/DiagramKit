@@ -44,6 +44,29 @@ final class JourneyRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("</svg>"))
     }
 
+    func test_styleFieldsRequireCSSValues() throws {
+        var config = JourneyDiagramConfig()
+        config.taskFontFamily = "Review<Family>"
+        config.actorColours = ["Review<Actor>"]
+        config.sectionFills = ["Review<Section>"]
+        config.sectionColours = ["Review<Text>"]
+        config.faceColor = "Review<Face>"
+        config.titleColor = "Review<Title>"
+        let positioned = try positionedFromSource(basicDiagramSource(), config: config)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertFalse(svg.contains("Review"))
+        XCTAssertTrue(svg.contains(JourneyDiagramConfig.default.taskFontFamily))
+        XCTAssertTrue(svg.contains(JourneyDiagramConfig.default.faceColor))
+
+        config.taskFontFamily = #""Review Sans", serif"#
+        config.actorColours = ["#bbaa33"]
+        config.faceColor = "rgb(10, 20, 30)"
+        let styled = try renderJourneySvg(positionedFromSource(basicDiagramSource(), config: config), defaultColors)
+        XCTAssertTrue(styled.contains(config.taskFontFamily))
+        XCTAssertTrue(styled.contains(config.actorColours[0]))
+        XCTAssertTrue(styled.contains(config.faceColor))
+    }
+
     func test_accessibilityTitle() throws {
         let source = """
         journey

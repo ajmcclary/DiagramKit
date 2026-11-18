@@ -555,6 +555,18 @@ final class ArchitectureIconRegistryTests: XCTestCase {
         XCTAssertTrue(registry.isAvailable("test:icon1"))
     }
 
+    func testIncompleteIconNamesStayUnavailable() {
+        let registry = ArchitectureIconRegistry.shared
+        for input in [":", "custom:", ":service"] {
+            XCTAssertNil(registry.iconSVG(for: input))
+            XCTAssertFalse(registry.isExternalIcon(input))
+        }
+        let resolved = registry.resolveIconName(":service")
+        XCTAssertEqual(resolved.prefix, "")
+        XCTAssertEqual(resolved.name, "service")
+        XCTAssertEqual(registry.resolveIconName("service").prefix, "mermaid-architecture")
+    }
+
     func testLookupByPrefix() {
         ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
             prefix: "custom",

@@ -53,20 +53,8 @@ public final class ArchitectureIconRegistry: @unchecked Sendable {
     }
 
     public func iconSVG(for iconName: String, fallbackPrefix: String = "mermaid-architecture") -> String? {
-        let normalized = iconName.trimmingCharacters(in: .whitespaces)
-        guard !normalized.isEmpty else { return nil }
-
-        let (prefix, name): (String?, String)
-        if normalized.contains(":") {
-            let parts = normalized.split(separator: ":", maxSplits: 1)
-            prefix = String(parts[0])
-            name = String(parts[1])
-        } else {
-            prefix = nil
-            name = normalized
-        }
-
-        let effectivePrefix = prefix ?? fallbackPrefix
+        let (effectivePrefix, name) = resolveIconName(iconName, fallbackPrefix: fallbackPrefix)
+        guard !effectivePrefix.isEmpty, !name.isEmpty else { return nil }
 
         lock.lock()
         let pack = packs[effectivePrefix]
@@ -111,16 +99,15 @@ public final class ArchitectureIconRegistry: @unchecked Sendable {
 
     public func resolveIconName(_ iconName: String, fallbackPrefix: String = "mermaid-architecture") -> (prefix: String, name: String) {
         let normalized = iconName.trimmingCharacters(in: .whitespaces)
-        if normalized.contains(":") {
-            let parts = normalized.split(separator: ":", maxSplits: 1)
-            return (String(parts[0]), String(parts[1]))
+        guard let separator = normalized.firstIndex(of: ":") else {
+            return (fallbackPrefix, normalized)
         }
-        return (fallbackPrefix, normalized)
+        return (String(normalized[..<separator]), String(normalized[normalized.index(after: separator)...]))
     }
 
     public func isExternalIcon(_ iconName: String, fallbackPrefix: String = "mermaid-architecture") -> Bool {
-        let (prefix, _) = resolveIconName(iconName, fallbackPrefix: fallbackPrefix)
-        return prefix != fallbackPrefix
+        let (prefix, name) = resolveIconName(iconName, fallbackPrefix: fallbackPrefix)
+        return !prefix.isEmpty && !name.isEmpty && prefix != fallbackPrefix
     }
 
     private func _validateExternalIconSVG(_ svg: String) -> Bool {

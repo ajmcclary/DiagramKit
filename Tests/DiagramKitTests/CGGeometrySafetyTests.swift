@@ -18,6 +18,21 @@ struct CGGeometrySafetyTests {
         #expect(_safeCGRoundedRect(rect, cornerWidth: 3, cornerHeight: 3).isEmpty)
     }
 
+    @Test("raster limits apply before the drawing callback")
+    func bitmapBudget() {
+        for (size, scale) in [
+            (CGSize(width: 33_000, height: 2), CGFloat(1)),
+            (CGSize(width: 11_000, height: 10_000), 1),
+            (CGSize(width: 10_000, height: 10_000), 3),
+            (CGSize(width: 3, height: 2), CGFloat.infinity),
+        ] {
+            #expect(DiagramBitmapRenderer.render(size: size, scale: scale, theme: .default) { _ in
+                Issue.record("Out-of-budget image reached drawing")
+            } == nil)
+        }
+        #expect(DiagramBitmapRenderer.render(size: CGSize(width: 3, height: 2), scale: 2, theme: .default) { _ in } != nil)
+    }
+
     @Test("an oversize corner radius is clamped")
     func oversizeRadius() {
         let path = _safeCGRoundedRect(CGRect(x: 0, y: 0, width: 10, height: 4), cornerWidth: 50, cornerHeight: .nan)
