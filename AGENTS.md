@@ -36,6 +36,8 @@ gated with `#if canImport(UIKit) || canImport(AppKit)` /
 platform-conditioned manifest dependency in the package is `swift-crypto`
 (`condition: .when(platforms: [.linux])` in `DiagramKitCommon`).
 
+The separate macOS-only `DiagramRemoteResources` product fetches remote diagram assets with per-hop address pinning. Consumers opt into it independently of parsing and rendering.
+
 ## Commands
 
 ```bash

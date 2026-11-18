@@ -30,6 +30,8 @@ overlap, preserve the constraints here and use the other docs for detail.
   commit `e88a7a09`. The preserved specs, plans, and phase notes live in the
   workspace superproject under `docs/archive/package/DiagramKit/superpowers/`.
 
+The separate macOS-only `DiagramRemoteResources` product fetches remote diagram assets with per-hop address pinning. Consumers opt into it independently of parsing and rendering.
+
 ## Commands
 
 ```bash

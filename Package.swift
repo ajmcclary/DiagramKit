@@ -26,6 +26,7 @@ let package = Package(
         .iOS("27.0")
     ],
     products: [
+        .library(name: "DiagramRemoteResources", targets: ["DiagramRemoteResources"]),
         .library(name: "DiagramKit", targets: ["DiagramKit"]),
         .library(name: "DiagramKitImport", targets: ["DiagramKitImport"]),
         .library(name: "DiagramKitCommon", targets: ["DiagramKitCommon"]),
@@ -66,6 +67,9 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.3")
     ],
     targets: [
+        // Opt-in macOS transport. The render and import products perform no network access.
+        .target(name: "DiagramRemoteResources", swiftSettings: swiftSettings),
+        .testTarget(name: "DiagramRemoteResourcesTests", dependencies: ["DiagramRemoteResources"], swiftSettings: swiftSettings),
         .target(
             name: "DiagramKitCommon",
             dependencies: [
