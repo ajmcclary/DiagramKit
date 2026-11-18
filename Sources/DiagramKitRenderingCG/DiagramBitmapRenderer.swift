@@ -58,7 +58,9 @@ public enum DiagramBitmapRenderer {
               allocationWidth * allocationHeight <= 400_000_000 else { return nil }
 
         #if canImport(UIKit)
+        guard fitsUIKitBudget(pixelWidth: Int(allocationWidth), pixelHeight: Int(allocationHeight)) else { return nil }
         let format = UIGraphicsImageRendererFormat()
+        format.preferredRange = .standard
         format.scale = scale
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
         return renderer.image { rendererContext in
@@ -104,6 +106,16 @@ public enum DiagramBitmapRenderer {
         #else
         return nil
         #endif
+    }
+
+    /// Budget one standard-range RGBA bitmap, rounding each row up to 256 bytes.
+    /// Limit workspace for a single export on memory-constrained UIKit hosts.
+    static func fitsUIKitBudget(pixelWidth: Int, pixelHeight: Int) -> Bool {
+        let maxBytes = 64 * 1_024 * 1_024
+        let maxDimension = 16_384
+        guard (1...maxDimension).contains(pixelWidth), (1...maxDimension).contains(pixelHeight) else { return false }
+        let rowBytes = ((pixelWidth * 4 + 255) / 256) * 256
+        return pixelHeight <= maxBytes / rowBytes
     }
 }
 

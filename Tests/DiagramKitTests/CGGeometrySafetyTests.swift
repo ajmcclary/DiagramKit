@@ -18,6 +18,14 @@ struct CGGeometrySafetyTests {
         #expect(_safeCGRoundedRect(rect, cornerWidth: 3, cornerHeight: 3).isEmpty)
     }
 
+    @Test("UIKit raster admission counts padded rows and caps individual dimensions")
+    func mobileBitmapBudget() {
+        #expect(DiagramBitmapRenderer.fitsUIKitBudget(pixelWidth: 4096, pixelHeight: 4096))
+        #expect(!DiagramBitmapRenderer.fitsUIKitBudget(pixelWidth: 4097, pixelHeight: 4095))
+        #expect(!DiagramBitmapRenderer.fitsUIKitBudget(pixelWidth: 1, pixelHeight: 16_385))
+        #expect(!DiagramBitmapRenderer.fitsUIKitBudget(pixelWidth: .max, pixelHeight: .max))
+    }
+
     @Test("raster limits apply before the drawing callback")
     func bitmapBudget() {
         for (size, scale) in [
