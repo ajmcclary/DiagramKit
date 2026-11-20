@@ -50,7 +50,9 @@ public struct QuadrantFrontmatterBinding: FrontmatterBinding {
             },
             applyTheme: { key, value, theme in
                 guard _isQuadrantThemeKey(key) else { return false }
-                let v = value.string
+                // The border fills reach an inline `style` attribute; a value
+                // that could add a declaration (`;fill:url(…)`) is rejected.
+                guard let v = value.cssValue else { return false }
                 switch key {
                 case "quadrant1Fill": theme.quadrant1Fill = v
                 case "quadrant2Fill": theme.quadrant2Fill = v

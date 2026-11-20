@@ -4,6 +4,39 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
+### Changed — what a consumer will notice
+
+- **Fixed: script injection through architecture, packet and gitGraph
+  theme variables.** A frontmatter or `%%{init}%%` theme value such as
+  `red}</style><script>…` was copied into the SVG `<style>` block and
+  closed it. These bindings now reject a value `_isSafeCSSThemeValue`
+  refuses, as the requirement, radar, treeView and wardley bindings
+  already did; colours, lengths and font weights are unchanged.
+- **Fixed: script injection through `config.er.stroke` and ER `style`
+  statements.** The entity attribute-divider line wrote the stroke
+  unescaped; it is now escaped, and the ER `stroke`, `fill` and
+  `erEdgeLabelBackground` bindings reject unsafe CSS values.
+- **Fixed: CSS injection through quadrant border fills, the pie
+  `fontFamily` and timeline `taskFontFamily`.** A value such as
+  `red;fill:url(…)` or `x} .a{…}` added declarations or rules to a `style`
+  attribute or `<style>` block. The quadrant theme binding now rejects such
+  values; the two font-family keys use the new `_isSafeCSSFontFamily`
+  check, which still accepts quoted family names (`"Open Sans", serif`).
+- **Fixed: stack overflow on deeply nested DOT, PlantUML and Structurizr
+  sources.** DOT subgraphs (named or anonymous `{ … }`), PlantUML
+  `@startjson` objects/arrays and composite states, and Structurizr element
+  blocks nested deeper than `_maxParserNestingDepth` (100) now throw
+  `DiagramInputLimitError(.nestingDepth, …)` instead of crashing the
+  process. `PlantUMLStateParser.parse(_:)` is now `throws` (source-breaking
+  for direct callers). `PlantUMLJSONMapper` and `PlantUMLStateMapper` drop
+  content past the same depth with a diagnostic when given a hand-built
+  tree.
+- **Fixed: DNS-pinning bypass in `DiagramRemoteResources`.**
+  `RemoteFetch.validateUserURL` refuses a host outside hostname or
+  IP-literal syntax. A host starting with `-` (`https://-rebind.example/`)
+  turned curl's `--resolve` pin into a pin removal, so curl resolved the
+  name itself and could connect to an address that was never validated.
+
 ## [0.1.0-beta.10] - 2026-11-13
 
 Remediates the 2026-11-12 full review: canvas edits that 0.1.0-beta.9's

@@ -36,7 +36,9 @@ public struct ArchitectureFrontmatterBinding: FrontmatterBinding {
             },
             applyTheme: { key, value, theme in
                 guard _isArchThemeKey(key) else { return false }
-                let v = value.string
+                // Theme strings are interpolated into the SVG `<style>`
+                // block; a value that could break out of it is rejected.
+                guard let v = value.cssValue else { return false }
                 switch key {
                 case "archEdgeColor":        theme.archEdgeColor = v
                 case "archEdgeArrowColor":   theme.archEdgeArrowColor = v

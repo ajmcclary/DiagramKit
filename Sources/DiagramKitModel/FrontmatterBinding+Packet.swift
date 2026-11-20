@@ -37,7 +37,9 @@ public struct PacketFrontmatterBinding: FrontmatterBinding {
                 return true
             },
             applyTheme: { key, value, theme in
-                let v = value.string
+                // Theme strings are interpolated into the SVG `<style>`
+                // block; a value that could break out of it is rejected.
+                guard let v = value.cssValue else { return false }
                 switch key {
                 case "byteFontSize":     theme.byteFontSize = v
                 case "startByteColor":   theme.startByteColor = v

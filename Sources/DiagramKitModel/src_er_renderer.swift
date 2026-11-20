@@ -190,7 +190,7 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
     let attrTop = y + headerHeight
     parts.append(
         "  <line x1=\"\(x)\" y1=\"\(attrTop)\" x2=\"\(x + width)\" y2=\"\(attrTop)\" " +
-            "stroke=\"\(stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
+            "stroke=\"\(SVG.escapeAttribute(stroke))\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
     )
 
     // Column divider positions

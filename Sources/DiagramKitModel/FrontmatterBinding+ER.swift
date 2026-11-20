@@ -19,11 +19,11 @@ public struct ERFrontmatterBinding: FrontmatterBinding {
             case "entityPadding":        guard let v = value.double else { return false }; config.entityPadding = v
             case "nodeSpacing":          guard let v = value.double else { return false }; config.nodeSpacing = v
             case "rankSpacing":          guard let v = value.double else { return false }; config.rankSpacing = v
-            case "stroke":               config.stroke = value.string
-            case "fill":                 config.fill = value.string
+            case "stroke":               guard let v = value.cssValue else { return false }; config.stroke = v
+            case "fill":                 guard let v = value.cssValue else { return false }; config.fill = v
             case "fontSize":             guard let v = value.double else { return false }; config.fontSize = v
             case "useMaxWidth":          guard let v = value.bool else { return false }; config.useMaxWidth = v
-            case "erEdgeLabelBackground": config.erEdgeLabelBackground = value.string
+            case "erEdgeLabelBackground": guard let v = value.cssValue else { return false }; config.erEdgeLabelBackground = v
             default: return false
             }
             return true

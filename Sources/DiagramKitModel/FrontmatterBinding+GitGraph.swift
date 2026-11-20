@@ -74,7 +74,15 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
     }
 
     private mutating func _applyTheme(key: String, value: FrontmatterValue) -> Bool {
-        let v = value.string
+        if key == "useGradient" {
+            guard let b = value.bool else { return false }
+            theme.useGradient = b
+            return true
+        }
+        // Theme strings are interpolated into the SVG `<style>` block and
+        // presentation attributes; a value that could break out of them is
+        // rejected.
+        guard let v = value.cssValue else { return false }
         switch key {
         case "git0": theme.git0 = v
         case "git1": theme.git1 = v
@@ -110,7 +118,6 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
         case "nodeBorder": theme.nodeBorder = v
         case "mainBkg": theme.mainBkg = v
         case "strokeWidth": theme.strokeWidth = v
-        case "useGradient": guard let b = value.bool else { return false }; theme.useGradient = b
         case "gradientStart": theme.gradientStart = v
         case "gradientStop": theme.gradientStop = v
         case "dropShadow": theme.dropShadow = v

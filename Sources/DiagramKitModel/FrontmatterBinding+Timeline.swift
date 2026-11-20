@@ -31,7 +31,7 @@ public struct TimelineFrontmatterBinding: FrontmatterBinding {
                 case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
                 case "useWidth":         guard let v = value.double else { return false }; config.useWidth = v
                 case "taskFontSize":     guard let v = value.double else { return false }; config.taskFontSize = v
-                case "taskFontFamily":   config.taskFontFamily = value.string
+                case "taskFontFamily":   guard let v = value.cssFontFamily else { return false }; config.taskFontFamily = v
                 case "textPlacement":    config.textPlacement = value.string
                 case "width":            guard let v = value.double else { return false }; config.width = v
                 case "height":           guard let v = value.double else { return false }; config.height = v

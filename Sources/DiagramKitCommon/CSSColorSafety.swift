@@ -137,6 +137,16 @@ public func _isSafeCSSThemeValue(_ value: String) -> Bool {
     return !trimmed.contains(";")
 }
 
+/// Returns `true` if a font-family list (`"Open Sans", sans-serif`) can be
+/// interpolated into an SVG `<style>` block or `style` attribute. Unlike
+/// `_isSafeCSSThemeValue` it allows quotes, which family names need (the
+/// sinks XML-escape them), but rejects anything that could end the
+/// declaration or rule (`;`, `{`, `}`), close the element (`<`, `>`), or
+/// call a function (`(`, `)` — `url(…)`, `expression(…)`).
+public func _isSafeCSSFontFamily(_ value: String) -> Bool {
+    !value.contains { "<>{};()\\`\n\r@".contains($0) }
+}
+
 /// Returns a safe inline style value, falling back to `default` and
 /// appending a `.styleDrop` diagnostic when the input is rejected.
 public func _safeCSSStyleValue(

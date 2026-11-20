@@ -63,7 +63,7 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
                 case "pieOuterStrokeWidth": theme.pieOuterStrokeWidth = v
                 case "pieOuterStrokeColor": theme.pieOuterStrokeColor = v
                 case "pieOpacity": theme.pieOpacity = v
-                case "fontFamily": theme.fontFamily = v
+                case "fontFamily": guard let f = value.cssFontFamily else { return false }; theme.fontFamily = f
                 default: return false
                 }
                 return true
