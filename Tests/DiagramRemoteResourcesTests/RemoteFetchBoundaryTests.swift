@@ -11,6 +11,48 @@ final class RemoteFetchBoundaryTests: XCTestCase {
         XCTAssertThrowsError(try RemoteFetch.validateUserURL(XCTUnwrap(URL(string: "https://user:secret@example.com/"))))
     }
 
+    /// curl reads a `--resolve` entry that starts with `-` as "remove this
+    /// pin" and then resolves the name itself, so a host such as
+    /// `-rebind.attacker.example` (which Foundation's URL parser accepts)
+    /// skipped the pinned, validated answers and connected to whatever a
+    /// fresh DNS lookup returned. Hosts outside hostname / IP-literal
+    /// syntax are refused before anything is resolved or pinned.
+    func test_hostsOutsideHostnameSyntaxAreRefused() throws {
+        for host in [
+            "-rebind.attacker.example", "a.-b.example", "+x.example", "ex,ample.com", "ex!ample.com",
+            "ex$ample.com", "ex*ample.com", "ex=ample.com", "ex'ample.com", "ex;ample.com",
+            "ex&ample.com", "ex(ample.com", "ex~ample.com", "a..b",
+        ] {
+            let url = try XCTUnwrap(URL(string: "https://\(host)/img.png"), host)
+            XCTAssertThrowsError(try RemoteFetch.validateUserURL(url), host) { error in
+                guard case RemoteFetch.FetchError.disallowedHost = error else {
+                    return XCTFail("\(host): expected disallowedHost, got \(error)")
+                }
+            }
+            XCTAssertThrowsError(try PinnedRemoteTransport.arguments(url: url, addresses: ["93.184.216.34"], timeout: 1,
+                headers: URL(fileURLWithPath: "/h"), body: URL(fileURLWithPath: "/b")), host)
+        }
+    }
+
+    func test_leadingDashHostNeverReachesResolverOrTransport() async throws {
+        do {
+            _ = try await PinnedRemoteTransport.fetch(URL(string: "https://-rebind.attacker.example/img.png")!, timeout: 1,
+                resolver: { host, _ in XCTFail("\(host) was resolved"); return ["93.184.216.34"] },
+                execute: { args in XCTFail("reached transport with \(args)"); return 0 })
+            XCTFail("expected refusal")
+        } catch RemoteFetch.FetchError.disallowedHost { }
+    }
+
+    func test_ordinaryHostnamesAndLiteralsStillValidate() throws {
+        for host in [
+            "example.com", "example.com.", "sub-domain.example.co.uk", "a1.b2", "my_host.example.com",
+            "xn--bcher-kva.example", "bücher.example", "EXAMPLE.COM", "93.184.216.34",
+            "[2606:2800:220:1:248:1893:25c8:1946]", "example.com:8443",
+        ] {
+            XCTAssertNoThrow(try RemoteFetch.validateUserURL(XCTUnwrap(URL(string: "https://\(host)/a.png"), host)), host)
+        }
+    }
+
     /// IPv6 prefixes that carry an IPv4 address (NAT64, 6to4, Teredo) and
     /// the reserved IPv4 blocks are checked like the address itself.
     func test_prefixesEmbeddingAPrivateIPv4AreRefused() {

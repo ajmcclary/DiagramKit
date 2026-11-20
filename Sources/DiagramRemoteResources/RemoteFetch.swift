@@ -39,9 +39,28 @@ public enum RemoteFetch {
             throw FetchError.invalidScheme(url.scheme ?? "(none)")
         }
         guard let host = url.host?.lowercased(), !host.isEmpty,
-              url.user == nil, url.password == nil, !isBlockedHost(host),
+              url.user == nil, url.password == nil, isValidHostSyntax(host), !isBlockedHost(host),
               url.port.map({ (1...65535).contains($0) }) ?? true else {
             throw FetchError.disallowedHost(url.host ?? "(none)")
+        }
+    }
+
+    /// `true` for an IP literal (bracketed or not) or an ASCII hostname of
+    /// non-empty labels made of letters, digits, `-` and `_`, none starting
+    /// with `-` (one trailing dot allowed). The host is pinned through curl's
+    /// `--resolve host:port:addr`, where a leading `-` means "remove this
+    /// pin" and curl then resolves the name itself; any other punctuation
+    /// has no place in a hostname either.
+    static func isValidHostSyntax(_ host: String) -> Bool {
+        let literal = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+        var v4 = in_addr(), v6 = in6_addr()
+        if inet_pton(AF_INET6, literal, &v6) == 1 || inet_pton(AF_INET, literal, &v4) == 1 { return true }
+        var name = Substring(host)
+        if name.hasSuffix(".") { name = name.dropLast() }
+        guard !name.isEmpty, name.utf8.count <= 253 else { return false }
+        return name.split(separator: ".", omittingEmptySubsequences: false).allSatisfy { label in
+            !label.isEmpty && label.utf8.count <= 63 && label.first != "-"
+                && label.unicodeScalars.allSatisfy { $0.isASCII && (CharacterSet.alphanumerics.contains($0) || $0 == "-" || $0 == "_") }
         }
     }
 
