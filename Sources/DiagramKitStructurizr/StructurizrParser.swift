@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitImport
 import DiagramKitModel
 
@@ -87,7 +88,7 @@ public struct StructurizrParser: Sendable {
             }
             if case .identifier = token {
                 if s.peekAhead(1) == .equals {
-                    if let el = try parseElementDef(&s, parentAlias: nil, scopedRelationships: &relationships) {
+                    if let el = try parseElementDef(&s, parentAlias: nil, depth: 1, scopedRelationships: &relationships) {
                         elements.append(el)
                     }
                     continue
@@ -142,7 +143,7 @@ public struct StructurizrParser: Sendable {
             }
             if case .identifier = token {
                 if s.peekAhead(1) == .equals {
-                    if let element = try parseElementDef(&s, parentAlias: nil, scopedRelationships: &scopedRelationships) {
+                    if let element = try parseElementDef(&s, parentAlias: nil, depth: 1, scopedRelationships: &scopedRelationships) {
                         var tagged = element
                         tagged.group = label
                         groupElements.append(tagged)
@@ -168,9 +169,13 @@ public struct StructurizrParser: Sendable {
 
     // MARK: - element_def
 
+    /// `depth` is the element's nesting level (1 for a model-level
+    /// element). Each element block is a level of parse recursion, so
+    /// blocks nested deeper than `_maxParserNestingDepth` throw.
     private func parseElementDef(
         _ s: inout StructurizrParserState,
         parentAlias: String?,
+        depth: Int,
         scopedRelationships: inout [StructurizrRelationshipDef]
     ) throws -> StructurizrModelElement? {
         guard let alias = s.consumeIdentifier(), s.peek() == .equals else { return nil }
@@ -211,6 +216,7 @@ public struct StructurizrParser: Sendable {
 
         var children: [StructurizrModelElement] = []
         if s.peek() == .openBrace {
+            try _checkParserNestingDepth(depth, "Structurizr element blocks")
             _ = s.advance()
             while let token = s.peek() {
                 if token == .closeBrace { break }
@@ -229,7 +235,7 @@ public struct StructurizrParser: Sendable {
                 }
                 if case .identifier = token {
                     if s.peekAhead(1) == .equals {
-                        if let child = try parseElementDef(&s, parentAlias: alias, scopedRelationships: &scopedRelationships) {
+                        if let child = try parseElementDef(&s, parentAlias: alias, depth: depth + 1, scopedRelationships: &scopedRelationships) {
                             children.append(child)
                         }
                         continue

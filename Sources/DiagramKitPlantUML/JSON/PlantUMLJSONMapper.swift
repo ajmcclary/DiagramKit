@@ -23,7 +23,7 @@ public struct PlantUMLJSONMapper {
     ) -> (model: TreeViewDiagram, diagnostics: [DiagramDiagnostic]) {
         var counter = 0
         var flat: [TreeViewNode] = []
-        let diagnostics: [DiagramDiagnostic] = []
+        var diagnostics: [DiagramDiagnostic] = []
 
         let rootNode: TreeViewNode
         switch value {
@@ -33,7 +33,8 @@ public struct PlantUMLJSONMapper {
                 value: value,
                 level: 0,
                 counter: &counter,
-                flat: &flat
+                flat: &flat,
+                diagnostics: &diagnostics
             )
         default:
             // Wrap primitive root in synthesized container.
@@ -56,15 +57,28 @@ public struct PlantUMLJSONMapper {
         return (TreeViewDiagram(root: rootNode, nodes: flat), diagnostics)
     }
 
+    /// Children deeper than `_maxParserNestingDepth` are dropped (once
+    /// reported). The parser never produces such a tree; this bounds the
+    /// recursion for a hand-built `PlantUMLJSONValue`.
     private func buildNode(
         name: String,
         value: PlantUMLJSONValue,
         level: Int,
         counter: inout Int,
-        flat: inout [TreeViewNode]
+        flat: inout [TreeViewNode],
+        diagnostics: inout [DiagramDiagnostic]
     ) -> TreeViewNode {
         let id = counter
         counter += 1
+
+        if level >= _maxParserNestingDepth, Self.hasChildren(value) {
+            if !diagnostics.contains(where: { $0.message == Self.depthMessage }) {
+                diagnostics.append(.featureDropped(.slotUnsupported, message: Self.depthMessage))
+            }
+            let truncated = TreeViewNode(id: id, level: level, name: name, nodeType: .directory)
+            flat.append(truncated)
+            return truncated
+        }
 
         switch value {
         case .object(let pairs):
@@ -76,7 +90,8 @@ public struct PlantUMLJSONMapper {
                     value: pair.value,
                     level: level + 1,
                     counter: &counter,
-                    flat: &flat
+                    flat: &flat,
+                    diagnostics: &diagnostics
                 ))
             }
             var node = flat[id]
@@ -93,7 +108,8 @@ public struct PlantUMLJSONMapper {
                     value: val,
                     level: level + 1,
                     counter: &counter,
-                    flat: &flat
+                    flat: &flat,
+                    diagnostics: &diagnostics
                 ))
             }
             var node = flat[id]
@@ -111,6 +127,17 @@ public struct PlantUMLJSONMapper {
             )
             flat.append(leaf)
             return leaf
+        }
+    }
+
+    private static let depthMessage =
+        "PlantUML @startjson is nested deeper than \(_maxParserNestingDepth) levels; deeper values dropped"
+
+    private static func hasChildren(_ value: PlantUMLJSONValue) -> Bool {
+        switch value {
+        case .object(let pairs): return !pairs.isEmpty
+        case .array(let elements): return !elements.isEmpty
+        case .string, .number, .bool, .null: return false
         }
     }
 

@@ -16,7 +16,7 @@ public struct PlantUMLStateMapper {
 
     public func map(_ ast: PlantUMLStateAST) -> (graph: ParsedGraphModel, diagnostics: [DiagramDiagnostic]) {
         var context = MappingContext()
-        let rootSubgraphs = walkBlock(ast, parentID: "root", context: &context)
+        let rootSubgraphs = walkBlock(ast, parentID: "root", depth: 0, context: &context)
 
         var graph = ParsedGraphModel(
             direction: .TB,
@@ -68,9 +68,14 @@ public struct PlantUMLStateMapper {
 
     // MARK: - Recursive walk
 
+    /// `depth` is the number of composites enclosing `ast`. A composite
+    /// nested deeper than `_maxParserNestingDepth` becomes a plain state
+    /// (its contents dropped, reported once): the parser never produces
+    /// one, and this bounds the recursion for a hand-built AST.
     private func walkBlock(
         _ ast: PlantUMLStateAST,
         parentID: String,
+        depth: Int,
         context: inout MappingContext
     ) -> [original_src_types.MermaidSubgraph] {
         var subgraphs: [original_src_types.MermaidSubgraph] = []
@@ -84,11 +89,20 @@ public struct PlantUMLStateMapper {
 
         // Composite states: emit as subgraphs, recurse for nested nodes.
         for decl in ast.states where decl.children != nil {
+            if depth + 1 > _maxParserNestingDepth {
+                let message = "PlantUML composite states are nested deeper than \(_maxParserNestingDepth) levels; their contents were dropped"
+                if !context.diagnostics.contains(where: { $0.message == message }) {
+                    context.diagnostics.append(.featureDropped(.slotUnsupported, message: message))
+                }
+                context.upsertNode(id: decl.id, label: decl.label, shape: .rounded)
+                continue
+            }
             // The composite itself isn't a node; it becomes a subgraph.
             let childContextStart = context.nodesInOrder.count
             let nested = walkBlock(
                 decl.children!,
                 parentID: decl.id,
+                depth: depth + 1,
                 context: &context
             )
             let nestedIds = context.nodesInOrder[childContextStart...].map(\.id)

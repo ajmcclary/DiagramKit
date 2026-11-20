@@ -50,7 +50,7 @@ public struct PlantUMLJSONParser {
             throw DiagramError.malformedSource(message: "PlantUML @startjson body is empty")
         }
         var index = trimmed.startIndex
-        let value = try parseValue(trimmed, index: &index)
+        let value = try parseValue(trimmed, index: &index, depth: 0)
         skipWhitespace(trimmed, index: &index)
         guard index == trimmed.endIndex else {
             throw DiagramError.malformedSource(
@@ -60,14 +60,21 @@ public struct PlantUMLJSONParser {
         return value
     }
 
-    private func parseValue(_ s: String, index: inout String.Index) throws -> PlantUMLJSONValue {
+    /// `depth` is the number of objects/arrays enclosing the value. Each
+    /// container is a level of parse recursion, so nesting is capped at
+    /// `_maxParserNestingDepth`.
+    private func parseValue(_ s: String, index: inout String.Index, depth: Int) throws -> PlantUMLJSONValue {
         skipWhitespace(s, index: &index)
         guard index < s.endIndex else {
             throw DiagramError.malformedSource(message: "PlantUML @startjson: unexpected end")
         }
         switch s[index] {
-        case "{": return try parseObject(s, index: &index)
-        case "[": return try parseArray(s, index: &index)
+        case "{":
+            try _checkParserNestingDepth(depth + 1, "PlantUML @startjson objects/arrays")
+            return try parseObject(s, index: &index, depth: depth + 1)
+        case "[":
+            try _checkParserNestingDepth(depth + 1, "PlantUML @startjson objects/arrays")
+            return try parseArray(s, index: &index, depth: depth + 1)
         case "\"": return .string(try parseString(s, index: &index))
         case "t", "f": return .bool(try parseBool(s, index: &index))
         case "n": return try parseNull(s, index: &index)
@@ -79,7 +86,7 @@ public struct PlantUMLJSONParser {
         }
     }
 
-    private func parseObject(_ s: String, index: inout String.Index) throws -> PlantUMLJSONValue {
+    private func parseObject(_ s: String, index: inout String.Index, depth: Int) throws -> PlantUMLJSONValue {
         index = s.index(after: index)  // consume '{'
         var pairs: [PlantUMLJSONValue.Pair] = []
         skipWhitespace(s, index: &index)
@@ -98,7 +105,7 @@ public struct PlantUMLJSONParser {
                 throw DiagramError.malformedSource(message: "PlantUML @startjson: expected ':'")
             }
             index = s.index(after: index)
-            let value = try parseValue(s, index: &index)
+            let value = try parseValue(s, index: &index, depth: depth)
             pairs.append(PlantUMLJSONValue.Pair(key: key, value: value))
             skipWhitespace(s, index: &index)
             if index < s.endIndex, s[index] == "," {
@@ -114,7 +121,7 @@ public struct PlantUMLJSONParser {
         throw DiagramError.malformedSource(message: "PlantUML @startjson: unterminated object")
     }
 
-    private func parseArray(_ s: String, index: inout String.Index) throws -> PlantUMLJSONValue {
+    private func parseArray(_ s: String, index: inout String.Index, depth: Int) throws -> PlantUMLJSONValue {
         index = s.index(after: index)  // consume '['
         var elements: [PlantUMLJSONValue] = []
         skipWhitespace(s, index: &index)
@@ -123,7 +130,7 @@ public struct PlantUMLJSONParser {
             return .array(elements)
         }
         while index < s.endIndex {
-            elements.append(try parseValue(s, index: &index))
+            elements.append(try parseValue(s, index: &index, depth: depth))
             skipWhitespace(s, index: &index)
             if index < s.endIndex, s[index] == "," {
                 index = s.index(after: index)

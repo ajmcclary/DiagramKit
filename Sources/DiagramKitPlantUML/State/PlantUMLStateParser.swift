@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitImport
 
 /// Line-based parser for PlantUML state and activity diagram bodies.
@@ -13,14 +14,18 @@ import DiagramKitImport
 ///
 /// Anything unrecognized is collected as an unsupported line so the
 /// importer can surface diagnostics.
+///
+/// Composite states nested deeper than `_maxParserNestingDepth` throw
+/// `DiagramInputLimitError(.nestingDepth, …)`: each one is a level of
+/// parse recursion.
 public struct PlantUMLStateParser {
 
     public init() {}
 
-    public func parse(_ body: String) -> PlantUMLStateAST {
+    public func parse(_ body: String) throws -> PlantUMLStateAST {
         var lines = body.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var index = 0
-        return parseBlock(lines: &lines, index: &index, isInsideComposite: false)
+        return try parseBlock(lines: &lines, index: &index, depth: 0)
     }
 
     // MARK: - Block parsing
@@ -30,8 +35,9 @@ public struct PlantUMLStateParser {
     private func parseBlock(
         lines: inout [String],
         index: inout Int,
-        isInsideComposite: Bool
-    ) -> PlantUMLStateAST {
+        depth: Int
+    ) throws -> PlantUMLStateAST {
+        let isInsideComposite = depth > 0
         var ast = PlantUMLStateAST()
         var lastActivityNode: String? = nil // for chaining `:action;` lines
         var pendingActivityStart = false
@@ -52,10 +58,11 @@ public struct PlantUMLStateParser {
 
             // Composite state open: `state Name {`
             if let decl = parseCompositeOpen(trimmed) {
-                let children = parseBlock(
+                try _checkParserNestingDepth(depth + 1, "PlantUML composite states")
+                let children = try parseBlock(
                     lines: &lines,
                     index: &index,
-                    isInsideComposite: true
+                    depth: depth + 1
                 )
                 var withChildren = decl
                 withChildren.children = children

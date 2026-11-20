@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 
@@ -38,6 +39,16 @@ public struct DOTParser {
         /// The active parse loop flushes these immediately after the current
         /// statement so nested chains stay in their local statement list.
         var pendingStatements: [DOTStatement] = []
+
+        /// Subgraphs (named or anonymous `{ … }`) currently open. Each one
+        /// is a level of parse recursion, so it is capped at
+        /// `_maxParserNestingDepth`.
+        var subgraphDepth: Int = 0
+
+        mutating func enterSubgraph() throws {
+            subgraphDepth += 1
+            try _checkParserNestingDepth(subgraphDepth, "DOT subgraphs")
+        }
 
         func peek() -> DOTToken? {
             pos < tokens.count ? tokens[pos] : nil
@@ -232,6 +243,8 @@ public struct DOTParser {
         case .openBrace:
             // Anonymous subgraph: `{ stmts }`
             _ = s.advance()
+            try s.enterSubgraph()
+            defer { s.subgraphDepth -= 1 }
             var statements: [DOTStatement] = []
             while let t = s.peek(), t != .closeBrace {
                 if t == .semicolon { _ = s.advance(); continue }
@@ -482,6 +495,8 @@ public struct DOTParser {
             throw DiagramError.malformedSource(message:"Expected '{' after 'subgraph'")
         }
         _ = s.advance() // consume '{'
+        try s.enterSubgraph()
+        defer { s.subgraphDepth -= 1 }
 
         var statements: [DOTStatement] = []
         while let token = s.peek(), token != .closeBrace {

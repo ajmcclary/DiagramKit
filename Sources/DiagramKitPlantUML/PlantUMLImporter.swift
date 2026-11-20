@@ -130,7 +130,7 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             )
         }
         if isPlantUMLStateBody(body) {
-            let ast = PlantUMLStateParser().parse(body)
+            let ast = try PlantUMLStateParser().parse(body)
             let (graph, diagnostics) = PlantUMLStateMapper().map(ast)
             return DiagramImportResult(
                 document: DiagramDocument(payload: .stateDiagram(graph)),
