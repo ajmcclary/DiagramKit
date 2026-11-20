@@ -4,6 +4,12 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.0-beta.12] - 2026-11-20
+
+Remediates the 2026-11-20 code review: script and CSS injection through
+theme values, stack overflow on deeply nested sources, and a DNS-pinning
+bypass in the remote resource transport.
+
 ### Changed — what a consumer will notice
 
 - **Fixed: script injection through architecture, packet and gitGraph
